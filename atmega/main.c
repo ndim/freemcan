@@ -314,12 +314,33 @@ void uart_putc_len (const char *s, size_t len)
 #endif
 
 
-/** send table[] to controller via serial port */
-inline static
+/** Send table[] to controller via serial port. */
+static
 void send_histogram(void)
 {
-  /* TODO: Send header. Should say how many values of what size. */
-  /* TODO: Send all table[] data via serial port */
+
+  /* Send magic header value ("HISTBL" for "history table")
+   *
+   * Defined as uint32_t to make endianness detection possible on the
+   * receiver side. */
+  const uint32_t header = (((uint32_t)'H') << 0 |
+			   ((uint32_t)'I') << 8 |
+			   ((uint32_t)'S') << 16 |
+			   ((uint32_t)'T') << 24);
+  uart_putc_len((const char *)&header, sizeof(header));
+  uart_putc('B');
+  uart_putc('L');
+
+  /* Send element size */
+  const uint8_t element_size = sizeof(table[0]);
+  uart_putc(element_size);
+
+  /* Send table size in multiples of 256 */
+  const uint8_t table_size = sizeof(table)/256;
+  uart_putc(table_size);
+
+  /* Send all table[] data via serial port */
+  uart_putc_len((const char *)table, sizeof(table));
 }
 
 
@@ -356,6 +377,7 @@ void main(void)
     /* 4 measurements */
     run_measurement();
 
+#if 0
     char s[7];
     int16_t h = -12345;
 
@@ -366,7 +388,8 @@ void main(void)
       utoa( table[i], s, 10 );
       uart_puts( s );
     }
-    //send_histogram();
+#endif
+    send_histogram();
 
     while (1) {
       ;

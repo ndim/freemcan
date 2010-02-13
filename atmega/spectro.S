@@ -67,10 +67,10 @@ my_ADC_vect:
 
 ext_inthandler:
 	/* interrupt housekeeping */
-	lds	r17, SREG
+	lds	r17, SREG /* INCORRECT */
 
 	/* read 8bit value from external ADC, extend to 16bit value */
-	lds	r26, ADC_BITS_PORT
+	lds	r26, ADCH
 	clr	r27
 
 	/* multiply index with 4 to get counter addr */

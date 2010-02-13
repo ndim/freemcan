@@ -308,12 +308,18 @@ void main(void) __attribute__((noreturn));
 void main(void)
 {
 
+#if 0
+    /* All of BSS is initialized to zero in the startup code, so we only
+     * need to initialize variables whose value differs from "all zero
+     * bytes".
+     */
     /* Initialize global variables */
     max_timer_count = 0;
     max_timer_flag  = 0;
     for (int i=0; i<MAX_COUNTER; i++) {
       table[i]=0;
     }
+#endif
 
 
     /*configure USART0 for 8N1*/

@@ -65,6 +65,11 @@ FUSES = {
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
 
+/** count number of measurements
+ *
+ * Use 8 bit value to ensure atomic read/write operations.
+ */
+volatile uint8_t measurement_count;
 
 /** maximum timer count
  *
@@ -113,7 +118,7 @@ ISR(ADC_vect) {
 
   table[index]++;
 
-  max_timer_count++;
+  measurement_count++;
 
   /* Der logische wechsel am int0 pin hat ein interruptflag im EIFR
    * gesetzt.  schreibe logische eins ins INTFn und lösche das flag.
@@ -233,7 +238,7 @@ inline static
 void run_measurement(void)
 {
     sei(); /* enable interrupts I-Flag bit 7  in SREQ (status register)*/
-    while (max_timer_count< 4) {
+    while (measurement_count < 4) {
     }
     cli(); /* disable interrupts */
 
@@ -317,6 +322,7 @@ void main(void)
     /* Initialize global variables */
     max_timer_count = 0;
     max_timer_flag  = 0;
+    measurement_count = 0;
     for (int i=0; i<MAX_COUNTER; i++) {
       table[i]=0;
     }

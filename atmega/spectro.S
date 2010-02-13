@@ -12,7 +12,7 @@
 #define __zero_reg__ r1
 
 .global my_ADC_vect
-my_ADC_vect:
+my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	in	sreg_save, _SFR_IO_ADDR(SREG)				/* 1 */
 
 	/* Z pointer register */

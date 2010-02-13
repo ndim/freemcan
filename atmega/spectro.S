@@ -19,10 +19,6 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	push	r30							/* 2 */
 	push	r31							/* 2 */
 
-	/* stores table offset */
-	push	r20							/* 2 */
-	push	r21							/* 2 */
-
 	/* histogram counter value */
 	push	r24							/* 2 */
 	push	r25							/* 2 */
@@ -41,13 +37,9 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	add	r30, r30	// (4*a)				/* 1 */
 	adc	r31, r31						/* 1 */
 
-	/* load table offset */
-	ldi	r20, lo8(table)						/* 1 */
-	ldi	r21, hi8(table)						/* 1 */
-
 	/* add table offset */
-	add	r30, r24						/* 1 */
-	adc	r31, r25						/* 1 */
+	subi	r30, lo8(-(table))					/* 1 */
+	sbci	r31, hi8(-(table))					/* 1 */
 
 	/* read 24(32)bit counter into (r27:)r26:r25:r24 (r31:r30 = Z) */
 	ld	r24, Z+							/* 2 */
@@ -82,9 +74,6 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	pop	r26							/* 2 */
 	pop	r25							/* 2 */
 	pop	r24							/* 2 */
-
-	pop	r21							/* 2 */
-	pop	r20							/* 2 */
 
 	pop	r31							/* 2 */
 	pop	r30							/* 2 */

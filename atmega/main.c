@@ -341,20 +341,19 @@ void main(void)
     }
 #endif
 
-
-    /*configure USART0 for 8N1*/
+    /* configure USART0 for 8N1 */
     uart0_init();
 
-    /*configure INT0 pin 16 on rising edge*/
+    /* configure INT0 pin 16 on rising edge */
     trigger_src_conf();
 
     /* configure AREF at pin 32 and single shot auto trigger over int0
      * at pin 40 ADC0 */
     adc_init();
 
-    /*configure unused pins*/
+    /* configure unused pins */
 
-    /*4 measurements*/
+    /* 4 measurements */
     run_measurement();
 
     char s[7];

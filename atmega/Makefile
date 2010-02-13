@@ -116,6 +116,7 @@ NM = avr-nm
 AVRDUDE = avrdude
 REMOVE = rm -f
 MV = mv -f
+OD = od
 
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) 
@@ -139,6 +140,7 @@ hex: $(TARGET).hex
 eep: $(TARGET).eep
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
+fuse: $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
 
 
 # Program the device.  
@@ -146,7 +148,43 @@ program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
+$(TARGET).fuses: $(TARGET).elf
+	$(OBJCOPY) -j .fuse -O binary $(TARGET).elf $(TARGET).fuses
 
+FUSES = $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
+$(FUSES): $(TARGET).fuses
+	$(OD) -A n -t xC $(TARGET).fuses | \
+	{ read lfuse hfuse efuse restofline; \
+	  echo "0x$$lfuse" > $(TARGET).lfuse.txt; \
+	  echo "0x$$hfuse" > $(TARGET).hfuse.txt; \
+	  echo "0x$$efuse" > $(TARGET).efuse.txt; \
+	}
+
+compare-fuses: read-fuses
+	@echo "New fuse values to be written to device:"; \
+	for f in lfuse hfuse efuse; do \
+		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
+	done
+
+program-fuses: $(FUSES)
+	@echo "Writing fuses to device:"; \
+	for f in lfuse hfuse efuse; do \
+		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
+	done
+	$(AVRDUDE) $(AVRDUDE_FLAGS) \
+		-U lfuse:w:$(TARGET).lfuse.txt:h \
+		-U hfuse:w:$(TARGET).hfuse.txt:h \
+		-U efuse:w:$(TARGET).efuse.txt:h
+
+read-fuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) \
+		-U lfuse:r:DEVICE.lfuse.txt:h \
+		-U hfuse:r:DEVICE.hfuse.txt:h \
+		-U efuse:r:DEVICE.efuse.txt:h
+	@echo "Read fuses from device:"; \
+	for f in lfuse hfuse efuse; do \
+		echo "    $$f=$$(cat "DEVICE.$$f.txt")"; \
+	done
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
@@ -208,6 +246,7 @@ $(TARGET).elf: $(OBJ)
 clean:
 	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
 	$(TARGET).map $(TARGET).sym $(TARGET).lss \
+	$(TARGET).fuses $(FUSES) \
 	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
 
 depend:
@@ -221,10 +260,5 @@ depend:
 		>> $(MAKEFILE); \
 	$(CC) -M -mmcu=$(MCU) $(CDEFS) $(CINCS) $(SRC) $(ASRC) >> $(MAKEFILE)
 
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend
-
-
-
-
-
+.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend compare-fuses program-fuses read-fuses
 

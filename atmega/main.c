@@ -3,9 +3,9 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -u -U lfuse:w:0xd7:m -U hfuse:w:0x9
 avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dataeep.hex
 */
 
-/*--------------------------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  * Includes
- *--------------------------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  */
 
 #include <avr/io.h>
@@ -13,9 +13,9 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 #include <stdlib.h>
 
 
-/*--------------------------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  * Defines
- *--------------------------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  */
 
 #ifndef F_CPU
@@ -34,9 +34,9 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 #define BIT(NO) (1<<(NO))
 
 
-/*--------------------------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  * Variables  (static, not visible in other modules)
- *--------------------------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  */
 
 
@@ -58,9 +58,9 @@ volatile uint16_t max_timer_count = 0;
 volatile uint8_t max_timer_flag = 0;
 
 
-/*--------------------------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
  * Local prototypes (not visible in other modules)
- *--------------------------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  */
 
 
@@ -84,22 +84,23 @@ ISR(ADC_vect) {
   //result += (ADCH<<8);
   result = ADCW;
 
-  /*500khz adc clk -> 3,5 LSB accuracy*/
+  /* 500khz adc clk -> 3,5 LSB accuracy */
   index = (uint8_t)(result>>2);
 
   table[index]++;
 
   max_timer_count++;
 
-  /*der logische wechsel am int0 pin hat ein interruptflag im EIFR gesetzt.
-   schreibe logische eins ins INTFn und lösche das flag.
-   normalerweise übernimmt das die ISR(INT0_vect){} automatisch aber da wir den
-   int0 für das auslösen des adcs nur konfigurieren aber nicht freigeben müssen wir das
-   flag manuell löschen
-   antwort aus dem forum:
-   Du musst den External INT nur konfigurieren, aber nicht unbedingt
-   freigeben. Nur das Interrupt Flag muss irgendwo manuell wieder
-   zurückgesetzt werden. Am Sinnvollsten in der ISR(ADC_vect).
+  /* Der logische wechsel am int0 pin hat ein interruptflag im EIFR
+   * gesetzt.  schreibe logische eins ins INTFn und lösche das flag.
+   * Normalerweise übernimmt das die ISR(INT0_vect){} automatisch aber
+   * da wir den int0 für das auslösen des adcs nur konfigurieren aber
+   * nicht freigeben müssen wir das flag manuell löschen
+   *
+   * antwort aus dem forum: Du musst den External INT nur
+   * konfigurieren, aber nicht unbedingt freigeben. Nur das Interrupt
+   * Flag muss irgendwo manuell wieder zurückgesetzt werden. Am
+   * Sinnvollsten in der ISR(ADC_vect).
    */
   EIFR |= BIT(INTF0);
 }
@@ -114,23 +115,29 @@ ISR(ADC_vect) {
 inline static
 void trigger_src_conf(void)
 {
-    /*MCUCR bit PUD (4): alle pullups können global auseschaltet weren (schreibe 1)*/
+    /* MCUCR bit PUD (4): alle pullups können global auseschaltet
+     * werden (schreibe 1) */
     /* port D Data direction register */
-    //bit 2 in DDRD == 0 -> Int0 (pin 16) ist eingang, ausgang sonst. lösche bit 2
+    /* bit 2 in DDRD == 0 -> Int0 (pin 16) ist eingang, ausgang
+     * sonst. lösche bit 2 */
     DDRD &= ~(BIT(DDD2));
-    /*port d data register: pull up einschalten, 20-50kOhm*/
+    /* port d data register: pull up einschalten, 20-50kOhm */
     PORTD |= BIT(PD2);
 
-    /*disable interrupt pin "INT0" (clear interrupt enable bit in External interrupt mask register)
-     otherwise an interrupt may occur if EICRA is changed*/
+    /* Disable interrupt pin "INT0" (clear interrupt enable bit in
+     * External interrupt mask register) otherwise an interrupt may
+     * occur if EICRA is changed */
     EIMSK &= ~(BIT(INT0));
-    /*int on rising or falling edge or level triggered (External interrupt control register A)*/
+    /* int on rising or falling edge or level triggered (External
+     * interrupt control register A) */
     EICRA &= ~(BIT(ISC01) | BIT(ISC00));
     /* 11 = interrupt on rising edge (setze bit 0 und 1 auf 1) */
     EICRA |=  (BIT(ISC01) | BIT(ISC00));
-    /*clear interrupt flag by writing a locical one to INTFn in the external interrupt flag register.
-      the flag is set when a interrupt occurs. if the I-flag in the sreg is set and the corresponding
-      flag in the EIFR the program counter jumps to the vector table*/
+    /* Clear interrupt flag by writing a locical one to INTFn in the
+     * external interrupt flag register.  The flag is set when a
+     * interrupt occurs. if the I-flag in the sreg is set and the
+     * corresponding flag in the EIFR the program counter jumps to the
+     * vector table*/
     EIFR |= BIT(INTF0);
     /*reenable interrupt INT0 (External interrupt mask register). jump to the ISR in case of an interrupt*/
     //EIMSK |= (BIT(INT0));

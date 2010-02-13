@@ -13,7 +13,7 @@
 #else
 
 /* Reserve registers for special use. The C compiler will not touch them then! */
-register unsigned char sreg_save asm("r7");
+register uint8_t sreg_save asm("r7");
 
 #endif /* !__ASSEMBLER__ */
 

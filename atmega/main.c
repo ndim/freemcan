@@ -71,6 +71,7 @@ volatile uint32_t table[MAX_COUNTER];
  */
 volatile uint8_t measurement_count;
 
+#ifdef TIMER_STUFF
 /** maximum timer count
  *
  * Written by main() with value received from controller.
@@ -85,6 +86,7 @@ volatile uint16_t max_timer_count = 0;
  * Read by run_measurements() main loop.
  */
 volatile uint8_t max_timer_flag = 0;
+#endif
 
 
 /*------------------------------------------------------------------------------

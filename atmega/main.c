@@ -290,6 +290,17 @@ void uart_puts (const char *s)
     }
 }
 
+inline static
+void uart_putc_len (const char *s, size_t len)
+{
+    while (len > 0)
+    {
+        uart_putc(*s);
+        s++;
+	len--;
+    }
+}
+
 
 /** counter overrun ISR */
 #if 0

@@ -15,6 +15,26 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 
 #include "registers.h"
 
+#if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
+#else
+# error Unsupported MCU!
+#endif
+
+/* Avoid C99 initializers to make sure that we do initialize each and every
+ * fuse value in the structure. */
+FUSES = {
+  /* 0xd7 = low */ (FUSE_SUT1 & FUSE_CKSEL3),
+  /* 0x99 = high */ (FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
+  /* 0xfc = extended */ (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
+};
+/* FIXME: Actually write those fuse values to the MCU.
+ *
+ * Hint: "avr-readelf -x .fuse main.o" dumps those three bytes:
+ *       Hex dump of section '.fuse':
+ *         0x00000000 d799fc                              ...
+ */
+
+
 
 /*------------------------------------------------------------------------------
  * Defines

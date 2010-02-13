@@ -109,15 +109,8 @@ ISR(INT0_vect) {
  * ADC-Callback function calls (adc_get(), histogram_update() ...)
  */
 ISR(ADC_vect) {
-  uint16_t result;
-  uint8_t index;
-
-  // result = ADCL;
-  // result += (ADCH<<8);
-  result = ADCW;
-
   /* 500khz adc clk -> 3,5 LSB accuracy */
-  index = (uint8_t)(result>>2);
+  const uint8_t index = ADCH; /* ADLAR bit must be set in ADMUX, then this cuts of 2LSB */
 
   table[index]++;
 
@@ -195,6 +188,9 @@ void adc_init(void)
 
   /* select voltage reference: external AREF Pin 32 as reference */
   ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
+
+  /* left adjust ADC value on readout (makes cutting off lower bits easy)  */
+  ADMUX |= BIT(ADLAR);
 
   /* clear ADC Control and Status Register A
    * enable ADC & configure IO-Pins to ADC (ADC ENable) */

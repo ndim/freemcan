@@ -142,7 +142,8 @@ void trigger_src_conf(void)
      * corresponding flag in the EIFR the program counter jumps to the
      * vector table*/
     EIFR |= BIT(INTF0);
-    /*reenable interrupt INT0 (External interrupt mask register). jump to the ISR in case of an interrupt*/
+    /* reenable interrupt INT0 (External interrupt mask
+     * register). jump to the ISR in case of an interrupt */
     //EIMSK |= (BIT(INT0));
 
 }
@@ -186,14 +187,18 @@ void adc_init(void)
   /*clear returned AD value, other next conversion value is not ovrtaken*/
   result = ADCW;
 
-  /*enable ad conversion complete interrupt if I-Flag in sreg is set (-> ADC interrupt enable)*/
+  /* enable ad conversion complete interrupt if I-Flag in sreg is set
+   * (-> ADC interrupt enable) */
   ADCSRA |= BIT(ADIE);
 
   /*falls der adc nicht per software im ISR ausgelöst werden soll*/
 
-  /*configure trigger source:
-    wenn man ADTS1 bit in ADCSRB setzt -> (auslöser external interrupt request 0) s.259 und s.242.
-    positive edge on trigger signal*/
+  /* Configure trigger source:
+   *
+   * Wenn man ADTS1 bit in ADCSRB setzt -> (auslöser external
+   * interrupt request 0) s.259 und s.242.
+   *
+   * positive edge on trigger signal */
   ADCSRB |= BIT(ADTS1);
   ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
 
@@ -295,7 +300,8 @@ void main(void)
     /*configure INT0 pin 16 on rising edge*/
     trigger_src_conf();
 
-    /*configure AREF at pin 32 and single shot auto trigger over int0 at pin 40 ADC0*/
+    /* configure AREF at pin 32 and single shot auto trigger over int0
+     * at pin 40 ADC0 */
     adc_init();
 
     /*configure unused pins*/

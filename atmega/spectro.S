@@ -6,7 +6,7 @@
 # error Unsupported MCU!
 #endif
 
-//#define HISTOGRAM_24BIT
+#define HISTOGRAM_DEPTH_32BIT
 
 	/* FIXME: __zero_reg__ definition should have happened already! */
 #define __zero_reg__ r1
@@ -23,7 +23,7 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	push	r24							/* 2 */
 	push	r25							/* 2 */
 	push	r26							/* 2 */
-#ifndef HISTOGRAM_24BIT
+#ifdef HISTOGRAM_DEPTH_32BIT
 	push	r27							/* 2 */
 #endif
 
@@ -42,33 +42,34 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	sbci	r31, hi8(-(table))					/* 1 */
 
 	/* read 24(32)bit counter into (r27:)r26:r25:r24 (r31:r30 = Z) */
-	ld	r24, Z+							/* 2 */
-	ld	r25, Z+							/* 2 */
-#ifdef HISTOGRAM_24BIT
-	ld	r26, Z							/* 2 */
-#else
-	ld	r26, Z+							/* 2 */
-	ld	r27, Z							/* 2 */
+	ldd	r24, Z+0						/* 2 */
+	ldd	r25, Z+1						/* 2 */
+	ldd	r26, Z+2						/* 2 */
+#ifdef HISTOGRAM_DEPTH_32BIT
+	ldd	r27, Z+3						/* 2 */
 #endif
 
 	/* increase by one */
 	adiw	r24, 1							/* 2 */
 	adc	r26, __zero_reg__					/* 1 */
-#ifndef HISTOGRAM_24BIT
+#ifdef HISTOGRAM_DEPTH_32BIT
 	adc	r27, __zero_reg__					/* 1 */
 #endif
 
 	/* store back increased 24(32)bit counter into same address */
-#ifdef HISTOGRAM_24BIT
-	st	Z, r26							/* 2 */
-#else
-	st	Z, r27							/* 2 */
-	st	-Z, r26							/* 2 */
+#ifdef HISTOGRAM_DEPTH_32BIT
+	std	Z+3, r26						/* 2 */
 #endif
-	st	-Z, r25							/* 2 */
-	st	-Z, r24							/* 2 */
+	std	Z+2, r26						/* 2 */
+	std	Z+1, r25						/* 2 */
+	std	Z+0, r24						/* 2 */
 
-#ifndef HISTOGRAM_24BIT
+	/* measurement_count++; */
+	lds	r24, measurement_count					/* 2 */
+	subi	r24, -(1)						/* 1 */
+	sts	measurement_count, r24					/* 2 */
+
+#ifdef HISTOGRAM_DEPTH_32BIT
 	pop	r27							/* 2 */
 #endif
 	pop	r26							/* 2 */
@@ -78,12 +79,21 @@ my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	pop	r31							/* 2 */
 	pop	r30							/* 2 */
 	out	_SFR_IO_ADDR(SREG), sreg_save				/* 1 */
+
+	/* Reset the interrupt flag: EIFR |= BIT(INTF0) */
+	sbi	_SFR_IO_ADDR(EIFR), INTF0				/* 2 */
+
 	reti								/* 5 */
 
 /* TOTAL CPU CYCLES:
- * my_ADC_vect:      70 cycles for 32bit (9 less for 24 bit)
- * C lang ADC_VECT:  73 cycles
- */
-
-
+ * my_ADC_vect:      72 cycles for 32bit (9 less for 24 bit, i.e. 63 cycles)
+ * C lang ADC_vect:  85 cycles for 32bit
+ *
+ * 1> [[ 1.0E6*C/F || C<-[63,72,85]] || F<-[16.0E6, 20.0E6]].
+ * [[3.9375,4.5,5.3125],[3.15,3.6,4.25]]
+ *
+ * us      asm24  asm32 C32bit
+ * 16MHz:  3.9375 4.5   5.3125
+ * 20MHz:  3.15   3.6   4.25
+ *
  */

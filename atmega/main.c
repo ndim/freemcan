@@ -43,13 +43,13 @@ FUSES = {
 
 #ifndef F_CPU
 #warning "F_CPU not defined in makefile, set xtal to 18432000 Hz"
-#define F_CPU 18432000UL                      //xtal frequency hz
-//#define F_CPU 1000000UL                     //werksauslieferung 8mhz/8
+#define F_CPU 18432000UL                      // xtal frequency hz
+// #define F_CPU 1000000UL                     // werksauslieferung 8mhz/8
 #endif
 
 #define BAUDRATE 9600UL
 
-#define F_ADC_CLK_SRC 200000UL                //hz
+#define F_ADC_CLK_SRC 200000UL                // hz
 #define ADC_DIVISION_FACTOR F_CPU/F_ADC_CLK_SRC
 
 
@@ -111,8 +111,8 @@ ISR(ADC_vect) {
   uint16_t result;
   uint8_t index;
 
-  //result = ADCL;
-  //result += (ADCH<<8);
+  // result = ADCL;
+  // result += (ADCH<<8);
   result = ADCW;
 
   /* 500khz adc clk -> 3,5 LSB accuracy */
@@ -172,7 +172,7 @@ void trigger_src_conf(void)
     EIFR |= BIT(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
      * register). jump to the ISR in case of an interrupt */
-    //EIMSK |= (BIT(INT0));
+    // EIMSK |= (BIT(INT0));
 
 }
 
@@ -189,18 +189,18 @@ void adc_init(void)
 {
   uint16_t result;
 
-  /*channel number: PIN 40 ADC0 -> ADMUX=0*/
+  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
   ADMUX = 0;
 
-  /*select voltage reference: external AREF Pin 32 as reference*/
+  /* select voltage reference: external AREF Pin 32 as reference */
   ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
 
-  /*clear ADC Control and Status Register A
-    enable ADC & configure IO-Pins to ADC (ADC ENable)*/
+  /* clear ADC Control and Status Register A
+   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
   ADCSRA = BIT(ADEN);
 
-  /*ADC prescaler selection (ADC Prescaler Select Bits)*/
-  /*bits ADPS0 .. ADPS2*/
+  /* ADC prescaler selection (ADC Prescaler Select Bits) */
+  /* bits ADPS0 .. ADPS2 */
   uint8_t adc_ps;
   adc_ps = ADC_DIVISION_FACTOR;
   ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
@@ -214,14 +214,14 @@ void adc_init(void)
      ;                              // conversion complete
   }
 
-  /*clear returned AD value, other next conversion value is not ovrtaken*/
+  /* clear returned AD value, other next conversion value is not ovrtaken */
   result = ADCW;
 
   /* enable ad conversion complete interrupt if I-Flag in sreg is set
    * (-> ADC interrupt enable) */
   ADCSRA |= BIT(ADIE);
 
-  /*falls der adc nicht per software im ISR ausgelöst werden soll*/
+  /* falls der adc nicht per software im ISR ausgelöst werden soll */
 
   /* Configure trigger source:
    *
@@ -232,19 +232,19 @@ void adc_init(void)
   ADCSRB |= BIT(ADTS1);
   ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
 
-  /*ADC auto trigger enable -> adc triggered by trigger signal*/
+  /* ADC auto trigger enable -> adc triggered by trigger signal */
   ADCSRA |= BIT(ADATE);
 }
 
 inline static
 void run_measurement(void)
 {
-    sei(); /* enable interrupts I-Flag bit 7  in SREQ (status register)*/
+    sei(); /* enable interrupts I-Flag bit 7  in SREQ (status register) */
     while (measurement_count < 4) {
     }
     cli(); /* disable interrupts */
 
-    ADCSRA &= ~BIT(ADATE);  //autotrigger off
+    ADCSRA &= ~BIT(ADATE);  // autotrigger off
 }
 
 /** USART0 initialisation to 8 databits no parity
@@ -255,16 +255,16 @@ void uart0_init(void)
 {
   uint16_t baud_value;
 
-  /*baud setting valid only  for asynchrounous normal mode*/
+  /* baud setting valid only  for asynchrounous normal mode */
   baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
 
   UBRR0H=(uint8_t)(baud_value>>8);
   UBRR0L=(uint8_t)baud_value;
 
-  /*Asynchron (no clk is used); 8 databit no parity (8N1 frame format)*/
+  /* Asynchron (no clk is used); 8 databit no parity (8N1 frame format) */
   UCSR0C = (BIT(UCSZ01) | BIT(UCSZ00));
 
-  /*tx enable*/
+  /* tx enable */
   UCSR0B = BIT(TXEN0);
 }
 
@@ -304,13 +304,13 @@ void uart_putc_len (const char *s, size_t len)
 
 /** counter overrun ISR */
 #if 0
-/*ISR(TCC0_OVF_vect) {
+ISR(TCC0_OVF_vect) {
   static uint16_t timer_count = 0;
   timer_count++;
   if (timer_count > max_timer_count) {
     max_timer_flag = 1;
   }
-}*/
+}
 #endif
 
 

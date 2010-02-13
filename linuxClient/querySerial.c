@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 {
   int fd, status, whichBaud, result;
   long baud;
-  char buffer[255];
+  char buffer[256];
 
   if (argc != 3)
   {

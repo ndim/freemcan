@@ -6,25 +6,88 @@
 # error Unsupported MCU!
 #endif
 
+//#define HISTOGRAM_24BIT
+
+	/* FIXME: __zero_reg__ definition should have happened already! */
+#define __zero_reg__ r1
+
 .global my_ADC_vect
 my_ADC_vect:
 	in	sreg_save, _SFR_IO_ADDR(SREG)
+
+	/* Z pointer register */
+	push	r30
+	push	r31
+
+	/* stores table offset */
+	push	r20
+	push	r21
+
+	/* histogram counter value */
+	push	r24
+	push	r25
 	push	r26
+#ifndef HISTOGRAM_24BIT
 	push	r27
+#endif
 
-	in	r0, 0 // ADCH	// Read highest 8 bits of ADC value (a).
-	clr	r27		// Throw away the lowest 2 bits.
+	/* Read 8bit value from ADC, extend to 16bit value */
+	lds	r30, ADCH	// Read highest 8 bits of ADC value a
+	clr	r31		// Throw away the lowest 2 bits
 
-	lsl	r26		// (2*a)
-	rol	r27
+	/* multiply a by 4 to get table offset */
+	add	r30, r30	// (2*a)
+	adc	r31, r31
+	add	r30, r30	// (4*a)
+	adc	r31, r31
 
-	lsl	r26		// (4*a)
-	rol	r27
+	/* load table offset */
+	ldi	r20, lo8(table)
+	ldi	r21, hi8(table)
 
-	
+	/* add table offset */
+	add	r30, r24
+	adc	r31, r25
 
+	/* read 24(32)bit counter into (r27:)r26:r25:r24 (r31:r30 = Z) */
+	ld	r24, Z+
+	ld	r25, Z+
+#ifdef HISTOGRAM_24BIT
+	ld	r26, Z
+#else
+	ld	r26, Z+
+	ld	r27, Z
+#endif
+
+	/* increase by one */
+	adiw	r24, 1
+	adc	r26, __zero_reg__
+#ifndef HISTOGRAM_24BIT
+	adc	r27, __zero_reg__
+#endif
+
+	/* store back increased 24(32)bit counter into same address */
+#ifdef HISTOGRAM_24BIT
+	st	Z, r26
+#else
+	st	Z, r27
+	st	-Z, r26
+#endif
+	st	-Z, r25
+	st	-Z, r24
+
+#ifndef HISTOGRAM_24BIT
 	pop	r27
+#endif
 	pop	r26
+	pop	r25
+	pop	r24
+
+	pop	r21
+	pop	r20
+
+	pop	r31
+	pop	r30
 	out	_SFR_IO_ADDR(SREG), sreg_save
 	reti
 

@@ -175,7 +175,9 @@ void adc_init(void)
   /*bits ADPS0 .. ADPS2*/
   uint8_t adc_ps;
   adc_ps = ADC_DIVISION_FACTOR;
-  ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) | (((adc_ps>>1) & 0x1)*BIT(ADPS1)) | ((adc_ps & 0x01)*BIT(ADPS0)));
+  ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
+	     (((adc_ps>>1) & 0x1)*BIT(ADPS1)) |
+	     ((adc_ps & 0x01)*BIT(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */
   /* software trigger ADC */

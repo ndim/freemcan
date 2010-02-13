@@ -28,7 +28,6 @@ my_ADC_vect:
 	out	_SFR_IO_ADDR(SREG), sreg_save
 	reti
 
-#if 0
 	/* Old first shot at interrupt handling routine */
 
 /* Register map:
@@ -97,4 +96,3 @@ ext_inthandler:
 	/* housekeeping */
 	sts	SREG, r17
 	reti
-#endif /* 0 */

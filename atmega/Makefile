@@ -7,8 +7,8 @@
 
 MCU = atmega644p
 FORMAT = ihex
-TARGET = main
-SRC = $(TARGET).c
+TARGET = spectro-firmware
+SRC = main.c
 ASRC = spectro.S
 OPT = s
 

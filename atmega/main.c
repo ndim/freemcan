@@ -269,7 +269,7 @@ void uart0_init(void)
 }
 
 inline static
-void uart_putc(unsigned char c)
+void uart_putc(const char c)
 {
     /* poll til output buffer is empty */
     while (!(UCSR0A & BIT(UDRE0)))
@@ -281,7 +281,7 @@ void uart_putc(unsigned char c)
 }
 
 inline static
-void uart_puts (char *s)
+void uart_puts (const char *s)
 {
     while (*s)
     {   /* til *s != '\0' (not final string character) */

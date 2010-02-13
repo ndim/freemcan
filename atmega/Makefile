@@ -9,7 +9,7 @@ MCU = atmega644p
 FORMAT = ihex
 TARGET = main
 SRC = $(TARGET).c
-ASRC = 
+ASRC = spectro.S
 OPT = s
 
 # Name of this Makefile (used for "make depend").

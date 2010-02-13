@@ -11,6 +11,9 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#include "registers.h"
 
 
 /*------------------------------------------------------------------------------

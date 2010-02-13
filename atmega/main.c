@@ -210,9 +210,8 @@ void adc_init(void)
   /* dummy read out (first conversion takes some time) */
   /* software trigger ADC */
   ADCSRA |= BIT(ADSC);
-  while ( ADCSRA & BIT(ADSC) ) {
-     ;                              // conversion complete
-  }
+  /* wait until conversion is complete */
+  loop_until_bit_is_clear(ADCSRA, ADSC);
 
   /* clear returned AD value, other next conversion value is not ovrtaken */
   result = ADCW;
@@ -271,10 +270,8 @@ void uart0_init(void)
 inline static
 void uart_putc(const char c)
 {
-    /* poll til output buffer is empty */
-    while (!(UCSR0A & BIT(UDRE0)))
-    {
-    }
+    /* poll until output buffer is empty */
+    loop_until_bit_is_set(UCSR0A, UDRE0);
 
     /* put the char */
     UDR0 = c;

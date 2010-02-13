@@ -15,6 +15,7 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 
 #include "registers.h"
 
+/* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
 #else
 # error Unsupported MCU!

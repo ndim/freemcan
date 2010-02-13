@@ -2,6 +2,9 @@
 #include "registers.h"
 
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
+#else
+# error Unsupported MCU!
+#endif
 
 .global my_ADC_vect
 my_ADC_vect:
@@ -95,7 +98,3 @@ ext_inthandler:
 	sts	SREG, r17
 	reti
 #endif /* 0 */
-
-#else
-# error Unsupported MCU!
-#endif

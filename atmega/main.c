@@ -62,8 +62,9 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
+/** histogram table */
+volatile uint32_t table[MAX_COUNTER];
 
-uint32_t table[MAX_COUNTER];
 
 /** maximum timer count
  *

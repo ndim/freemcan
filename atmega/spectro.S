@@ -6,6 +6,17 @@
 # error Unsupported MCU!
 #endif
 
+/* define register names in a single place */
+#define tmpcnt0 r24
+#define tmpcnt1 r25
+#define tmpcnt2 r26
+#define tmpcnt3 r27
+
+#define tmpidx0 r30
+#define tmpidx1 r31
+
+#define tmpidxW Z
+
 #define HISTOGRAM_DEPTH_32BIT
 
 	/* FIXME: __zero_reg__ definition should have happened already! */
@@ -13,71 +24,78 @@
 
 .global my_ADC_vect
 my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
+
+	/* save SREG */
 	in	sreg_save, _SFR_IO_ADDR(SREG)				/* 1 */
 
-	/* Z pointer register */
-	push	r30							/* 2 */
-	push	r31							/* 2 */
+	/* save pointer register */
+	push	tmpidx0							/* 2 */
+	push	tmpidx1							/* 2 */
 
-	/* histogram counter value */
-	push	r24							/* 2 */
-	push	r25							/* 2 */
-	push	r26							/* 2 */
+	/* save temp counter */
+	push	tmpcnt0							/* 2 */
+	push	tmpcnt1							/* 2 */
+	push	tmpcnt2							/* 2 */
 #ifdef HISTOGRAM_DEPTH_32BIT
-	push	r27							/* 2 */
+	push	tmpcnt3							/* 2 */
 #endif
 
 	/* Read 8bit value from ADC, extend to 16bit value */
-	lds	r30, ADCH	// Read highest 8 bits of ADC value a	/* 2 */
-	clr	r31		// Throw away the lowest 2 bits		/* 1 */
+	lds	tmpidx0, ADCH	// Read highest 8 bits of ADC value a	/* 2 */
+	clr	tmpidx1		// Throw away the lowest 2 bits		/* 1 */
 
 	/* multiply a by 4 to get table offset */
-	add	r30, r30	// (2*a)				/* 1 */
-	adc	r31, r31						/* 1 */
-	add	r30, r30	// (4*a)				/* 1 */
-	adc	r31, r31						/* 1 */
+	add	tmpidx0, tmpidx0	// (2*a)			/* 1 */
+	adc	tmpidx1, tmpidx1					/* 1 */
+	add	tmpidx0, tmpidx0	// (4*a)			/* 1 */
+	adc	tmpidx1, tmpidx1					/* 1 */
 
 	/* add table offset */
-	subi	r30, lo8(-(table))					/* 1 */
-	sbci	r31, hi8(-(table))					/* 1 */
+	subi	tmpidx0, lo8(-(table))					/* 1 */
+	sbci	tmpidx1, hi8(-(table))					/* 1 */
 
 	/* read 24(32)bit counter into (r27:)r26:r25:r24 (r31:r30 = Z) */
-	ldd	r24, Z+0						/* 2 */
-	ldd	r25, Z+1						/* 2 */
-	ldd	r26, Z+2						/* 2 */
+	ldd	tmpcnt0, tmpidxW+0					/* 2 */
+	ldd	tmpcnt1, tmpidxW+1					/* 2 */
+	ldd	tmpcnt2, tmpidxW+2					/* 2 */
 #ifdef HISTOGRAM_DEPTH_32BIT
-	ldd	r27, Z+3						/* 2 */
+	ldd	tmpcnt3, tmpidxW+3					/* 2 */
 #endif
 
 	/* increase by one */
-	adiw	r24, 1							/* 2 */
-	adc	r26, __zero_reg__					/* 1 */
+	subi	tmpcnt0, -1						/* 1 */
+	adc	tmpcnt1, __zero_reg__					/* 1 */
+	adc	tmpcnt2, __zero_reg__					/* 1 */
 #ifdef HISTOGRAM_DEPTH_32BIT
-	adc	r27, __zero_reg__					/* 1 */
+	adc	tmpcnt3, __zero_reg__					/* 1 */
 #endif
 
 	/* store back increased 24(32)bit counter into same address */
 #ifdef HISTOGRAM_DEPTH_32BIT
-	std	Z+3, r26						/* 2 */
+	std	tmpidxW+3, tmpcnt3					/* 2 */
 #endif
-	std	Z+2, r26						/* 2 */
-	std	Z+1, r25						/* 2 */
-	std	Z+0, r24						/* 2 */
+	std	tmpidxW+2, tmpcnt2					/* 2 */
+	std	tmpidxW+1, tmpcnt1					/* 2 */
+	std	tmpidxW+0, tmpcnt0					/* 2 */
 
 	/* measurement_count++; */
-	lds	r24, measurement_count					/* 2 */
-	subi	r24, -(1)						/* 1 */
-	sts	measurement_count, r24					/* 2 */
+	lds	tmpidx0, measurement_count				/* 2 */
+	subi	tmpidx0, -(1)						/* 1 */
+	sts	measurement_count, tmpidx0				/* 2 */
 
+	/* restore temp counter */
 #ifdef HISTOGRAM_DEPTH_32BIT
-	pop	r27							/* 2 */
+	pop	tmpcnt3							/* 2 */
 #endif
-	pop	r26							/* 2 */
-	pop	r25							/* 2 */
-	pop	r24							/* 2 */
+	pop	tmpcnt2							/* 2 */
+	pop	tmpcnt1							/* 2 */
+	pop	tmpcnt0							/* 2 */
 
-	pop	r31							/* 2 */
-	pop	r30							/* 2 */
+	/* restore pointer register */
+	pop	tmpidx1							/* 2 */
+	pop	tmpidx0							/* 2 */
+
+	/* restore SREG */
 	out	_SFR_IO_ADDR(SREG), sreg_save				/* 1 */
 
 	/* Reset the interrupt flag: EIFR |= BIT(INTF0) */

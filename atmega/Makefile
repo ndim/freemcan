@@ -262,3 +262,6 @@ depend:
 
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend compare-fuses program-fuses read-fuses
 
+main.o: main.c registers.h
+spectro.o: spectro.S registers.h
+

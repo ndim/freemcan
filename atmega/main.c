@@ -274,10 +274,8 @@ void run_measurement(void)
 inline static
 void uart0_init(void)
 {
-  uint16_t baud_value;
-
   /* baud setting valid only  for asynchrounous normal mode */
-  baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
+  const uint16_t baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
 
   UBRR0H=(uint8_t)(baud_value>>8);
   UBRR0L=(uint8_t)baud_value;

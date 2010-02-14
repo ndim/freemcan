@@ -28,13 +28,6 @@ FUSES = {
   /* 0x99 = high */ (FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
   /* 0xfc = extended */ (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
 };
-/* FIXME: Actually write those fuse values to the MCU.
- *
- * Hint: "avr-readelf -x .fuse main.o" dumps those three bytes:
- *       Hex dump of section '.fuse':
- *         0x00000000 d799fc                              ...
- */
-
 
 
 /*------------------------------------------------------------------------------

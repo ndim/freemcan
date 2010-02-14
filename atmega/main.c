@@ -10,6 +10,8 @@ avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dat
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
+
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -58,6 +60,16 @@ FUSES = {
 #define BIT(NO) (1<<(NO))
 
 
+#define soft_reset()				\
+  do						\
+    {						\
+      wdt_enable(WDTO_15MS);			\
+      for(;;)					\
+	{					\
+	}					\
+    } while(0)
+
+
 /*------------------------------------------------------------------------------
  * Variables  (static, not visible in other modules)
  *------------------------------------------------------------------------------
@@ -95,6 +107,20 @@ volatile uint8_t max_timer_flag = 0;
  *------------------------------------------------------------------------------
  */
 
+
+/* Newer AVRs do not disable the watchdog on reset, so we need to
+ * disable it manually early in the startup sequence. "Newer" AVRs
+ * include the 164P/324P/644P we are using.
+ *
+ * See http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_softreset
+ */
+void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+void wdt_init(void)
+{
+  MCUSR = 0;
+  wdt_disable();
+  return;
+}
 
 
 /*

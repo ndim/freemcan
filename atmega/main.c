@@ -110,7 +110,9 @@ ISR(INT0_vect) {
  */
 ISR(ADC_vect) {
   /* 500khz adc clk -> 3,5 LSB accuracy */
-  const uint8_t index = ADCH; /* ADLAR bit must be set in ADMUX, then this cuts of 2LSB */
+  /* ADLAR bit must be set in ADMUX for this to work: Then this just
+   * uses the upper 8 bits of the ADC value. */
+  const uint8_t index = ADCH;
 
   table[index]++;
 

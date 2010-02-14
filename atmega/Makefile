@@ -2,7 +2,10 @@
 
 # AVR-GCC Makefile template, derived from the WinAVR template (which
 # is public domain), believed to be neutral to any flavor of "make"
-# (GNU make, BSD make, SysV make)
+# (GNU make, BSD make, SysV make).
+#
+# Relying on GNU make features now as I can't stand the compatible
+# make deficiencies.
 
 
 MCU = atmega644p
@@ -41,8 +44,9 @@ CTUNING = -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS = $(CDEBUG) $(CDEFS) $(CINCS) -O$(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
 
 
-#ASFLAGS = -Wa,-adhlns=$(<:.S=.lst),-gstabs 
-ASFLAGS = -Wall -Wextra
+ASFLAGS =
+ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
+ASFLAGS += -Wall -Wextra
 
 
 #Additional libraries.

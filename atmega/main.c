@@ -50,7 +50,7 @@ FUSES = {
 #define BAUDRATE 9600UL
 
 #define F_ADC_CLK_SRC 200000UL                // hz
-#define ADC_DIVISION_FACTOR F_CPU/F_ADC_CLK_SRC
+#define ADC_DIVISION_FACTOR (F_CPU/F_ADC_CLK_SRC)
 
 
 #define MAX_COUNTER 256

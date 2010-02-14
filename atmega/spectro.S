@@ -19,7 +19,7 @@
 
 #define HISTOGRAM_DEPTH_32BIT
 
-	/* FIXME: __zero_reg__ definition should have happened already! */
+/* avr-gcc docs say that __zero_reg__ is always r1 */
 #define __zero_reg__ r1
 
 .global my_ADC_vect

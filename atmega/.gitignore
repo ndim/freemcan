@@ -7,5 +7,7 @@
 /spectro-firmware.hfuse.txt
 /spectro-firmware.lfuse.txt
 /spectro-firmware.lss
+/spectro-firmware.map
 /spectro-firmware.sym
+/spectro.lst
 /spectro.o

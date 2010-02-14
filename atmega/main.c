@@ -363,8 +363,15 @@ void send_histogram(void)
 }
 
 
-void main(void) __attribute__((noreturn));
-void main(void)
+/* avr-gcc knows that int main(void) ending with an endless loop and
+ * not returning is normal, so we can avoid the
+ *
+ *    int main(void) __attribute__((noreturn));
+ *
+ * declaration and compile without warnings (or a return instruction
+ * at the end of main).
+ */
+int main(void)
 {
 
 #if 0

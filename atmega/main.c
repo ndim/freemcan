@@ -60,14 +60,13 @@ FUSES = {
 #define BIT(NO) (1<<(NO))
 
 
-#define soft_reset()				\
-  do						\
-    {						\
-      wdt_enable(WDTO_15MS);			\
-      for(;;)					\
-	{					\
-	}					\
-    } while(0)
+#define soft_reset()						\
+  do {								\
+    wdt_enable(WDTO_15MS);					\
+    while (1) {							\
+      /* wait until watchdog has caused a systems reset */	\
+    }								\
+  } while(0)
 
 
 /*------------------------------------------------------------------------------
@@ -411,10 +410,8 @@ void main(void)
       uart_puts( s );
     }
 #endif
+
     send_histogram();
 
-    while (1) {
-      ;
-    }
-
+    soft_reset();
 }

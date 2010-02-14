@@ -135,6 +135,8 @@ all: build
 
 build: elf hex eep
 
+ALL: elf hex eep lss sym fuse
+
 elf: $(TARGET).elf
 hex: $(TARGET).hex
 eep: $(TARGET).eep
@@ -260,7 +262,7 @@ depend:
 		>> $(MAKEFILE); \
 	$(CC) -M -mmcu=$(MCU) $(CDEFS) $(CINCS) $(SRC) $(ASRC) >> $(MAKEFILE)
 
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend compare-fuses program-fuses read-fuses
+.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
 
 main.o: main.c registers.h
 spectro.o: spectro.S registers.h

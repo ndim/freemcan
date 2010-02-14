@@ -43,9 +43,8 @@ FUSES = {
  */
 
 #ifndef F_CPU
-#warning "F_CPU not defined in makefile, set xtal to 18432000 Hz"
-#define F_CPU 18432000UL                      // xtal frequency hz
-// #define F_CPU 1000000UL                     // werksauslieferung 8mhz/8
+/* #define F_CPU 1000000UL                     // werksauslieferung 8mhz/8 */
+#define F_CPU 16000000UL		// Pollin AVR Eval board
 #endif
 
 #define BAUDRATE 9600UL

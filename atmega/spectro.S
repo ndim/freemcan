@@ -22,6 +22,9 @@
 /* avr-gcc docs say that __zero_reg__ is always r1 */
 #define __zero_reg__ r1
 
+.extern	table
+.extern	measurement_count
+
 .global my_ADC_vect
 my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 

@@ -1,7 +1,5 @@
 /*
-avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -u -U lfuse:w:0xd7:m -U hfuse:w:0x99:m -U efuse:w:0xfc:m
-avrdude -v -p m644p -P /dev/ttyS1 -c ponyser -U flash:w:data.hex -U eeprom:w:dataeep.hex
-*/
+ */
 
 /*------------------------------------------------------------------------------
  * Includes

@@ -1,4 +1,5 @@
 /main.o
+/settings.mk
 /spectro-firmware.eep
 /spectro-firmware.efuse.txt
 /spectro-firmware.elf

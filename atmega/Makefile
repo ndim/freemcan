@@ -8,6 +8,13 @@
 # make deficiencies.
 
 
+# Override settings by defining them in settings.mk Things not defined
+# in settings.mk will be later defined with ?= later in this Makefile.
+# AVRDUDE_PROGRAMMER and AVRDUDE_PORT are good candidates for
+# settings.mk.
+-include settings.mk
+
+
 MCU = atmega644p
 FORMAT = ihex
 TARGET = spectro-firmware
@@ -87,8 +94,8 @@ LDFLAGS = $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 
 # Programming support using avrdude. Settings and variables.
 
-AVRDUDE_PROGRAMMER = ponyser
-AVRDUDE_PORT = /dev/ttyS0
+AVRDUDE_PROGRAMMER ?= ponyser
+AVRDUDE_PORT ?= /dev/ttyS0
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep

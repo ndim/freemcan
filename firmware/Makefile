@@ -17,7 +17,7 @@
 
 MCU = atmega644p
 FORMAT = ihex
-TARGET = freemcan-firmware
+TARGET = firmware
 SRC = main.c
 ASRC = ISR-ADC_vect.S
 OPT = s

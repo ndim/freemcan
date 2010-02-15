@@ -28,6 +28,26 @@ The Plan
 (FIXME) No plan.
 
 
+
+
+Building
+--------
+
+  $ make
+
+Installation is not supported at this time.
+
+
+Software Requirements
+~~~~~~~~~~~~~~~~~~~~~
+
+  * GNU make
+  * avr-gcc based AVR toolchain
+  * POSIX/GNU/Linux/Unix host system
+  * C compiler for host system
+
+
+
 The License
 -----------
 

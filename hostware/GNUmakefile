@@ -1,6 +1,7 @@
 CFLAGS ?=
 
 CFLAGS += -std=c99
+CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
 CFLAGS += -Werror
 

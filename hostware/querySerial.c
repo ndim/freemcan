@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /* These are the hash definitions */
 #define USERBAUD1200 '1'+'2'
@@ -15,7 +16,7 @@ struct termios tio;
 
 int main(int argc, char *argv[])
 {
-  int fd, status, whichBaud, result;
+  int fd, whichBaud, result;
   long baud;
   char buffer[256];
 
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 
   tio.c_cflag = baud | CS8 | CREAD | CLOCAL;
 
-  // No parity (8N1):
+  /* No parity (8N1): */
   tio.c_cflag &= ~PARENB;
   tio.c_cflag &= ~CSTOPB;
   tio.c_cflag &= ~CSIZE;
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
    */
 
 
-  //fcntl(fd, F_SETFL, FNDELAY);
+  /* fcntl(fd, F_SETFL, FNDELAY); */
   fcntl(fd, F_SETFL, 0);
 
   /* write the users command out the serial port */
@@ -184,13 +185,13 @@ int main(int argc, char *argv[])
   }
   */
 
-  /* wait for awhile, based on the user's timeout value in mS*/
-  //usleep(atoi(argv[3]) * 1000);
+  /* wait for awhile, based on the user's timeout value in mS */
+  /* usleep(atoi(argv[3]) * 1000); */
 
   while(1){
     /* read the input buffer and print it */
     result = read(fd,buffer,255);
-    buffer[result] = 0; // zero terminate so printf works
+    buffer[result] = '\0'; /* zero terminate so printf works */
     printf("%s\n",buffer);
   }
 

@@ -17,9 +17,9 @@
 
 MCU = atmega644p
 FORMAT = ihex
-TARGET = spectro-firmware
+TARGET = freemcan-firmware
 SRC = main.c
-ASRC = spectro.S
+ASRC = ISR-ADC_vect.S
 OPT = s
 
 # Name of this Makefile (used for "make depend").
@@ -276,5 +276,5 @@ depend:
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
 
 main.o: main.c registers.h
-spectro.o: spectro.S registers.h
+ISR-ADC_vect.o: ISR-ADC_vect.S registers.h
 

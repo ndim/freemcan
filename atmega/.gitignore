@@ -1,14 +1,4 @@
-/main.o
+/*.lst
+/*.o
 /settings.mk
-/spectro-firmware.eep
-/spectro-firmware.efuse.txt
-/spectro-firmware.elf
-/spectro-firmware.fuses
-/spectro-firmware.hex
-/spectro-firmware.hfuse.txt
-/spectro-firmware.lfuse.txt
-/spectro-firmware.lss
-/spectro-firmware.map
-/spectro-firmware.sym
-/spectro.lst
-/spectro.o
+/*-firmware.*

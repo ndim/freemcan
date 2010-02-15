@@ -8,6 +8,9 @@ CFLAGS += -Werror
 .PHONY: all
 all: querySerial
 
+.PHONY: ALL
+ALL: all
+
 CLEANFILES += querySerial
 
 .PHONY: clean

@@ -8,14 +8,17 @@ GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else ec
 
 CLEANFILES =
 
-.PHONY: all clean
-all clean:
+.PHONY: all clean ALL
+all clean ALL:
 	$(MAKE) $@-here
 	$(MAKE) -C firmware $@
 	$(MAKE) -C hostware $@
 
 .PHONY: all-here
 all-here: README.html
+
+.PHONY: ALL-here
+ALL-here: all-here
 
 CLEANFILES += README.html
 # Build README.html if rst2html is present. If not, ignore the error.

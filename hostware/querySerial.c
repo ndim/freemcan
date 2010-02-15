@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
       baud = B38400;
       break;
     default:
-      printf("Baud rate %s is not supported, ");
-      printf("use 1200, 2400, 9600, 19200 or 38400.\n", argv[2]);
+      printf("Baud rate %s is not supported, "
+	     "use 1200, 2400, 9600, 19200 or 38400.\n", argv[2]);
       exit(1);
       break;
   }

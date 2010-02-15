@@ -2,7 +2,7 @@ GIT      ?= git
 RST2HTML ?= rst2html
 XZ       ?= xz
 
-PACKAGE_TARNAME ?= freemcan
+PACKAGE_TARNAME ?= $(notdir $(PWD))
 PACKAGE_VERSION ?= $(shell date -I)
 GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else echo "nongit"; fi)
 

@@ -12,59 +12,10 @@
 #define USERBAUD1920 '1'+'9'
 #define USERBAUD3840 '3'+'8'
 
-struct termios tio;
 
-int main(int argc, char *argv[])
+void serial_setup(const int fd, const long baud)
 {
-  int fd, whichBaud, result;
-  long baud;
-  char buffer[256];
-
-  if (argc != 3)
-  {
-    printf("Usage: querySerial device portspeed \n");
-    exit( 1 );
-  }
-
-  /* compute which baud rate the user wants using a simple adding
-   * hash function
-   */
-  whichBaud = argv[2][0] + argv[2][1];
-
-  switch (whichBaud) {
-    case USERBAUD1200:
-      baud = B1200;
-      break;
-    case USERBAUD2400:
-      baud = B2400;
-      break;
-    case USERBAUD9600:
-      baud = B9600;
-      break;
-    case USERBAUD1920:
-      baud = B19200;
-      break;
-    case USERBAUD3840:
-      baud = B38400;
-      break;
-    default:
-      printf("Baud rate %s is not supported, "
-	     "use 1200, 2400, 9600, 19200 or 38400.\n", argv[2]);
-      exit(1);
-      break;
-  }
-
-  /* open the serial port device file
-   * O_NDELAY - tells port to operate and ignore the DCD line
-   * O_NOCTTY - this process is not to become the controlling
-   *            process for the port. The driver will not send
-   *            this process signals due to keyboard aborts, etc.
-   */
-  if ((fd = open(argv[1],O_RDWR | O_NDELAY | O_NOCTTY)) < 0)
-  {
-    printf("Couldn't open %s\n",argv[1]);
-    exit(1);
-  }
+  struct termios tio;
 
  /* Like the character size you must manually set the parity enable
   * and parity type bits.  UNIX serial drivers support even, odd, and
@@ -173,6 +124,62 @@ int main(int argc, char *argv[])
 
   /* fcntl(fd, F_SETFL, FNDELAY); */
   fcntl(fd, F_SETFL, 0);
+}
+
+
+int main(int argc, char *argv[])
+{
+  int fd, whichBaud, result;
+  long baud;
+  char buffer[256];
+
+  if (argc != 3)
+  {
+    printf("Usage: querySerial device portspeed \n");
+    exit( 1 );
+  }
+
+  /* compute which baud rate the user wants using a simple adding
+   * hash function
+   */
+  whichBaud = argv[2][0] + argv[2][1];
+
+  switch (whichBaud) {
+    case USERBAUD1200:
+      baud = B1200;
+      break;
+    case USERBAUD2400:
+      baud = B2400;
+      break;
+    case USERBAUD9600:
+      baud = B9600;
+      break;
+    case USERBAUD1920:
+      baud = B19200;
+      break;
+    case USERBAUD3840:
+      baud = B38400;
+      break;
+    default:
+      printf("Baud rate %s is not supported, "
+	     "use 1200, 2400, 9600, 19200 or 38400.\n", argv[2]);
+      exit(1);
+      break;
+  }
+
+  /* open the serial port device file
+   * O_NDELAY - tells port to operate and ignore the DCD line
+   * O_NOCTTY - this process is not to become the controlling
+   *            process for the port. The driver will not send
+   *            this process signals due to keyboard aborts, etc.
+   */
+  if ((fd = open(argv[1],O_RDWR | O_NDELAY | O_NOCTTY)) < 0)
+  {
+    printf("Couldn't open %s\n",argv[1]);
+    exit(1);
+  }
+
+  serial_setup(fd, baud);
 
   /* write the users command out the serial port */
   /*

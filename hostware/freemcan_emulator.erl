@@ -8,11 +8,17 @@
 
 loop(State = #state{port=Port}) ->
     receive
-	{Port, CmdBin} ->
+	{Port, {data, CmdBin}} ->
 	    io:format("Received command: ~p~n", [CmdBin]),
 	    Reply = <<"Moo">>,
 	    io:format("Sending reply:    ~p~n", [Reply]),
 	    Port ! Reply,
+	    loop(State);
+	{'EXIT', Port, Reason} ->
+	    io:format("EXIT on Port:     ~p~n", [Reason]),
+	    {error, Reason};
+	Unhandled ->
+	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    loop(State)
     end.
 

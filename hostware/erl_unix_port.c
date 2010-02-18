@@ -25,9 +25,9 @@
 #define WRITE_FILENO 4
 
 
-#define DEBUG(...)				\
-  do {						\
-    fprintf(stderr, __VA_ARGS__);		\
+#define DEBUG(...)					\
+  do {							\
+    fprintf(stderr, "EUP: " __VA_ARGS__);		\
   } while (0)
 
 
@@ -53,12 +53,11 @@ static int read_size(const int in_fd)
 }
 
 
-static void copy_data(const int in_fd, const int out_fd)
+static inline
+int max(const int a, const int b)
 {
-  const int bytes_to_read = read_size(in_fd);
-  if (bytes_to_read > 0) {
-    do_copy_data(in_fd, out_fd, bytes_to_read);
-  }
+  if (a>b) return a;
+  else return b;
 }
 
 
@@ -81,36 +80,60 @@ static void main_loop(const char *unix_name)
     perror("listen");
     abort();
   }
-  DEBUG("Waiting...\n");
-
-  const int connfd = accept(sock, NULL, 0);
-  if (connfd < 0) {
-    perror("accept");
-    abort();
-  }
-  DEBUG("Connected\n");
 
   while (1) {
-    fd_set in_fdset;
-    FD_ZERO(&in_fdset);
-    FD_SET(READ_FILENO, &in_fdset);
-    FD_SET(connfd, &in_fdset);
-    const int max_fd = connfd;
-    int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
-    if (n<0) { /* error */
-      if (errno != EINTR) {
-	perror("select");
+    DEBUG("Waiting for socket connection\n");
+    const int connfd = accept(sock, NULL, 0);
+    if (connfd < 0) {
+      if (errno == EINTR) {
+	continue;
+      } else {
+	perror("accept");
 	abort();
       }
-    } else if (0 == n) { /* timeout */
-      DEBUG("select timeout\n");
-      abort();
-    } else { /* n>0 */
-      if (FD_ISSET(READ_FILENO, &in_fdset)) {
-	copy_data(READ_FILENO, connfd);
-      }
-      if (FD_ISSET(connfd, &in_fdset)) {
-	copy_data(connfd, WRITE_FILENO);
+    }
+    DEBUG("Connected\n");
+    DEBUG("FDs: connfd=%d, erlread=%d, erlwrite=%d\n",
+	  connfd, READ_FILENO, WRITE_FILENO);
+
+    while (1) {
+      fd_set in_fdset;
+      FD_ZERO(&in_fdset);
+      FD_SET(READ_FILENO, &in_fdset);
+      FD_SET(connfd, &in_fdset);
+      DEBUG("Waiting for data\n");
+      const int max_fd = max(READ_FILENO, connfd);
+      int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
+      if (n<0) { /* error */
+	if (errno != EINTR) {
+	  perror("select");
+	  abort();
+	}
+      } else if (0 == n) { /* timeout */
+	DEBUG("select timeout\n");
+	abort();
+      } else { /* n>0 */
+	if (FD_ISSET(READ_FILENO, &in_fdset)) {
+	  DEBUG("Data from READ_FILENO\n");
+	  const int bytes_to_read = read_size(READ_FILENO);
+	  if (bytes_to_read > 0) {
+	    do_copy_data(READ_FILENO, connfd, bytes_to_read);
+	  } else {
+	    /* connection to Erlang close, abort this */
+	    return;
+	  }
+	}
+	if (FD_ISSET(connfd, &in_fdset)) {
+	  const int bytes_to_read = read_size(connfd);
+	  if (bytes_to_read > 0) {
+	    DEBUG("Data from connfd\n");
+	    do_copy_data(connfd, WRITE_FILENO, bytes_to_read);
+	  } else {
+	    /* connection closed */
+	    DEBUG("Closed connection from connfd\n");
+	    break;
+	  }
+	}
       }
     }
   }

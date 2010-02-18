@@ -34,6 +34,7 @@
 static void do_copy_data(const int in_fd, const int out_fd,
 			 const int data_size)
 {
+  DEBUG("Copying %d bytes from fd %d to fd %d\n", data_size, in_fd, out_fd);
   char buf[data_size];
   const ssize_t read_chars = read(in_fd, buf, sizeof(buf));
   assert(data_size == read_chars);
@@ -120,7 +121,8 @@ static void main_loop(const char *unix_name)
 	    do_copy_data(READ_FILENO, connfd, bytes_to_read);
 	  } else {
 	    /* connection to Erlang close, abort this */
-	    return;
+	    DEBUG("No data?\n");
+	    exit(1);
 	  }
 	}
 	if (FD_ISSET(connfd, &in_fdset)) {

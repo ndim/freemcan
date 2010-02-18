@@ -12,7 +12,7 @@ loop(State = #state{port=Port}) ->
 	    io:format("Received command: ~p~n", [CmdBin]),
 	    Reply = <<"Moo">>,
 	    io:format("Sending reply:    ~p~n", [Reply]),
-	    Port ! Reply,
+	    Port ! {self(), {command, Reply}},
 	    loop(State);
 	{'EXIT', Port, Reason} ->
 	    io:format("EXIT on Port:     ~p~n", [Reason]),

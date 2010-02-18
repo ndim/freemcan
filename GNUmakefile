@@ -8,11 +8,19 @@ GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else ec
 
 CLEANFILES =
 
+SUBDIRS = . firmware hostware
+
 .PHONY: all clean ALL
 all clean ALL:
-	$(MAKE) $@-here
-	$(MAKE) -C firmware $@
-	$(MAKE) -C hostware $@
+	@for subdir in $(SUBDIRS); do \
+		if test "x$$subdir" = "x."; then \
+			echo $(MAKE) $@-here; \
+			$(MAKE) $@-here; \
+		else \
+			echo $(MAKE) -C "$$subdir" $@; \
+			$(MAKE) -C "$$subdir" $@; \
+		fi; \
+	done
 
 .PHONY: all-here
 all-here: README.html

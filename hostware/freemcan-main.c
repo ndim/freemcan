@@ -130,21 +130,54 @@ void dev_select_do_io(fd_set *in_fdset)
 }
 
 
+int ui_select_set_in(fd_set *in_fdset, int maxfd)
+{
+  FD_SET(STDIN_FILENO, in_fdset);
+  if (STDIN_FILENO > maxfd) return STDIN_FILENO;
+  else return maxfd;
+}
+
+
+void ui_select_do_io(fd_set *in_fdset)
+{
+  if (FD_ISSET(STDIN_FILENO, in_fdset)) {
+    const int device_fd = device_fds[0];
+    const int bytes_to_read = read_size(device_fd);
+    if (bytes_to_read == 0) {
+      DEBUG("EOF from stdin, exiting.\n");
+      exit(0);
+    }
+    assert(bytes_to_read > 0);
+    char buf[bytes_to_read];
+    const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
+    assert(read_bytes == bytes_to_read);
+    DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, STDIN_FILENO, buf);
+    DEBUG("Copying data to fd %d\n", device_fd);
+    write(device_fd, buf, sizeof(buf));
+  }
+}
+
+
+/* Next up: char-by-char input */
+
 int main(int argc, char *argv[])
 {
   assert(argc == 2);
   assert(argv[1] != NULL);
+  assert(isatty(STDIN_FILENO));
+  assert(isatty(STDOUT_FILENO));
   const char *device_name = argv[1];
   DEBUG("freemcan-main: device=%s\n", device_name);
   const int device_fd = dev_open(device_name);
   assert(device_fd > 0);
   DEBUG("device_fd = %d\n", device_fd);
-  write(device_fd, "Yeah!", 5);
+  // write(device_fd, "Yeah!", 5);
   while (1) {
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
     FD_SET(device_fd, &in_fdset);
     int max_fd = -1;
+    max_fd = ui_select_set_in(&in_fdset, max_fd);
     max_fd = dev_select_set_in(&in_fdset, max_fd);
     assert(max_fd >= 0);
     const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
@@ -158,6 +191,7 @@ int main(int argc, char *argv[])
       abort();
     } else { /* n>0 */
       dev_select_do_io(&in_fdset);
+      ui_select_do_io(&in_fdset);
     }
   }
   return 0;

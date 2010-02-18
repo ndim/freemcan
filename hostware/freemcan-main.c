@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,6 +39,41 @@ static int read_size(const int in_fd)
 
 #define MAX_DEVICE_FDS 1
 static int device_fds[MAX_DEVICE_FDS];
+
+
+char printable(const char ch)
+{
+  if ((32 <= ch) && (ch < 127)) {
+    return ch;
+  } else {
+    return '.';
+  }
+}
+
+
+void hexdump(const char *buf, const size_t size)
+{
+  const uint8_t *b = (const uint8_t *)buf;
+  for (size_t y=0; y<size; y+=16) {
+    DEBUG("%04x ", y);
+    for (int x=0; x<16; x++) {
+      if (y*16+x<size) {
+	DEBUG(" %02x", b[y*16+x]);
+      } else {
+	DEBUG("   ");
+      }
+    }
+    DEBUG("  ");
+    for (size_t x=0; x<16; x++) {
+      if (y*16+x<size) {
+	DEBUG("%c", printable(b[y*16+x]));
+      } else {
+	DEBUG(" ");
+      }
+    }
+    DEBUG("\n");
+  }
+}
 
 
 int dev_open(const char *device_name)
@@ -121,10 +157,12 @@ void dev_select_do_io(fd_set *in_fdset)
 	continue;
       }
       assert(bytes_to_read > 0);
-      char buf[bytes_to_read];
-      const ssize_t read_bytes = read(device_fd, buf, sizeof(buf));
+      char buf[bytes_to_read+1];
+      const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
       assert(read_bytes == bytes_to_read);
+      buf[bytes_to_read] = '\0';
       DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, device_fd, buf);
+      hexdump(buf, read_bytes);
     }
   }
 }
@@ -148,10 +186,12 @@ void ui_select_do_io(fd_set *in_fdset)
       exit(0);
     }
     assert(bytes_to_read > 0);
-    char buf[bytes_to_read];
+    char buf[bytes_to_read+1];
     const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
     assert(read_bytes == bytes_to_read);
+    buf[bytes_to_read] = '\0';
     DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, STDIN_FILENO, buf);
+    hexdump(buf, read_bytes);
     DEBUG("Copying data to fd %d\n", device_fd);
     write(device_fd, buf, sizeof(buf));
   }

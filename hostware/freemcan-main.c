@@ -36,7 +36,7 @@ static int read_size(const int in_fd)
 }
 
 
-#define MAX_DEVICE_FDS 4
+#define MAX_DEVICE_FDS 1
 static int device_fds[MAX_DEVICE_FDS];
 
 

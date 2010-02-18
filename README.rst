@@ -73,7 +73,8 @@ and run the local make targets to write the firmware to your hardware.
 The License
 -----------
 
-(FIXME) NL.
+(FIXME) Add copyright and license headers to source files.
+(FIXME) Add license text as separate file.
 
 
 

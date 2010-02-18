@@ -149,6 +149,9 @@ void dev_select_do_io(fd_set *in_fdset)
 {
   for (int i=0; i<MAX_DEVICE_FDS; i++) {
     const int device_fd = device_fds[i];
+    if (device_fd == 0) {
+      continue;
+    }
     if (FD_ISSET(device_fd, in_fdset)) {
       const int bytes_to_read = read_size(device_fd);
       if (bytes_to_read == 0) {

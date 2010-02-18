@@ -8,6 +8,9 @@
 # make deficiencies.
 
 
+CLEANFILES =
+
+
 # Override settings by defining them in settings.mk Things not defined
 # in settings.mk will be later defined with ?= later in this Makefile.
 # AVRDUDE_PROGRAMMER and AVRDUDE_PORT are good candidates for
@@ -146,14 +149,14 @@ all: build
 
 build: elf hex eep
 
-ALL: elf hex eep lss sym fuse
+ALL: elf hex eep lss sym fuses
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
 eep: $(TARGET).eep
 lss: $(TARGET).lss
 sym: $(TARGET).sym
-fuse: $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
+fuses: $(TARGET).fuses
 
 
 # Program the device.
@@ -161,11 +164,10 @@ program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
+CLEANFILES += $(TARGET).fuses
+CLEANFILES += $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
 $(TARGET).fuses: $(TARGET).elf
 	$(OBJCOPY) -j .fuse -O binary $(TARGET).elf $(TARGET).fuses
-
-FUSES = $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
-$(FUSES): $(TARGET).fuses
 	$(OD) -A n -t xC $(TARGET).fuses | \
 	{ read lfuse hfuse efuse restofline; \
 	  echo "0x$$lfuse" > $(TARGET).lfuse.txt; \
@@ -179,7 +181,7 @@ compare-fuses: read-fuses
 		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
 	done
 
-program-fuses: $(FUSES)
+program-fuses: $(TARGET).fuses
 	@echo "Writing fuses to device:"; \
 	for f in lfuse hfuse efuse; do \
 		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
@@ -259,7 +261,7 @@ $(TARGET).elf: $(OBJ)
 clean:
 	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
 	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(TARGET).fuses $(FUSES) \
+	$(CLEANFILES) \
 	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
 
 depend:

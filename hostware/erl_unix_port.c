@@ -70,17 +70,32 @@ static void main_loop(const char *unix_name)
   addr.sun_family = AF_UNIX;
   assert(strlen(unix_name) < sizeof(addr.sun_path));
   strcpy(addr.sun_path, unix_name);
-  const int ret = bind(sock, (const struct sockaddr *)&addr, sizeof(addr));
-  if (ret < 0) {
+  const int bind_ret = bind(sock, (const struct sockaddr *)&addr, sizeof(addr));
+  if (bind_ret < 0) {
     perror("bind");
     abort();
   }
+
+  const int listen_ret = listen(sock, 0);
+  if (listen_ret < 0) {
+    perror("listen");
+    abort();
+  }
+  DEBUG("Waiting...\n");
+
+  const int connfd = accept(sock, NULL, 0);
+  if (connfd < 0) {
+    perror("accept");
+    abort();
+  }
+  DEBUG("Connected\n");
+
   while (1) {
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
     FD_SET(READ_FILENO, &in_fdset);
-    FD_SET(sock, &in_fdset);
-    const int max_fd = sock;
+    FD_SET(connfd, &in_fdset);
+    const int max_fd = connfd;
     int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
@@ -92,10 +107,10 @@ static void main_loop(const char *unix_name)
       abort();
     } else { /* n>0 */
       if (FD_ISSET(READ_FILENO, &in_fdset)) {
-	copy_data(READ_FILENO, sock);
+	copy_data(READ_FILENO, connfd);
       }
-      if (FD_ISSET(sock, &in_fdset)) {
-	copy_data(sock, WRITE_FILENO);
+      if (FD_ISSET(connfd, &in_fdset)) {
+	copy_data(connfd, WRITE_FILENO);
       }
     }
   }

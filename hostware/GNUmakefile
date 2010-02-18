@@ -47,6 +47,8 @@ querySerial : querySerial.o serial-setup.o
 querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
 
+freemcan-main.o : CFLAGS += -D_GNU_SOURCE
+
 freemcan : freemcan-main.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 

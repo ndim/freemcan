@@ -17,9 +17,9 @@ Why the name?
   * We wanted it to be Free Software.
   * MCA is the acronym for Multi Channel Analyzer which is the common
     term for the device.
-  * "freemca" produced a few hits on Google. "freemcan" did not, so
-    brand name collision wise an unused word appeared to be wise to
-    choose.
+  * "freemca" produced a few hits on Google. "freemcan" did not.
+    Brand name collision wise, an unused word appeared to be the
+    better choice.
 
 
 

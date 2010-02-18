@@ -1,2 +1,5 @@
+/*.beam
 /*.o
+/erl_unix_port
+/freemcan
 /querySerial

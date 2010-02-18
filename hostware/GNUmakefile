@@ -15,6 +15,14 @@ CLEANFILES   += querySerial
 CLEANFILES += querySerial.o
 CLEANFILES += serial-setup.o
 
+bin_PROGRAMS += erl_unix_port
+CLEANFILES   += erl_unix_port
+CLEANFILES   += erl_unix_port.o
+
+bin_PROGRAMS += freemcan
+CLEANFILES   += freemcan
+CLEANFILES   += freemcan-main.o
+
 .PHONY: all
 all: $(bin_PROGRAMS)
 
@@ -30,3 +38,13 @@ querySerial : querySerial.o serial-setup.o
 
 querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
+
+freemcan : freemcan-main.o
+	$(LINK.c) $^ $(LDLIBS) -o $@
+
+ERL_INTERFACE_ROOT = /usr/lib/erlang/lib/erl_interface-3.6.4
+
+erl_unix_port : erl_unix_port.o
+erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei
+erl_unix_port.o : CFLAGS += -I$(ERL_INTERFACE_ROOT)/include
+erl_unix_port.o : erl_unix_port.c

@@ -76,8 +76,32 @@ The License
 (FIXME) NL.
 
 
+
 Hacking
 -------
+
+
+Subdirectory Contents
+~~~~~~~~~~~~~~~~~~~~~
+
+
+   firmware/
+           Everything firmware related.
+
+   firmware/atmega/
+           The device firmware for Atmel ATmega AVR8 microcontroller.
+
+   firmware/code-comparison/
+           Some common tasks our firmware needs written in portable C
+           and compiled for all platforms we have a cross compiler
+           for. This lets us compare the assembly language generated
+           for those platforms.
+
+   hostware/
+           All the software running on the PC host. For lack of a
+           better word, we called it "hostware" to distinguish it from
+           the "firmware":
+
 
 
 Ideas

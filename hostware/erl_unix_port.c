@@ -83,7 +83,7 @@ static void main_loop(const char *unix_name)
 
   while (1) {
     DEBUG("Waiting for socket connection\n");
-    const int connfd = accept(sock, NULL, 0);
+    const int connfd = accept(sock, NULL, NULL);
     if (connfd < 0) {
       if (errno == EINTR) {
 	continue;

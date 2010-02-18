@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <errno.h>
 
@@ -15,6 +16,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+
+#define READ_FILENO 3
+#define WRITE_FILENO 4
+
 
 #define DEBUG(...)				\
   do {						\
@@ -22,8 +31,8 @@
   } while (0)
 
 
-static void copy_data(const int in_fd, const int out_fd,
-		      const int data_size)
+static void do_copy_data(const int in_fd, const int out_fd,
+			 const int data_size)
 {
   char buf[data_size];
   const ssize_t read_chars = read(in_fd, buf, sizeof(buf));
@@ -40,21 +49,38 @@ static int read_size(const int in_fd)
     DEBUG("cannot determine number of characters to read from stdin");
     abort();
   }
-  assert(r > 0);
   return bytes_to_read;
+}
+
+
+static void copy_data(const int in_fd, const int out_fd)
+{
+  const int bytes_to_read = read_size(in_fd);
+  if (bytes_to_read > 0) {
+    do_copy_data(in_fd, out_fd, bytes_to_read);
+  }
 }
 
 
 static void main_loop(const char *unix_name)
 {
-  const int unix = open(unix_name, O_NOCTTY|O_RDWR);
-  assert(unix>0);
+  const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  assert(sock>0);
+  struct sockaddr_un addr;
+  addr.sun_family = AF_UNIX;
+  assert(strlen(unix_name) < sizeof(addr.sun_path));
+  strcpy(addr.sun_path, unix_name);
+  const int ret = bind(sock, (const struct sockaddr *)&addr, sizeof(addr));
+  if (ret < 0) {
+    perror("bind");
+    abort();
+  }
   while (1) {
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
-    FD_SET(STDIN_FILENO, &in_fdset);
-    FD_SET(unix, &in_fdset);
-    const int max_fd = unix;
+    FD_SET(READ_FILENO, &in_fdset);
+    FD_SET(sock, &in_fdset);
+    const int max_fd = sock;
     int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
@@ -65,11 +91,11 @@ static void main_loop(const char *unix_name)
       DEBUG("select timeout\n");
       abort();
     } else { /* n>0 */
-      if (FD_ISSET(STDIN_FILENO, &in_fdset)) {
-	copy_data(STDIN_FILENO, unix, read_size(STDIN_FILENO));
+      if (FD_ISSET(READ_FILENO, &in_fdset)) {
+	copy_data(READ_FILENO, sock);
       }
-      if (FD_ISSET(unix, &in_fdset)) {
-	copy_data(unix, STDIN_FILENO, read_size(unix));
+      if (FD_ISSET(sock, &in_fdset)) {
+	copy_data(sock, WRITE_FILENO);
       }
     }
   }

@@ -18,11 +18,15 @@ loop(State = #state{port=Port}) ->
 
 main(FIFO) ->
     io:format("FIFO=~s~n", [FIFO]),
-    Port = open_port({spawn, "erl_unix_port"},
-		     [binary, stream,
+    {ok, Cwd} = file:get_cwd(),
+    ExecName = "erl_unix_port",
+    Executable = filename:join([Cwd, ExecName]),
+    Port = open_port({spawn_executable, Executable},
+		     [nouse_stdio, binary, stream,
+		      {arg0, ExecName},
 		      {args, [FIFO]}
 		     ]),
-    io:format("Port: ~p~n", Port),
+    io:format("Port: ~p~n", [Port]),
     loop(#state{port=Port}).
 
 start() ->

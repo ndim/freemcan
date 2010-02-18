@@ -4,6 +4,10 @@ CFLAGS ?=
 LDFLAGS ?=
 LDLIBS ?=
 
+ERLC = erlc
+ERLC_FLAGS =
+ERLC_FLAGS += +debug
+
 CFLAGS += -std=c99
 CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
@@ -23,8 +27,12 @@ bin_PROGRAMS += freemcan
 CLEANFILES   += freemcan
 CLEANFILES   += freemcan-main.o
 
+ERL_SOURCES = freemcan_emulator.erl
+BEAMS = $(ERL_SOURCES:.erl=.beam)
+CLEANFILES += $(BEAMS)
+
 .PHONY: all
-all: $(bin_PROGRAMS)
+all: $(bin_PROGRAMS) $(BEAMS)
 
 .PHONY: ALL
 ALL: all
@@ -48,3 +56,6 @@ erl_unix_port : erl_unix_port.o
 erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei
 erl_unix_port.o : CFLAGS += -I$(ERL_INTERFACE_ROOT)/include
 erl_unix_port.o : erl_unix_port.c
+
+%.beam: %.erl
+	$(ERLC) $(ERLC_FLAGS) $<

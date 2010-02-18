@@ -52,10 +52,10 @@ int dev_open(const char *device_name)
     abort();
   }
   if (S_ISCHR(sb.st_mode)) {
-    printf("character device\n");
+    DEBUG("%s: character device\n", device_name);
     return open(device_name, O_NOCTTY|O_RDWR);
   } else if (S_ISSOCK(sb.st_mode)) {
-    printf("socket\n");
+    DEBUG("%s: socket\n", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     struct sockaddr_un addr;
     addr.sun_family = AF_UNIX;
@@ -72,10 +72,10 @@ int dev_open(const char *device_name)
 	return sock;
       }
     }
-    printf("Out of device_fds space\n");
+    DEBUG("Out of device_fds space\n");
     abort();
   } else {
-    printf("unknown?\n");
+    DEBUG("unknown?\n");
     abort();
   }
 }
@@ -124,7 +124,7 @@ void dev_select_do_io(fd_set *in_fdset)
       char buf[bytes_to_read];
       const ssize_t read_bytes = read(device_fd, buf, sizeof(buf));
       assert(read_bytes == bytes_to_read);
-      printf("Received %d bytes from %d: %s\n", read_bytes, device_fd, buf);
+      DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, device_fd, buf);
     }
   }
 }
@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
   assert(argc == 2);
   assert(argv[1] != NULL);
   const char *device_name = argv[1];
-  printf("freemcan-main: device=%s\n", device_name);
+  DEBUG("freemcan-main: device=%s\n", device_name);
   const int device_fd = dev_open(device_name);
   assert(device_fd > 0);
-  printf("device_fd = %d\n", device_fd);
+  DEBUG("device_fd = %d\n", device_fd);
   write(device_fd, "Yeah!", 5);
   while (1) {
     fd_set in_fdset;

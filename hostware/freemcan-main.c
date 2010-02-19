@@ -112,12 +112,11 @@ static int read_size(const int in_fd)
  ************************************************************************/
 
 
-#define MAX_DEVICE_FDS 1
-static int device_fds[MAX_DEVICE_FDS];
+static int device_fd = -1;
 
 
 /** Open device */
-int dev_open(const char *device_name)
+void dev_init(const char *device_name)
 {
   /* FIXME: Run stat(2) on device_name, then change open()-like code
    *        according to file type (device file, unix domain socket).
@@ -130,7 +129,7 @@ int dev_open(const char *device_name)
   }
   if (S_ISCHR(sb.st_mode)) {
     DEBUG("%s: character device\n", device_name);
-    return open(device_name, O_NOCTTY|O_RDWR);
+    device_fd = open(device_name, O_NOCTTY|O_RDWR);
   } else if (S_ISSOCK(sb.st_mode)) {
     DEBUG("%s: socket\n", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -143,74 +142,51 @@ int dev_open(const char *device_name)
       perror("connect");
       abort();
     }
-    for (int i=0; i<MAX_DEVICE_FDS; i++) {
-      if (device_fds[i] == 0) {
-	device_fds[i] = sock;
-	return sock;
-      }
-    }
-    DEBUG("Out of device_fds space\n");
-    abort();
+    device_fd = sock;
   } else {
     DEBUG("unknown?\n");
     abort();
   }
+  assert(device_fd > 0);
+  DEBUG("device_fd = %d\n", device_fd);
 }
 
 
 /** Close device */
-void dev_close(const int device_fd)
+void dev_fini(void)
 {
-  for (int i=0; i<MAX_DEVICE_FDS; i++) {
-    if (device_fds[i] == device_fd) {
-      device_fds[i] = 0;
-      close(device_fd);
-      return;
-    }
-  }
+  assert(device_fd > 0);
+  close(device_fd);
 }
 
 
 /** Set up select() data structure with device data */
 int dev_select_set_in(fd_set *in_fdset, int maxfd)
 {
-  int ret = maxfd;
-  for (int i=0; i<MAX_DEVICE_FDS; i++) {
-    const int fd = device_fds[i];
-    if (fd != 0) {
-      FD_SET(fd, in_fdset);
-      if (fd > ret) {
-	ret = fd;
-      }
-    }
-  }
-  return ret;
+  assert(device_fd > 0);
+  FD_SET(device_fd, in_fdset);
+  if (device_fd > maxfd) return device_fd;
+  else return maxfd;
 }
 
 
 /** Do device's IO stuff if necessary (from select loop) */
 void dev_select_do_io(fd_set *in_fdset)
 {
-  for (int i=0; i<MAX_DEVICE_FDS; i++) {
-    const int device_fd = device_fds[i];
-    if (device_fd == 0) {
-      continue;
+  assert(device_fd > 0);
+  if (FD_ISSET(device_fd, in_fdset)) {
+    const int bytes_to_read = read_size(device_fd);
+    if (bytes_to_read == 0) {
+      DEBUG("EOF via device fd %d\n", device_fd);
+      abort();
     }
-    if (FD_ISSET(device_fd, in_fdset)) {
-      const int bytes_to_read = read_size(device_fd);
-      if (bytes_to_read == 0) {
-	DEBUG("Closing down FD %d\n", device_fd);
-	dev_close(device_fd);
-	continue;
-      }
-      assert(bytes_to_read > 0);
-      char buf[bytes_to_read+1];
-      const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
-      assert(read_bytes == bytes_to_read);
-      buf[bytes_to_read] = '\0';
-      DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, device_fd, buf);
-      hexdump(buf, read_bytes);
-    }
+    assert(bytes_to_read > 0);
+    char buf[bytes_to_read+1];
+    const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
+    assert(read_bytes == bytes_to_read);
+    buf[bytes_to_read] = '\0';
+    DEBUG("Received %d bytes from fd %d: %s\n", read_bytes, device_fd, buf);
+    hexdump(buf, read_bytes);
   }
 }
 
@@ -233,7 +209,6 @@ int ui_select_set_in(fd_set *in_fdset, int maxfd)
 void ui_select_do_io(fd_set *in_fdset)
 {
   if (FD_ISSET(STDIN_FILENO, in_fdset)) {
-    const int device_fd = device_fds[0];
     const int bytes_to_read = read_size(device_fd);
     if (bytes_to_read == 0) {
       DEBUG("EOF from stdin, exiting.\n");
@@ -268,10 +243,9 @@ int main(int argc, char *argv[])
   assert(isatty(STDOUT_FILENO));
   const char *device_name = argv[1];
   DEBUG("freemcan-main: device=%s\n", device_name);
-  const int device_fd = dev_open(device_name);
-  assert(device_fd > 0);
-  DEBUG("device_fd = %d\n", device_fd);
-  // write(device_fd, "Yeah!", 5);
+
+  dev_init(device_name);
+
   while (1) {
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
@@ -294,5 +268,6 @@ int main(int argc, char *argv[])
       ui_select_do_io(&in_fdset);
     }
   }
+
   return 0;
 }

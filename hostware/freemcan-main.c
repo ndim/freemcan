@@ -70,16 +70,16 @@ void hexdump(const char *buf, const size_t size)
   for (size_t y=0; y<size; y+=16) {
     DEBUG("%04x ", y);
     for (int x=0; x<16; x++) {
-      if (y*16+x<size) {
-	DEBUG(" %02x", b[y*16+x]);
+      if (y+x<size) {
+	DEBUG(" %02x", b[y+x]);
       } else {
 	DEBUG("   ");
       }
     }
     DEBUG("  ");
     for (size_t x=0; x<16; x++) {
-      if (y*16+x<size) {
-	DEBUG("%c", printable(b[y*16+x]));
+      if (y+x<size) {
+	DEBUG("%c", printable(b[y+x]));
       } else {
 	DEBUG(" ");
       }

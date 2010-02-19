@@ -101,6 +101,7 @@ static void main_loop(const char *unix_name)
     abort();
   }
 
+  /* FIXME: Discard data received from Erlang while not connected */
   while (1) {
     DEBUG("Waiting for socket connection\n");
     const int connfd = accept(sock, NULL, NULL);

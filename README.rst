@@ -42,10 +42,22 @@ Installation is not supported at this time.
 Software Requirements
 ~~~~~~~~~~~~~~~~~~~~~
 
-  * GNU make
-  * avr-gcc based AVR toolchain
+  * GNU make_
+  * avr-gcc_ based AVR toolchain
   * POSIX/GNU/Linux/Unix host system
-  * C compiler for host system
+  * gcc_ compiler for host system
+
+For building the internal code documentation (mostly of interest to
+hackers), you additionally need
+
+  * doxygen_
+  * graphviz_
+
+.. _avr-gcc:   http://gcc.gnu.org/
+.. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
+.. _gcc:       http://gcc.gnu.org/
+.. _graphviz:  http://www.graphviz.org/
+.. _make:      http://www.gnu.org/software/make/
 
 
 

@@ -22,7 +22,7 @@ CLEANFILES =
 MCU = atmega644p
 FORMAT = ihex
 TARGET = firmware
-SRC = main.c uart-comm.c
+SRC = main.c uart-comm.c frame-comm.c
 ASRC = ISR-ADC_vect.S
 OPT = s
 
@@ -48,7 +48,7 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS =
+CINCS = -I../../include
 
 
 CDEBUG = -g$(DEBUG)

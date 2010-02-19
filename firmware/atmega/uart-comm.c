@@ -58,6 +58,8 @@ void uart_putc(const char c)
 
     /* put the char */
     UDR0 = c;
+
+    /* here would be the place to update the checksum state with c */
 }
 
 
@@ -83,4 +85,3 @@ void uart_putb(const void *buf, size_t len)
 	len--;
     }
 }
-

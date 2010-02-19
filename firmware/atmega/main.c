@@ -32,10 +32,13 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "registers.h"
 #include "clocks.h"
 #include "uart-comm.h"
+#include "frame-comm.h"
+#include "frame-defs.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -289,29 +292,35 @@ ISR(TCC0_OVF_vect) {
 static
 void send_histogram(void)
 {
-
-  /* Send magic header value ("HISTBL" for "history table")
-   *
-   * Defined as uint32_t to make endianness detection possible on the
-   * receiver side. */
-  const uint32_t header = (((uint32_t)'H') << 0 |
-			   ((uint32_t)'I') << 8 |
-			   ((uint32_t)'S') << 16 |
-			   ((uint32_t)'T') << 24);
-  uart_putb(&header, sizeof(header));
-  uart_putc('B');
-  uart_putc('L');
-
-  /* Send element size */
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(table)+1);
   const uint8_t element_size = sizeof(table[0]);
-  uart_putc(element_size);
-
-  /* Send table size in multiples of 256 */
-  const uint8_t table_size = sizeof(table)/256UL;
-  uart_putc(table_size);
-
-  /* Send all table[] data via serial port */
+  uart_putc((const char)(element_size));
   uart_putb((const void *)table, sizeof(table));
+  frame_end();
+}
+
+
+/** Send status message to host.
+ *
+ * Status messages are constant strings.
+ */
+inline static
+void send_status(const char *msg)
+{
+  const size_t len = strlen(msg);
+  frame_send(FRAME_TYPE_STATUS, msg, len);
+}
+
+
+/** Send text message to host.
+ *
+ * If you need to send more than static text, use uprintf().
+ */
+inline static
+void send_text(const char *msg)
+{
+  const size_t len = strlen(msg);
+  frame_send(FRAME_TYPE_TEXT, msg, len);
 }
 
 

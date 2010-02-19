@@ -1,7 +1,6 @@
-/** \file uart-comm.h
- * \brief ATmega UART communication interface
+/** \file frame-comm.h
+ * \brief ATmega frame based communication interface
  *
- * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -20,14 +19,19 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef UART_COMM_H
-#define UART_COMM_H
+#ifndef FRAME_COMM_H
+#define FRAME_COMM_H
 
 #include <stdlib.h>
 
-extern void uart_init(void);
-extern void uart_putc(const char c);
-extern void uart_puts(const char *s);
-extern void uart_putb(const void *buf, size_t len);
+#include "frame-defs.h"
 
-#endif /* !UART_COMM_H */
+extern void frame_send(const frame_type_t frame_type,
+		       const void *payload, const size_t payload_size);
+
+extern void frame_start(const frame_type_t frame_type,
+			const size_t payload_size);
+extern void frame_end(void);
+
+
+#endif /* !FRAME_COMM_H */

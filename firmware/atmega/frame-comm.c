@@ -1,7 +1,6 @@
-/** \file uart-printf.c
- * \brief Implement printf via UART
+/** \file frame-comm.c
+ * \brief ATmega frame based communication implementation
  *
- * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,35 +18,37 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  */
-#include <avr/io.h>
-#include <stdio.h>
 
-#include "uart-printf.h"
-#include "registers.h"
+
 #include "uart-comm.h"
 #include "frame-comm.h"
-#include "frame-defs.h"
 
-
-/** The buffer we format our message into. */
-static char buf[256];
-
-
-/** Our own printf method
- *
- * We want to send all data as packets, so we need to be able to send
- * a header before the actual formatted string, and possibly a tail
- * after it.
- *
- * The avr-libc interface to FILE streams only allows per-character
- * hook calls; there are no per-printf-call hooks. That requires us to
- * implement our own printf() like function here.
- */
-void uprintf(const char *format, ...)
+/** Start a data frame */
+void frame_start(const frame_type_t frame_type,
+		 const size_t payload_size)
 {
-  va_list vl;
-  va_start(vl, format);
-  int strsize = vsnprintf(buf, sizeof(buf), format, vl);
-  frame_send(FRAME_TYPE_TEXT, buf, strsize);
-  va_end(vl);
+  /* here would be the place to reset the checksum state */
+  const uint32_t header = FRAME_MAGIC;
+  uart_putb(&header, sizeof(header));
+  const uint16_t size = payload_size; /* FIXME: What about endianness? */
+  uart_putb(&size, sizeof(size));
+  const uint8_t type = frame_type;
+  uart_putc((const char)type);
+}
+
+
+/** Finish sending a data frame */
+void frame_end(void)
+{
+  /* here would be the place to send the final checksum */
+}
+
+
+/** Write a complete data frame */
+void frame_send(const frame_type_t frame_type,
+		const void *payload, const size_t payload_size)
+{
+  frame_start(frame_type, payload_size);
+  uart_putb(payload, payload_size);
+  frame_end();
 }

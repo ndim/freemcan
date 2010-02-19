@@ -55,10 +55,11 @@ dist:
 	| $(XZ) -c > "$(TARBASE).tar.xz"
 
 Doxyfile: Doxyfile.in
+	PWD="$$(pwd)"; \
 	$(SED) \
 		-e 's|@PACKAGE_TARNAME@|$(PACKAGE_TARNAME)|g' \
 		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)|g' \
-		-e 's|@PWD@|$(PWD)|g' \
+		-e "s|@PWD@|$${PWD}|g" \
 		< $< > $@
 
 .PHONY: dox

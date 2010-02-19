@@ -7,7 +7,7 @@ SED       ?= sed
 SLOCCOUNT ?= sloccount
 XZ        ?= xz
 
-PACKAGE_TARNAME ?= $(notdir $(PWD))
+PACKAGE_TARNAME ?= $(notdir $(shell pwd))
 PACKAGE_VERSION ?= $(shell date -I)
 GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else echo "nongit"; fi)
 

@@ -19,27 +19,16 @@
 #include <errno.h>
 
 
+/************************************************************************
+ * Debug helpers
+ ************************************************************************/
+
+
+/** Print debug string */
 #define DEBUG(...)				\
   do {						\
     fprintf(stderr, __VA_ARGS__);		\
   } while (0)
-
-
-/** Data size you can read from file descriptor without blocking */
-static int read_size(const int in_fd)
-{
-  int bytes_to_read;
-  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
-  if (r < 0) {
-    DEBUG("cannot determine number of characters to read from stdin");
-    abort();
-  }
-  return bytes_to_read;
-}
-
-
-#define MAX_DEVICE_FDS 1
-static int device_fds[MAX_DEVICE_FDS];
 
 
 /** Return a printable character */
@@ -77,6 +66,33 @@ void hexdump(const char *buf, const size_t size)
     DEBUG("\n");
   }
 }
+
+
+/************************************************************************
+ * select(2) helpers
+ ************************************************************************/
+
+
+/** Data size you can read from file descriptor without blocking */
+static int read_size(const int in_fd)
+{
+  int bytes_to_read;
+  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
+  if (r < 0) {
+    DEBUG("cannot determine number of characters to read from stdin");
+    abort();
+  }
+  return bytes_to_read;
+}
+
+
+/************************************************************************
+ * Device
+ ************************************************************************/
+
+
+#define MAX_DEVICE_FDS 1
+static int device_fds[MAX_DEVICE_FDS];
 
 
 /** Open device */
@@ -178,6 +194,11 @@ void dev_select_do_io(fd_set *in_fdset)
 }
 
 
+/************************************************************************
+ * (ncurses based) text UI
+ ************************************************************************/
+
+
 /** Set up select() data structure with (ncurses based) text UI */
 int ui_select_set_in(fd_set *in_fdset, int maxfd)
 {
@@ -210,8 +231,12 @@ void ui_select_do_io(fd_set *in_fdset)
 }
 
 
-/* Next up: char-by-char input */
+/************************************************************************
+ * Main loop
+ ************************************************************************/
 
+
+/* Next up: char-by-char input */
 
 /** select(2) based main loop */
 int main(int argc, char *argv[])

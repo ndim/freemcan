@@ -1,5 +1,7 @@
 /*.beam
 /*.o
+/*.strace
+/erl_crash.dump
 /erl_unix_port
 /freemcan
 /querySerial

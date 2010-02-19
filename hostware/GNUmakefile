@@ -52,7 +52,8 @@ freemcan-main.o : CFLAGS += -D_GNU_SOURCE
 freemcan : freemcan-main.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
-ERL_INTERFACE_ROOT = /usr/lib/erlang/lib/erl_interface-3.6.4
+ERL_LIB = /usr/lib/erlang/lib
+ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB)/erl_interface-*))
 
 erl_unix_port : erl_unix_port.o
 erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei

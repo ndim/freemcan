@@ -120,8 +120,8 @@ static int device_fd = -1;
 /** Open device */
 void dev_init(const char *device_name)
 {
-  /* FIXME: Run stat(2) on device_name, then change open()-like code
-   *        according to file type (device file, unix domain socket).
+  /** \todo Run stat(2) on device_name, then change open()-like code
+   *       according to file type (device file, unix domain socket).
    */
   struct stat sb;
   const int stat_ret = stat(device_name, &sb);

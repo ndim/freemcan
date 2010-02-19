@@ -33,7 +33,7 @@ void frame_start(const frame_type_t frame_type,
   /* send frame header */
   const uint32_t header = FRAME_MAGIC;
   uart_putb(&header, sizeof(header));
-  const uint16_t size = payload_size; /* FIXME: What about endianness? */
+  const uint16_t size = payload_size; /** \todo What about endianness? */
   uart_putb(&size, sizeof(size));
   const uint8_t type = frame_type;
   uart_putc((const char)type);

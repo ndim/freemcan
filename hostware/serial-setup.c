@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 /** Set up serial port parameters */
@@ -139,5 +140,36 @@ void serial_setup(const int fd, const long baud)
 
   /* fcntl(fd, F_SETFL, FNDELAY); */
   fcntl(fd, F_SETFL, 0);
+}
+
+
+/* These are the hash definitions */
+typedef enum {
+  USERBAUD1200 = '1'+'2',
+  USERBAUD2400 = '2'+'4',
+  USERBAUD9600 = '9'+'6',
+  USERBAUD1920 = '1'+'9',
+  USERBAUD3840 = '3'+'8'
+} userbaud_t;
+
+
+/** Compute which baud rate the user wants.
+ *
+ * Uses a simple adding hash function.
+ */
+long string_to_baud(const char *arg)
+{
+  const userbaud_t whichBaud = (arg[0] + arg[1]);
+  switch (whichBaud) {
+    case USERBAUD1200: return B1200;
+    case USERBAUD2400: return B2400;
+    case USERBAUD9600: return B9600;
+    case USERBAUD1920: return B19200;
+    case USERBAUD3840: return B38400;
+  }
+  fprintf(stderr,
+	  "Baud rate %s is not supported, "
+	 "use 1200, 2400, 9600, 19200 or 38400.\n", arg);
+  exit(1);
 }
 

@@ -24,4 +24,6 @@
 
 extern void serial_setup(const int fd, const long baud);
 
+extern long string_to_baud(const char *arg);
+
 #endif /* !SERIAL_SETUP_H */

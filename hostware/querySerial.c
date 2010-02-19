@@ -30,17 +30,10 @@
 
 #include "serial-setup.h"
 
-/* These are the hash definitions */
-#define USERBAUD1200 '1'+'2'
-#define USERBAUD2400 '2'+'4'
-#define USERBAUD9600 '9'+'6'
-#define USERBAUD1920 '1'+'9'
-#define USERBAUD3840 '3'+'8'
-
 
 int main(int argc, char *argv[])
 {
-  int fd, whichBaud, result;
+  int fd, result;
   long baud;
   char buffer[256];
 
@@ -50,33 +43,7 @@ int main(int argc, char *argv[])
     exit( 1 );
   }
 
-  /* compute which baud rate the user wants using a simple adding
-   * hash function
-   */
-  whichBaud = argv[2][0] + argv[2][1];
-
-  switch (whichBaud) {
-    case USERBAUD1200:
-      baud = B1200;
-      break;
-    case USERBAUD2400:
-      baud = B2400;
-      break;
-    case USERBAUD9600:
-      baud = B9600;
-      break;
-    case USERBAUD1920:
-      baud = B19200;
-      break;
-    case USERBAUD3840:
-      baud = B38400;
-      break;
-    default:
-      printf("Baud rate %s is not supported, "
-	     "use 1200, 2400, 9600, 19200 or 38400.\n", argv[2]);
-      exit(1);
-      break;
-  }
+  baud = string_to_baud(argv[2]);
 
   /* open the serial port device file
    * O_NDELAY - tells port to operate and ignore the DCD line

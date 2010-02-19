@@ -1,8 +1,11 @@
-DOXYGEN  ?= doxygen
-GIT      ?= git
-RST2HTML ?= rst2html
-SED      ?= sed
-XZ       ?= xz
+AWK       ?= awk
+DOXYGEN   ?= doxygen
+GIT       ?= git
+GZIP      ?= gzip
+RST2HTML  ?= rst2html
+SED       ?= sed
+SLOCCOUNT ?= sloccount
+XZ        ?= xz
 
 PACKAGE_TARNAME ?= $(notdir $(PWD))
 PACKAGE_VERSION ?= $(shell date -I)
@@ -61,3 +64,9 @@ Doxyfile: Doxyfile.in
 .PHONY: dox
 dox: Doxyfile
 	$(DOXYGEN) $<
+
+.PHONY: sloccount
+sloccount:
+	@$(SLOCCOUNT) firmware/atmega/ hostware/ \
+	| $(AWK) 'BEGIN { verb=0; } /^SLOCCount/ { verb=0; } /^SLOC/ { verb=1; } /^SLOCCount/ { verb=0; } (verb) { print; }'; \
+	echo; echo "Statistics generated using David A. Wheeler's 'SLOCCount'."

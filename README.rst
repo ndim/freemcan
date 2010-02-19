@@ -53,11 +53,17 @@ hackers), you additionally need
   * doxygen_
   * graphviz_
 
+For creating the source lines of code (SLOC) summary, you additionally
+need
+
+  * sloccount_
+
 .. _avr-gcc:   http://gcc.gnu.org/
 .. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
 .. _gcc:       http://gcc.gnu.org/
 .. _graphviz:  http://www.graphviz.org/
 .. _make:      http://www.gnu.org/software/make/
+.. _sloccount: http://www.dwheeler.com/sloccount
 
 
 

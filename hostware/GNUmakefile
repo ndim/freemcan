@@ -49,6 +49,7 @@ serial-setup.o : serial-setup.c serial-setup.h
 
 freemcan-main.o : CFLAGS += -D_GNU_SOURCE
 
+freemcan : LDLIBS += -lncurses
 freemcan : freemcan-main.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 

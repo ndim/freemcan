@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     exit( 1 );
   }
 
-  baud = string_to_baud(argv[2]);
+  baud = serial_string_to_baud(argv[2]);
 
   /* open the serial port device file
    * O_NDELAY - tells port to operate and ignore the DCD line
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
    *            process for the port. The driver will not send
    *            this process signals due to keyboard aborts, etc.
    */
-  if ((fd = open(argv[1],O_RDWR | O_NDELAY | O_NOCTTY)) < 0)
+  if ((fd = serial_open(argv[1])) < 0)
   {
     printf("Couldn't open %s\n",argv[1]);
     exit(1);

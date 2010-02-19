@@ -131,12 +131,8 @@ void dev_init(const char *device_name)
   }
   if (S_ISCHR(sb.st_mode)) {
     DEBUG("%s: character device\n", device_name);
-    /* open the serial port device file
-     * O_NDELAY - tells port to operate and ignore the DCD line
-     * O_NOCTTY - do not make this our controlling tty, ever
-     */
-    device_fd = open(device_name, O_NOCTTY|O_NDELAY|O_RDWR);
-    serial_setup(device_fd, string_to_baud("9600"));
+    device_fd = serial_open(device_name);
+    serial_setup(device_fd, serial_string_to_baud("9600"));
   } else if (S_ISSOCK(sb.st_mode)) {
     DEBUG("%s: socket\n", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);

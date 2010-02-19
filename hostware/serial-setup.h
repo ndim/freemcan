@@ -22,8 +22,9 @@
 #ifndef SERIAL_SETUP_H
 #define SERIAL_SETUP_H
 
+extern int serial_open(const char *device_name);
 extern void serial_setup(const int fd, const long baud);
 
-extern long string_to_baud(const char *arg);
+extern long serial_string_to_baud(const char *arg);
 
 #endif /* !SERIAL_SETUP_H */

@@ -12,7 +12,9 @@
 
 #else
 
-/* Reserve registers for special use. The C compiler will not touch them then! */
+/** Reserve register for special use by assembly language ISR.
+ *
+ * The C compiler will not touch this register then! */
 register uint8_t sreg_save asm("r7");
 
 #endif /* !__ASSEMBLER__ */

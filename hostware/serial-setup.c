@@ -3,6 +3,8 @@
 #include <termios.h>
 #include <stdlib.h>
 
+
+/** Set up serial port parameters */
 void serial_setup(const int fd, const long baud)
 {
   struct termios tio;

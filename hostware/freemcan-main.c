@@ -196,6 +196,12 @@ void dev_select_do_io(fd_set *in_fdset)
  ************************************************************************/
 
 
+/** Initialized (ncurses based) text UI */
+void ui_init(void)
+{
+}
+
+
 /** Set up select() data structure with (ncurses based) text UI */
 int ui_select_set_in(fd_set *in_fdset, int maxfd)
 {
@@ -244,6 +250,7 @@ int main(int argc, char *argv[])
   const char *device_name = argv[1];
   DEBUG("freemcan-main: device=%s\n", device_name);
 
+  ui_init();
   dev_init(device_name);
 
   while (1) {

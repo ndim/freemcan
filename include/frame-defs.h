@@ -47,7 +47,10 @@
 #include <stdint.h>
 
 
-/** Header marker for data frames to host */
+/** Header marker for data frames to host
+ *
+ * \todo Is this the proper endianness?
+ */
 #define FRAME_MAGIC  \
   ( \
    (((uint32_t)'F')<<0) |			\

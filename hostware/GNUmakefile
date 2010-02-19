@@ -48,9 +48,10 @@ querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
 
 freemcan-main.o : CFLAGS += -D_GNU_SOURCE
+freemcan-main.o : freemcan-main.c serial-setup.h
 
 freemcan : LDLIBS += -lncurses
-freemcan : freemcan-main.o
+freemcan : freemcan-main.o serial-setup.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 ERL_LIB = /usr/lib/erlang/lib

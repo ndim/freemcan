@@ -39,6 +39,8 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
+#include "serial-setup.h"
+
 
 /************************************************************************
  * Debug helpers
@@ -130,6 +132,7 @@ void dev_init(const char *device_name)
   if (S_ISCHR(sb.st_mode)) {
     DEBUG("%s: character device\n", device_name);
     device_fd = open(device_name, O_NOCTTY|O_RDWR);
+    serial_setup(device_fd, 9600);
   } else if (S_ISSOCK(sb.st_mode)) {
     DEBUG("%s: socket\n", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);

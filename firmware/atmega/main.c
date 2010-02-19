@@ -34,6 +34,8 @@
 #include <stdint.h>
 
 #include "registers.h"
+#include "clocks.h"
+#include "uart-comm.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -54,16 +56,6 @@ FUSES = {
  * Defines
  *------------------------------------------------------------------------------
  */
-
-#ifndef F_CPU
-/* #define F_CPU 1000000UL                     // werksauslieferung 8mhz/8 */
-#define F_CPU 16000000UL		// Pollin AVR Eval board
-#endif
-
-#define BAUDRATE 9600UL
-
-#define F_ADC_CLK_SRC 200000UL                // hz
-#define ADC_DIVISION_FACTOR (F_CPU/F_ADC_CLK_SRC)
 
 
 #define MAX_COUNTER 256
@@ -280,56 +272,6 @@ void run_measurement(void)
     ADCSRA &= ~BIT(ADATE);  // autotrigger off
 }
 
-/** USART0 initialisation to 8 databits no parity
- *
- */
-inline static
-void uart0_init(void)
-{
-  /* baud setting valid only  for asynchrounous normal mode */
-  const uint16_t baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
-
-  UBRR0H=(uint8_t)(baud_value>>8);
-  UBRR0L=(uint8_t)baud_value;
-
-  /* Asynchron (no clk is used); 8 databit no parity (8N1 frame format) */
-  UCSR0C = (BIT(UCSZ01) | BIT(UCSZ00));
-
-  /* tx enable */
-  UCSR0B = BIT(TXEN0);
-}
-
-inline static
-void uart_putc(const char c)
-{
-    /* poll until output buffer is empty */
-    loop_until_bit_is_set(UCSR0A, UDRE0);
-
-    /* put the char */
-    UDR0 = c;
-}
-
-inline static
-void uart_puts (const char *s)
-{
-    while (*s)
-    {   /* til *s != '\0' (not final string character) */
-        uart_putc(*s);
-        s++;
-    }
-}
-
-inline static
-void uart_putc_len (const char *s, size_t len)
-{
-    while (len > 0)
-    {
-        uart_putc(*s);
-        s++;
-	len--;
-    }
-}
-
 
 /** counter overrun ISR */
 #if 0
@@ -356,7 +298,7 @@ void send_histogram(void)
 			   ((uint32_t)'I') << 8 |
 			   ((uint32_t)'S') << 16 |
 			   ((uint32_t)'T') << 24);
-  uart_putc_len((const char *)&header, sizeof(header));
+  uart_putb(&header, sizeof(header));
   uart_putc('B');
   uart_putc('L');
 
@@ -365,11 +307,11 @@ void send_histogram(void)
   uart_putc(element_size);
 
   /* Send table size in multiples of 256 */
-  const uint8_t table_size = sizeof(table)/256;
+  const uint8_t table_size = sizeof(table)/256UL;
   uart_putc(table_size);
 
   /* Send all table[] data via serial port */
-  uart_putc_len((const char *)table, sizeof(table));
+  uart_putb((const void *)table, sizeof(table));
 }
 
 
@@ -399,7 +341,7 @@ int main(void)
 #endif
 
     /* configure USART0 for 8N1 */
-    uart0_init();
+    uart_init();
 
     /* configure INT0 pin 16 on rising edge */
     trigger_src_conf();

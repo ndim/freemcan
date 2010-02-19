@@ -1,6 +1,7 @@
-/** \file registers.h
- * \brief Register use definition for freemcan ATmega firmware
+/** \file uart-printf.c
+ * \brief Implement printf via UART
  *
+ * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -18,28 +19,33 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  */
+#include <avr/io.h>
+#include <stdio.h>
 
-#ifndef REGISTERS_H
-#define REGISTERS_H
+#include "uart-printf.h"
+#include "registers.h"
+#include "uart-comm.h"
 
-/* Safe registers to reserve for special purposes are r2..r7, apparently:
- * http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_regbind
- */
 
-#ifdef __ASSEMBLER__
+/** The buffer we format our message into. */
+static char buf[256];
 
-/* Define the same special use registers as the C compiler uses below */
-# define sreg_save r7
 
-#else
-
-#include <stdint.h>
-
-/** Reserve register for special use by assembly language ISR.
+/** Our own printf method
  *
- * The C compiler will not touch this register then! */
-register uint8_t sreg_save asm("r7");
-
-#endif /* !__ASSEMBLER__ */
-
-#endif /* !REGISTERS_H */
+ * We want to send all data as packets, so we need to be able to send
+ * a header before the actual formatted string, and possibly a tail
+ * after it.
+ *
+ * The avr-libc interface to FILE streams only allows per-character
+ * hook calls; there are no per-printf-call hooks. That requires us to
+ * implement our own printf() like function here.
+ */
+void uprintf(const char *format, ...)
+{
+  va_list vl;
+  va_start(vl, format);
+  int strsize = vsnprintf(buf, sizeof(buf), format, vl);
+  uart_putb(buf, strsize);
+  va_end(vl);
+}

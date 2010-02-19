@@ -8,6 +8,7 @@
 # make deficiencies.
 
 
+CFLAGS =
 CLEANFILES =
 
 
@@ -21,9 +22,12 @@ CLEANFILES =
 MCU = atmega644p
 FORMAT = ihex
 TARGET = firmware
-SRC = main.c
+SRC = main.c uart-comm.c
 ASRC = ISR-ADC_vect.S
 OPT = s
+
+SRC += uart-printf.c
+CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile
@@ -51,7 +55,7 @@ CDEBUG = -g$(DEBUG)
 CWARN = -Wall -Wextra -Wstrict-prototypes
 CTUNING = -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 #CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS = $(CDEBUG) $(CDEFS) $(CINCS) -O$(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
+CFLAGS += $(CDEBUG) $(CDEFS) $(CINCS) -O$(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
 
 
 ASFLAGS =
@@ -279,4 +283,4 @@ depend:
 
 main.o: main.c registers.h
 ISR-ADC_vect.o: ISR-ADC_vect.S registers.h
-
+uart-printf.o: uart-printf.c uart-printf.h

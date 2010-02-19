@@ -25,6 +25,7 @@
   } while (0)
 
 
+/** Data size you can read from file descriptor without blocking */
 static int read_size(const int in_fd)
 {
   int bytes_to_read;
@@ -41,6 +42,7 @@ static int read_size(const int in_fd)
 static int device_fds[MAX_DEVICE_FDS];
 
 
+/** Return a printable character */
 char printable(const char ch)
 {
   if ((32 <= ch) && (ch < 127)) {
@@ -51,6 +53,7 @@ char printable(const char ch)
 }
 
 
+/* Print hexdump of data block */
 void hexdump(const char *buf, const size_t size)
 {
   const uint8_t *b = (const uint8_t *)buf;
@@ -76,6 +79,7 @@ void hexdump(const char *buf, const size_t size)
 }
 
 
+/** Open device */
 int dev_open(const char *device_name)
 {
   /* FIXME: Run stat(2) on device_name, then change open()-like code
@@ -117,6 +121,7 @@ int dev_open(const char *device_name)
 }
 
 
+/** Close device */
 void dev_close(const int device_fd)
 {
   for (int i=0; i<MAX_DEVICE_FDS; i++) {
@@ -129,6 +134,7 @@ void dev_close(const int device_fd)
 }
 
 
+/** Set up select() data structure with device data */
 int dev_select_set_in(fd_set *in_fdset, int maxfd)
 {
   int ret = maxfd;
@@ -145,6 +151,7 @@ int dev_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
+/** Do device's IO stuff if necessary (from select loop) */
 void dev_select_do_io(fd_set *in_fdset)
 {
   for (int i=0; i<MAX_DEVICE_FDS; i++) {
@@ -171,6 +178,7 @@ void dev_select_do_io(fd_set *in_fdset)
 }
 
 
+/** Set up select() data structure with (ncurses based) text UI */
 int ui_select_set_in(fd_set *in_fdset, int maxfd)
 {
   FD_SET(STDIN_FILENO, in_fdset);
@@ -179,6 +187,7 @@ int ui_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
+/** Do (ncurses based) text UI's IO stuff if necessary (from select loop) */
 void ui_select_do_io(fd_set *in_fdset)
 {
   if (FD_ISSET(STDIN_FILENO, in_fdset)) {
@@ -203,6 +212,8 @@ void ui_select_do_io(fd_set *in_fdset)
 
 /* Next up: char-by-char input */
 
+
+/** select(2) based main loop */
 int main(int argc, char *argv[])
 {
   assert(argc == 2);

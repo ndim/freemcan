@@ -256,7 +256,6 @@ int main(int argc, char *argv[])
   while (1) {
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
-    FD_SET(device_fd, &in_fdset);
     int max_fd = -1;
     max_fd = ui_select_set_in(&in_fdset, max_fd);
     max_fd = dev_select_set_in(&in_fdset, max_fd);

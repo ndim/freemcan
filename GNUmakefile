@@ -1,5 +1,7 @@
+DOXYGEN  ?= doxygen
 GIT      ?= git
 RST2HTML ?= rst2html
+SED      ?= sed
 XZ       ?= xz
 
 PACKAGE_TARNAME ?= $(notdir $(PWD))
@@ -38,6 +40,7 @@ README.html: README.rst
 .PHONY: clean-here
 clean-here:
 	rm -f $(CLEANFILES)
+	rm -rf dox
 
 
 TARBASE = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)-$(GIT_VERSION)
@@ -47,3 +50,14 @@ dist:
 	test -d .git
 	$(GIT) archive --prefix="$(TARBASE)/" HEAD \
 	| $(XZ) -c > "$(TARBASE).tar.xz"
+
+Doxyfile: Doxyfile.in
+	$(SED) \
+		-e 's|@PACKAGE_TARNAME@|$(PACKAGE_TARNAME)|g' \
+		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)|g' \
+		-e 's|@PWD@|$(PWD)|g' \
+		< $< > $@
+
+.PHONY: dox
+dox: Doxyfile
+	$(DOXYGEN) $<

@@ -57,7 +57,10 @@
     )
 
 
-/** Data frame types (data frame to host) */
+/** Data frame types (data frame to host)
+ *
+ * The values are all upper case ASCII letters.
+ */
 typedef enum {
 
   /** text message for debugging */
@@ -72,9 +75,24 @@ typedef enum {
 } frame_type_t;
 
 
-/** Command frame types (command from host) */
+/** Command frame types (command from host)
+ *
+ * The values are all lower case ASCII letters.
+ */
 typedef enum {
+
+  /** Start new measurement */
+  FRAME_CMD_MEASURE = 'm',
+
+  /** Transmit intermediate results, then resume measurement */
+  FRAME_CMD_INTERMEDIATE = 'i',
+
+  /** Abort running measurement and transmit current results */
+  FRAME_CMD_ABORT = 'a',
+
+  /** Reset device */
   FRAME_CMD_RESET = 'r'
+
 } frame_cmd_t;
 
 

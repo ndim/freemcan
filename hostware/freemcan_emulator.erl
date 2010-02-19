@@ -28,21 +28,54 @@
 
 -record(state, {port, state=boot, timeout=100}).
 
+
+dummy_histogram() ->
+    ElementCount = 256,
+    [ (((301*N*N*N)+(37*N*N)) rem (1 bsl 32))
+      || N <- lists:seq(ElementCount) ].
+
+
+checksum(Bin) when is_binary(Bin) ->
+    lists:foldl(fun(C, Acc) ->
+			N = C,
+			X = 8*N+2*N*N,
+			R = ((Acc bsl 3) rem (1 bsl 16)) bor ((Acc bsr 13) rem (1 bsl 16)),
+			R bxor X
+		end,
+		16#3e59,
+		binary_to_list(Bin)).
+
+
+frame(text, Text) ->
+    frame($T, Text);
+frame(status, StatusMsg) ->
+    frame($S, StatusMsg);
+frame(histogram, Histogram) ->
+    BinHist = [ <<Val:32/little-integer>> || Val <- Histogram ],
+    Payload = list_to_binary([<<4>>|BinHist]),
+    frame($H, Payload);
+frame(Type, Payload) when is_integer(Type), is_binary(Payload) ->
+    BinPayload = list_to_binary(Payload),
+    Length = length(Payload),
+    DummyChecksum = checksum(BinPayload),
+    <<"FMPK", Length:16/little-integer, Type, Payload/binary, DummyChecksum>>.
+
+
 fsm(boot, {timeout, _}) ->
-    {start, <<"Booted.\n">>, none};
+    {start, frame(status, "Booted"), none};
 
 fsm(start, <<"r">>) ->
     {reset, none, 100};
 fsm(start, <<"m">>) ->
-    {{measuring, 0}, <<"Started measurement\n">>, 10000};
+    {{measuring, 0}, frame(status, "Measuring"), 10000};
 
 fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
-    {{measuring, N+1}, <<"Still measuring\n">>, 10000};
+    {{measuring, N+1}, frame(text, "Still measuring"), 10000};
 fsm({measuring, _}, {timeout, _}) ->
-    {reset, <<"Measurement finished\n">>, 0};
+    {reset, frame(histogram, dummy_histogram()), 0};
 
 fsm(reset, {timeout, _}) ->
-    {boot, <<"Resetting\n">>, 100}.
+    {boot, frame(status, "Resetting"), 100}.
 
 
 loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->

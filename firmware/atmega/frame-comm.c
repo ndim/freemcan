@@ -27,7 +27,10 @@
 void frame_start(const frame_type_t frame_type,
 		 const size_t payload_size)
 {
-  /* here would be the place to reset the checksum state */
+  /* reset the checksum state */
+  uart_checksum_reset();
+
+  /* send frame header */
   const uint32_t header = FRAME_MAGIC;
   uart_putb(&header, sizeof(header));
   const uint16_t size = payload_size; /* FIXME: What about endianness? */
@@ -40,7 +43,8 @@ void frame_start(const frame_type_t frame_type,
 /** Finish sending a data frame */
 void frame_end(void)
 {
-  /* here would be the place to send the final checksum */
+  /* send the final checksum */
+  uart_checksum_send();
 }
 
 

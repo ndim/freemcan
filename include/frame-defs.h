@@ -17,26 +17,33 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
- */
-
-/** \section Communication Protocol
+ *
+ * \section Communication Protocol
  *
  * \subsection Frames sent from hostware to firmware
  *
  * To keep the parser in the firmware simple, all "frames" sent from
- * the hostware to the firmware are actually just a single byte.
+ * the hostware to the firmware are actually just a single byte:
+ *
+ * <table>
+ *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
+ * </table>
  *
  * \subsection Frames sent from firmware to hostware
  *
  * <table>
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *
- *  <tr><td>4</td> <td>FRAME_MAGIC</td> <td>magic value for beginning of frame</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC</td> <td>magic value for beginning of frame</td></tr>
  *  <tr><td>2</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
- *  <tr><td>1</td> <td>frame_type_t</td> <td>frame type</td></tr>
+ *  <tr><td>1</td> <td>#frame_type_t</td> <td>frame type</td></tr>
  *  <tr><td>see above</td> <td>?</td> <td>payload data</td></tr>
- *  <tr><td>1</td> <td>uint8_t</td> <td>checksum (Not Implemented Yet)</td></tr>
+ *  <tr><td>1</td> <td>uint8_t</td> <td>checksum</td></tr>
  * </table>
+ *
+ * \todo Document checksum algorithm.
+ * \todo Implement checksum verification on hostware side.
  *
  */
 

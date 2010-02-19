@@ -50,6 +50,40 @@ void uart_init(void)
 }
 
 
+/** Reset checksum accumulator */
+static uint16_t checksum_accu;
+
+
+/** Reset checksum state */
+void uart_checksum_reset(void)
+{
+  checksum_accu = 0x3e59;
+}
+
+
+/** Update checksum
+ *
+ * FIXME: Use a good algorithm with good values.
+ */
+static inline
+void uart_checksum_update(const char c)
+{
+  const uint8_t  n = (uint8_t)c;
+  const uint16_t x = 8*n+2*n+n;
+  const uint16_t r = (checksum_accu << 3) | (checksum_accu >> 13);
+  const uint16_t v = r ^ x;
+  checksum_accu = v;
+}
+
+
+/** Send checksum */
+void uart_checksum_send(void)
+{
+  const uint8_t v = checksum_accu & 0xff;
+  uart_putc((const char)v);
+}
+
+
 /** Write character to UART */
 void uart_putc(const char c)
 {
@@ -60,6 +94,7 @@ void uart_putc(const char c)
     UDR0 = c;
 
     /* here would be the place to update the checksum state with c */
+    uart_checksum_update(c);
 }
 
 

@@ -46,7 +46,7 @@ clean-here:
 	rm -rf dox
 
 
-TARBASE = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)-$(GIT_VERSION)
+TARBASE = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)-g$(GIT_VERSION)
 
 .PHONY: dist
 dist:
@@ -58,7 +58,7 @@ Doxyfile: Doxyfile.in
 	PWD="$$(pwd)"; \
 	$(SED) \
 		-e 's|@PACKAGE_TARNAME@|$(PACKAGE_TARNAME)|g' \
-		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)|g' \
+		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)-g$(GIT_VERSION)|g' \
 		-e "s|@PWD@|$${PWD}|g" \
 		< $< > $@
 

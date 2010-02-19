@@ -47,6 +47,9 @@
 .extern	table
 .extern	measurement_count
 
+/* Rename my_ADC_vect to ADC_vect if you want to actually link this
+ * version into the firmware
+ */
 .global my_ADC_vect
 my_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 

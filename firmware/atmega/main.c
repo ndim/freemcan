@@ -46,8 +46,12 @@
 # error Unsupported MCU!
 #endif
 
-/* Avoid C99 initializers to make sure that we do initialize each and every
- * fuse value in the structure. */
+/** Define AVR device fuses.
+ *
+ * CAUTION: These values are highly device dependent.
+ *
+ * We avoid C99 initializers to make sure that we do initialize each
+ * and every fuse value in the structure. */
 FUSES = {
   /* 0xd7 = low */ (FUSE_SUT1 & FUSE_CKSEL3),
   /* 0x99 = high */ (FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
@@ -65,6 +69,7 @@ FUSES = {
 #define BIT(NO) (1<<(NO))
 
 
+/** Trigger AVR reset via watchdog device. */
 #define soft_reset()						\
   do {								\
     wdt_enable(WDTO_15MS);					\
@@ -112,7 +117,9 @@ volatile uint8_t max_timer_flag = 0;
  */
 
 
-/* Newer AVRs do not disable the watchdog on reset, so we need to
+/** Disable watchdog on device reset.
+ *
+ * Newer AVRs do not disable the watchdog on reset, so we need to
  * disable it manually early in the startup sequence. "Newer" AVRs
  * include the 164P/324P/644P we are using.
  *
@@ -135,17 +142,19 @@ ISR(INT0_vect) {
 
 /** AD conversion complete interrupt entry point
  *
- * Jumped to if the AD conversion is completed
- * ADC-Callback function calls (adc_get(), histogram_update() ...)
+ * This function is called when an A/D conversion has completed.
  */
 ISR(ADC_vect) {
   /* 500khz adc clk -> 3,5 LSB accuracy */
+
   /* ADLAR bit must be set in ADMUX for this to work: Then this just
    * uses the upper 8 bits of the ADC value. */
   const uint8_t index = ADCH;
 
+  /* Update histogram */
   table[index]++;
 
+  /* Update measurement counter */
   measurement_count++;
 
   /* Der logische wechsel am int0 pin hat ein interruptflag im EIFR
@@ -275,9 +284,8 @@ void run_measurement(void)
     ADCSRA &= ~BIT(ADATE);  // autotrigger off
 }
 
-
-/** counter overrun ISR */
 #if 0
+/** counter overrun ISR */
 ISR(TCC0_OVF_vect) {
   static uint16_t timer_count = 0;
   timer_count++;
@@ -324,7 +332,13 @@ void send_text(const char *msg)
 }
 
 
-/* avr-gcc knows that int main(void) ending with an endless loop and
+/** AVR firmware's main "loop" function
+ *
+ * Note that we create a "loop" by resetting the AVR device when we
+ * are finished, which will cause the system to start again with the
+ * hardware and software in the defined default state.
+ *
+ * avr-gcc knows that int main(void) ending with an endless loop and
  * not returning is normal, so we can avoid the
  *
  *    int main(void) __attribute__((noreturn));
@@ -379,5 +393,6 @@ int main(void)
 
     send_histogram();
 
+    /* reset the AVR device */
     soft_reset();
 }

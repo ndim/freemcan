@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include "registers.h"
-#include "clocks.h"
+#include "global.h"
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "frame-defs.h"

@@ -1,5 +1,5 @@
-/** \file clocks.h
- * \brief ATmega clock related constant definitions
+/** \file global.h
+ * \brief Global adjustments for freemcan firmware
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -20,21 +20,21 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef CLOCKS_H
-#define CLOCKS_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
 #ifndef F_CPU
-/* #define F_CPU 1000000UL                     //!< werksauslieferung 8mhz/8 */
-#define F_CPU 16000000UL		//!< Pollin AVR Eval board
+/* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
+#define F_CPU 16000000UL		               //!< Pollin AVR Eval board
 #endif
 
 /** UART baud rate */
 #define BAUDRATE 9600UL
 
 /** ADC clock rate */
-#define F_ADC_CLK_SRC 200000UL                // hz
+#define F_ADC_CLK_SRC 200000UL                // [Hz]
 
 /** ADC clock division factor */
 #define ADC_DIVISION_FACTOR (F_CPU/F_ADC_CLK_SRC)
 
-#endif /* !CLOCKS_H */
+#endif /* !GLOBAL_H */

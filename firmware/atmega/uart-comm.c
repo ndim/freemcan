@@ -25,7 +25,7 @@
 
 #include "registers.h"
 #include "uart-comm.h"
-#include "clocks.h"
+#include "global.h"
 
 
 #define BIT(NO) (1<<(NO))

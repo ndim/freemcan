@@ -36,17 +36,17 @@
  */
 void uart_init(void)
 {
-  /* baud setting valid only  for asynchrounous normal mode */
+  /* These baud setting are valid only for asynchrounous normal mode */
   const uint16_t baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
 
-  UBRR0H=(uint8_t)(baud_value>>8);
+  UBRR0H=(uint8_t)(baud_value >> 8);
   UBRR0L=(uint8_t)baud_value;
 
-  /* Asynchron (no clk is used); 8 databit no parity (8N1 frame format) */
+  /* Asynchron (no clk is used); 8 databit with no parity bit (8N1 frame format) */
   UCSR0C = (BIT(UCSZ01) | BIT(UCSZ00));
 
-  /* tx enable */
-  UCSR0B = BIT(TXEN0);
+  /* Enable transmit and receive */
+  UCSR0B = (BIT(TXEN0) | BIT(RXEN0));
 }
 
 
@@ -102,7 +102,7 @@ void uart_putc(const char c)
 void uart_puts(const char *s)
 {
     while (*s)
-    {   /* til *s != '\0' (not final string character) */
+    {   /* til final string character '\0' */
         uart_putc(*s);
         s++;
     }
@@ -119,4 +119,14 @@ void uart_putb(const void *buf, size_t len)
         s++;
 	len--;
     }
+}
+
+/** Read a character from the UART */
+void uart_getc(char *c)
+{
+    /* Poll til a character is inside the input buffer */
+    loop_until_bit_is_set( UCSR0A, RXC0 );
+
+    /* Get the character */
+    *c = UDR0 ;
 }

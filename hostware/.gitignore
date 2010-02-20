@@ -1,8 +1,5 @@
-/*.beam
 /*.o
 /*.strace
-/erl_crash.dump
-/erl_unix_port
 /freemcan-ncurses
 /freemcan-text
 /querySerial

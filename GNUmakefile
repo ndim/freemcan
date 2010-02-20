@@ -13,7 +13,7 @@ GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else ec
 
 CLEANFILES =
 
-SUBDIRS = . firmware hostware
+SUBDIRS = . firmware hostware emulator
 
 .PHONY: all clean ALL
 all clean ALL:

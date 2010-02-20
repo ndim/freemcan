@@ -4,10 +4,6 @@ CFLAGS ?=
 LDFLAGS ?=
 LDLIBS ?=
 
-ERLC = erlc
-ERLC_FLAGS =
-ERLC_FLAGS += +debug
-
 CFLAGS += -std=c99
 CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
@@ -21,10 +17,6 @@ CLEANFILES   += querySerial
 CLEANFILES += querySerial.o
 CLEANFILES += serial-setup.o
 
-bin_PROGRAMS += erl_unix_port
-CLEANFILES   += erl_unix_port
-CLEANFILES   += erl_unix_port.o
-
 # bin_PROGRAMS += freemcan-ncurses
 # CLEANFILES   += freemcan-ncurses
 # CLEANFILES   += freemcan-ncurses.o
@@ -36,12 +28,8 @@ CLEANFILES   += freemcan-text.o
 bin_PROGRAMS += test-log
 CLEANFILES   += test-log
 
-ERL_SOURCES = freemcan_emulator.erl
-BEAMS = $(ERL_SOURCES:.erl=.beam)
-CLEANFILES += $(BEAMS)
-
 .PHONY: all
-all: $(bin_PROGRAMS) $(BEAMS)
+all: $(bin_PROGRAMS)
 
 .PHONY: ALL
 ALL: all
@@ -88,13 +76,3 @@ freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)
 test-log : test-log.o freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
-ERL_LIB = /usr/lib/erlang/lib
-ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB)/erl_interface-*))
-
-erl_unix_port : erl_unix_port.o
-erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei
-erl_unix_port.o : CFLAGS += -I$(ERL_INTERFACE_ROOT)/include
-erl_unix_port.o : erl_unix_port.c
-
-%.beam: %.erl
-	$(ERLC) $(ERLC_FLAGS) $<

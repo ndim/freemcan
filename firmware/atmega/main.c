@@ -64,8 +64,9 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
+/* Number of elements in the histogram table */
+#define MAX_COUNTER (1<<ADC_RESOLUTION)
 
-#define MAX_COUNTER 256
 #define BIT(NO) (1<<(NO))
 
 
@@ -145,11 +146,13 @@ ISR(INT0_vect) {
  * This function is called when an A/D conversion has completed.
  */
 ISR(ADC_vect) {
-  /* 500khz adc clk -> 3,5 LSB accuracy */
 
-  /* ADLAR bit must be set in ADMUX for this to work: Then this just
-   * uses the upper 8 bits of the ADC value. */
-  const uint8_t index = ADCH;
+  uint16_t result;
+  uint8_t index;
+
+  result = ADCW;
+
+  index = (uint8_t)(result>>(10-ADC_RESOLUTION));
 
   /* Update histogram */
   table[index]++;
@@ -157,16 +160,10 @@ ISR(ADC_vect) {
   /* Update measurement counter */
   measurement_count++;
 
-  /* Der logische wechsel am int0 pin hat ein interruptflag im EIFR
-   * gesetzt.  schreibe logische eins ins INTFn und lösche das flag.
-   * Normalerweise übernimmt das die ISR(INT0_vect){} automatisch aber
-   * da wir den int0 für das auslösen des adcs nur konfigurieren aber
-   * nicht freigeben müssen wir das flag manuell löschen
-   *
-   * antwort aus dem forum: Du musst den External INT nur
-   * konfigurieren, aber nicht unbedingt freigeben. Nur das Interrupt
-   * Flag muss irgendwo manuell wieder zurückgesetzt werden. Am
-   * Sinnvollsten in der ISR(ADC_vect).
+  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
+   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
+   * not executed and therefore this flag is not reset automatically.
+   * To reset this flag the bit at position INTF0 must be set.
    */
   EIFR |= BIT(INTF0);
 }
@@ -176,25 +173,23 @@ ISR(ADC_vect) {
  *
  * INT0 Pin 16 is configured but not enabled
  * On rising edge
- * pull up resistor 20-50kOhm
+ * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
 inline static
 void trigger_src_conf(void)
 {
-    /* MCUCR bit PUD (4): alle pullups können global auseschaltet
-     * werden (schreibe 1) */
-    /* port D Data direction register */
-    /* bit 2 in DDRD == 0 -> Int0 (pin 16) ist eingang, ausgang
-     * sonst. lösche bit 2 */
+
+    /* Configure INT0 pin 16 as input */
+    /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
     DDRD &= ~(BIT(DDD2));
-    /* port d data register: pull up einschalten, 20-50kOhm */
+    /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
     PORTD |= BIT(PD2);
 
     /* Disable interrupt pin "INT0" (clear interrupt enable bit in
-     * External interrupt mask register) otherwise an interrupt may
+     * external interrupt mask register) otherwise an interrupt may
      * occur if EICRA is changed */
     EIMSK &= ~(BIT(INT0));
-    /* int on rising or falling edge or level triggered (External
+    /* Int on rising or falling edge or level triggered (external
      * interrupt control register A) */
     EICRA &= ~(BIT(ISC01) | BIT(ISC00));
     /* 11 = interrupt on rising edge (setze bit 0 und 1 auf 1) */
@@ -206,7 +201,8 @@ void trigger_src_conf(void)
      * vector table*/
     EIFR |= BIT(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
-     * register). jump to the ISR in case of an interrupt */
+     * register). we do not want to jump to the ISR in case of an interrupt
+     * so we do not set this bit                               */
     // EIMSK |= (BIT(INT0));
 
 }
@@ -216,8 +212,8 @@ void trigger_src_conf(void)
  *
  * ADC configured as auto trigger
  * Trigger source INT0
- * AREF at PIN 32
- * Channel Pin 40 ADC0
+ * Use external analog reference AREF at PIN 32
+ * AD input channel on Pin 40 ADC0
  */
 inline static
 void adc_init(void)
@@ -230,46 +226,38 @@ void adc_init(void)
   /* select voltage reference: external AREF Pin 32 as reference */
   ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
 
-  /* left adjust ADC value on readout (makes cutting off lower bits easy)  */
-  ADMUX |= BIT(ADLAR);
-
   /* clear ADC Control and Status Register A
    * enable ADC & configure IO-Pins to ADC (ADC ENable) */
   ADCSRA = BIT(ADEN);
 
   /* ADC prescaler selection (ADC Prescaler Select Bits) */
   /* bits ADPS0 .. ADPS2 */
-  uint8_t adc_ps;
-  adc_ps = ADC_DIVISION_FACTOR;
-  ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
-	     (((adc_ps>>1) & 0x1)*BIT(ADPS1)) |
+  const uint8_t adc_ps = ADC_DIVIDER;
+  ADCSRA |= ((((adc_ps>>2) & 0x01)*BIT(ADPS2)) |
+	     (((adc_ps>>1) & 0x01)*BIT(ADPS1)) |
 	     ((adc_ps & 0x01)*BIT(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */
-  /* software trigger ADC */
+  /* software triggered AD-Conversion */
   ADCSRA |= BIT(ADSC);
+
   /* wait until conversion is complete */
   loop_until_bit_is_clear(ADCSRA, ADSC);
 
   /* clear returned AD value, other next conversion value is not ovrtaken */
   result = ADCW;
 
-  /* enable ad conversion complete interrupt if I-Flag in sreg is set
+  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
    * (-> ADC interrupt enable) */
   ADCSRA |= BIT(ADIE);
 
-  /* falls der adc nicht per software im ISR ausgelöst werden soll */
-
-  /* Configure trigger source:
-   *
-   * Wenn man ADTS1 bit in ADCSRB setzt -> (auslöser external
-   * interrupt request 0) s.259 und s.242.
-   *
-   * positive edge on trigger signal */
+   /* Configure ADC trigger source:
+    * Select external trigger "interrupt request 0"
+    * Interrupt on rising edge                         */
   ADCSRB |= BIT(ADTS1);
   ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
 
-  /* ADC auto trigger enable -> adc triggered by trigger signal */
+  /* ADC auto trigger enable: ADC will be started by trigger signal */
   ADCSRA |= BIT(ADATE);
 }
 
@@ -282,6 +270,7 @@ void run_measurement(void)
     cli(); /* disable interrupts */
 
     ADCSRA &= ~BIT(ADATE);  // autotrigger off
+    EIMSK &= ~(BIT(INT0));
 }
 
 #if 0
@@ -375,21 +364,7 @@ int main(void)
 
     /* configure unused pins */
 
-    /* 4 measurements */
     run_measurement();
-
-#if 0
-    char s[7];
-    int16_t h = -12345;
-
-    itoa( h, s, 10 ); // 10 fuer radix -> Dezimalsystem
-    uart_puts( s );
-
-    for (int i=0; i<MAX_COUNTER; i++) {
-      utoa( table[i], s, 10 );
-      uart_puts( s );
-    }
-#endif
 
     send_histogram();
 

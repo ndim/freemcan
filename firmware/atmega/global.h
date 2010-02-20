@@ -31,10 +31,17 @@
 /** UART baud rate */
 #define BAUDRATE 9600UL
 
-/** ADC clock rate */
-#define F_ADC_CLK_SRC 200000UL                // [Hz]
+/** ADC clock rate in Hz*/
+#define F_ADC_CLK_SRC 200000UL
 
-/** ADC clock division factor */
-#define ADC_DIVISION_FACTOR (F_CPU/F_ADC_CLK_SRC)
+/** ADC resolution in bit
+ *
+ * Put in there resonable values:
+ * E.g. 8 bit resolution at 500 Mhz.
+ * (644p has 3,5LSB accuracy at 1Mhz)*/
+#define ADC_RESOLUTION 8
+
+/** ADC clock divider */
+#define ADC_DIVIDER (F_CPU/F_ADC_CLK_SRC)
 
 #endif /* !GLOBAL_H */

@@ -19,6 +19,8 @@
  */
 
 
+#include <stdbool.h>
+
 #include <unistd.h>
 #include <time.h>
 
@@ -49,6 +51,8 @@
 #include "freemcan-select.h"
 
 
+
+static bool quit_flag = false;
 
 
 
@@ -226,7 +230,22 @@ void tui_select_do_io(fd_set *in_fdset)
     buf[bytes_to_read] = '\0';
     fmlog("Received %d bytes from fd %d: %s", read_bytes, STDIN_FILENO, buf);
     fmlog_data(buf, read_bytes);
-    dev_write(buf, read_bytes);
+    for (ssize_t i=0; i<read_bytes; i++) {
+      /* handle a few key input things internally */
+      switch (buf[i]) {
+      case 3: /* ctrl-c */
+      case 27: /* escape */
+      case 'q':
+      case 'Q':
+      case 'x':
+      case 'X':
+	quit_flag = true;
+	break;
+      default:
+	dev_write(&buf[i], read_bytes);
+	break;
+      }
+    }
   }
 }
 
@@ -304,7 +323,7 @@ int main(int argc, char *argv[])
       tui_select_do_io(&in_fdset);
     }
 
-    if (sigint) {
+    if (sigint || quit_flag) {
       break;
     }
 

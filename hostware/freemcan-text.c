@@ -158,7 +158,25 @@ tui_log_handler(void *data __attribute__ (( unused )),
 static
 void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
 {
-  fmlog("Received Frame of type %c (%d=0x%x), size %d=0x%x",
+  switch (frame->type) {
+  case FRAME_TYPE_STATUS:
+    fmlog("STATUS: %s", frame->payload);
+    break;
+  case FRAME_TYPE_TEXT:
+    fmlog("TEXT: %s", frame->payload);
+    break;
+  case FRAME_TYPE_HISTOGRAM:
+    if (1) {
+      const size_t hist_size = frame->size - 1;
+      const uint8_t element_size = frame->payload[0];
+      const size_t element_count = hist_size/element_size;
+      fmlog("Received histogram data of %d elements of %d bytes each:",
+	    element_count, element_size);
+      fmlog_data((void *)&(frame->payload[1]), hist_size);
+    }
+    break;
+  }
+  fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
 	frame->type, frame->type, frame->type, frame->size, frame->size);
   fmlog_data((void *)frame->payload, frame->size);
 }

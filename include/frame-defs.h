@@ -45,6 +45,42 @@
  * \todo Document checksum algorithm.
  * \todo Implement checksum verification on hostware side.
  *
+ * \subsection Firmware state machine
+ *
+ * \todo The firmware state machine needs a way to read the time span
+ * a measurement is supposed to take.
+ *
+ * \dot
+ * digraph firmware_fsm {
+ *   node [shape=ellipse, fontname=Helvetica, fontsize=10];
+ *   edge [fontname=Helvetica, fontsize=10];
+ *
+ *   {
+ *     rank = same;
+ *     null [shape = plaintext label=""];
+ *     booting;
+ *     ready;
+ *   }
+ *   {
+ *     reset;
+ *     measuring;
+ *   }
+ *
+ *   null -> booting;
+ *
+ *   reset -> booting [ label="done\n./." ];
+ *   ready -> measuring [ label="cmd 'm'\nstatus 'measuring'" ];
+ *
+ *   booting -> ready [ label="done\nstatus 'ready'" ];
+ *   measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" ];
+ *
+ *   measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate'" ];
+ *
+ *   ready -> reset [ label="cmd 'r'\nstatus 'reset'"];
+ *   measuring -> reset [ label="done\nhistogram 'done'" ];
+ * }
+ * \enddot
+ *
  */
 
 #ifndef FRAME_DEFS_H

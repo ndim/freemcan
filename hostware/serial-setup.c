@@ -143,7 +143,11 @@ void serial_setup(const int fd, const long baud)
 }
 
 
-/* These are the hash definitions */
+/** Baud rate hash definitions.
+ *
+ * We use an enum instead of just defining a few macros as that allows
+ * the compiler to catch missing case statements in switch() blocks.
+ */
 typedef enum {
   USERBAUD1200 = '1'+'2',
   USERBAUD2400 = '2'+'4',

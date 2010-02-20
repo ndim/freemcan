@@ -1,6 +1,7 @@
-/** \file registers.h
- * \brief Register use definition for freemcan ATmega firmware
+/** \file clocks.h
+ * \brief ATmega clock related constant definitions
  *
+ * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,27 +20,21 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef REGISTERS_H
-#define REGISTERS_H
+#ifndef CLOCKS_H
+#define CLOCKS_H
 
-/* Safe registers to reserve for special purposes are r2..r7, apparently:
- * http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_regbind
- */
+#ifndef F_CPU
+/* #define F_CPU 1000000UL                     //!< werksauslieferung 8mhz/8 */
+#define F_CPU 16000000UL		//!< Pollin AVR Eval board
+#endif
 
-#ifdef __ASSEMBLER__
+/** UART baud rate */
+#define BAUDRATE 9600UL
 
-/* Define the same special use registers as the C compiler uses below */
-# define sreg_save r7
+/** ADC clock rate */
+#define F_ADC_CLK_SRC 200000UL                // hz
 
-#else
+/** ADC clock division factor */
+#define ADC_DIVISION_FACTOR (F_CPU/F_ADC_CLK_SRC)
 
-#include <stdint.h>
-
-/** Reserve register for special use by assembly language ISR.
- *
- * The C compiler will not touch this register then! */
-register uint8_t sreg_save asm("r7");
-
-#endif /* !__ASSEMBLER__ */
-
-#endif /* !REGISTERS_H */
+#endif /* !CLOCKS_H */

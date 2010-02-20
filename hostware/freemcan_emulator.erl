@@ -28,54 +28,90 @@
 
 -record(state, {port, state=boot, timeout=100}).
 
-next(boot, {timeout, _}) ->
-    {start, <<"Booted.\n">>, ?DEFAULT_TIMEOUT};
 
-next(start, <<"r">>) ->
-    {reset, none, 10};
-next(start, <<"m">>) ->
-    {{measuring, 0}, <<"Started measurement\n">>, 10000};
-next(start, {timeout, _}) ->
-    {start, none, ?DEFAULT_TIMEOUT};
+dummy_histogram() ->
+    ElementCount = 256,
+    [ (((301*N*N*N)+(37*N*N)) rem (1 bsl 32))
+      || N <- lists:seq(ElementCount) ].
 
-next({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
-    {{measuring, N+1}, <<"Still measuring\n">>, 10000};
-next({measuring, _}, {timeout, _}) ->
-    {reset, <<"Measurement finished\n">>, 10000};
 
-next(reset, {timeout, _}) ->
-    {boot, <<"Resetting\n">>, 100}.
+checksum(Bin) when is_binary(Bin) ->
+    lists:foldl(fun(C, Acc) ->
+			N = C,
+			X = 8*N+2*N*N,
+			R = ((Acc bsl 3) rem (1 bsl 16)) bor ((Acc bsr 13) rem (1 bsl 16)),
+			R bxor X
+		end,
+		16#3e59,
+		binary_to_list(Bin)).
+
+
+frame(text, Text) ->
+    frame($T, Text);
+frame(status, StatusMsg) ->
+    frame($S, StatusMsg);
+frame(histogram, Histogram) ->
+    BinHist = [ <<Val:32/little-integer>> || Val <- Histogram ],
+    Payload = list_to_binary([<<4>>|BinHist]),
+    frame($H, Payload);
+frame(Type, Payload) when is_integer(Type), is_binary(Payload) ->
+    BinPayload = list_to_binary(Payload),
+    Length = length(Payload),
+    DummyChecksum = checksum(BinPayload),
+    <<"FMPK", Length:16/little-integer, Type, Payload/binary, DummyChecksum>>.
+
+
+fsm(boot, {timeout, _}) ->
+    {start, frame(status, "Booted"), none};
+
+fsm(start, <<"r">>) ->
+    {reset, none, 100};
+fsm(start, <<"m">>) ->
+    {{measuring, 0}, frame(status, "Measuring"), 10000};
+
+fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
+    {{measuring, N+1}, frame(text, "Still measuring"), 10000};
+fsm({measuring, _}, {timeout, _}) ->
+    {reset, frame(histogram, dummy_histogram()), 0};
+
+fsm(reset, {timeout, _}) ->
+    {boot, frame(status, "Resetting"), 100}.
+
 
 loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
+    RealTimeOut = case TimeOut of
+		      none -> 100000;
+		      N when is_integer(N) -> N
+		  end,
     receive
 	{Port, {data, Cmd}} ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Received command: ~p~n", [Cmd]),
-	    {NextState, Reply, NextTimeOut} = next(CurState, Cmd),
+	    {NextState, Reply, NextTimeOut} = fsm(CurState, Cmd),
 	    io:format("Sending reply:    ~p~n", [Reply]),
 	    Port ! {self(), {command, Reply}},
 	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
-	{'EXIT', Port, Reason} ->
-	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
-	    io:format("EXIT on Port:     ~p~n", [Reason]),
-	    {error, Reason};
 	Unhandled ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    {error, {unhandled, Unhandled}}
-    after TimeOut ->
-	    {NextState, Reply, NextTimeOut} = next(CurState, {timeout, TimeOut}),
-	    io:format("Timeout:          ~p~n", [TimeOut]),
-	    io:format("Sending reply:    ~p~n", [Reply]),
-	    case Reply of
-		none -> ok;
-		Reply ->
-		    Port ! {self(), {command, Reply}}
-	    end,
-	    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
+    after RealTimeOut ->
+	    case TimeOut of
+		none -> loop(LoopState);
+		TimeOut ->
+		    {NextState, Reply, NextTimeOut} = fsm(CurState, {timeout, TimeOut}),
+		    io:format("Timeout:          ~p~n", [TimeOut]),
+		    io:format("Sending reply:    ~p~n", [Reply]),
+		    case Reply of
+			none -> ok;
+			Reply ->
+			    Port ! {self(), {command, Reply}}
+		    end,
+		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
+	    end
     end.
 
-main(FIFO) ->
+init(FIFO) ->
     io:format("FIFO=~s~n", [FIFO]),
     {ok, Cwd} = file:get_cwd(),
     ExecName = "erl_unix_port",
@@ -99,12 +135,16 @@ main(FIFO) ->
 		      {args, Args}
 		     ]),
     io:format("Port: ~p~n", [Port]),
-    loop(#state{port=Port}).
+    #state{port=Port}.
+
+intermain(FIFO) ->
+    InitState = init(FIFO),
+    spawn(?MODULE, loop, [InitState]).
 
 start() ->
     start([]).
 
 start([FIFO]) when is_atom(FIFO) ->
-    main(atom_to_list(FIFO));
+    intermain(atom_to_list(FIFO));
 start([FIFO]) when is_list(FIFO) ->
-    main(FIFO).
+    intermain(FIFO).

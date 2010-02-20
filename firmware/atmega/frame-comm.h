@@ -1,5 +1,5 @@
-/** \file registers.h
- * \brief Register use definition for freemcan ATmega firmware
+/** \file frame-comm.h
+ * \brief ATmega frame based communication interface
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,27 +19,19 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef REGISTERS_H
-#define REGISTERS_H
+#ifndef FRAME_COMM_H
+#define FRAME_COMM_H
 
-/* Safe registers to reserve for special purposes are r2..r7, apparently:
- * http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_regbind
- */
+#include <stdlib.h>
 
-#ifdef __ASSEMBLER__
+#include "frame-defs.h"
 
-/* Define the same special use registers as the C compiler uses below */
-# define sreg_save r7
+extern void frame_send(const frame_type_t frame_type,
+		       const void *payload, const size_t payload_size);
 
-#else
+extern void frame_start(const frame_type_t frame_type,
+			const size_t payload_size);
+extern void frame_end(void);
 
-#include <stdint.h>
 
-/** Reserve register for special use by assembly language ISR.
- *
- * The C compiler will not touch this register then! */
-register uint8_t sreg_save asm("r7");
-
-#endif /* !__ASSEMBLER__ */
-
-#endif /* !REGISTERS_H */
+#endif /* !FRAME_COMM_H */

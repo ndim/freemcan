@@ -1,6 +1,7 @@
-/** \file registers.h
- * \brief Register use definition for freemcan ATmega firmware
+/** \file uart-printf.h
+ * \brief Interface to printf via UART
  *
+ * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,27 +20,14 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef REGISTERS_H
-#define REGISTERS_H
+#ifndef UART_PRINTF_H
+#define UART_PRINTF_H
 
-/* Safe registers to reserve for special purposes are r2..r7, apparently:
- * http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_regbind
- */
-
-#ifdef __ASSEMBLER__
-
-/* Define the same special use registers as the C compiler uses below */
-# define sreg_save r7
-
+#ifdef HAVE_UPRINTF_IMPLEMENTATION
+extern void uprintf(const char *format, ...);
 #else
+# define uprintf(...) do {} while (0)
+#endif
 
-#include <stdint.h>
+#endif /* !UART_PRINTF_H */
 
-/** Reserve register for special use by assembly language ISR.
- *
- * The C compiler will not touch this register then! */
-register uint8_t sreg_save asm("r7");
-
-#endif /* !__ASSEMBLER__ */
-
-#endif /* !REGISTERS_H */

@@ -140,7 +140,8 @@ init(FIFO) ->
 
 intermain(FIFO) ->
     InitState = init(FIFO),
-    spawn(?MODULE, loop, [InitState]).
+    % spawn(?MODULE, loop, [InitState]),
+    loop(InitState).
 
 start() ->
     start([]).

@@ -161,10 +161,10 @@ void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
   switch (frame->type) {
   case FRAME_TYPE_STATUS:
     fmlog("STATUS: %s", frame->payload);
-    break;
+    return;
   case FRAME_TYPE_TEXT:
     fmlog("TEXT: %s", frame->payload);
-    break;
+    return;
   case FRAME_TYPE_HISTOGRAM:
     if (1) {
       const size_t hist_size = frame->size - 1;
@@ -174,7 +174,7 @@ void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
 	    element_count, element_size);
       fmlog_data((void *)&(frame->payload[1]), hist_size);
     }
-    break;
+    return;
   }
   fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
 	frame->type, frame->type, frame->type, frame->size, frame->size);

@@ -115,7 +115,6 @@ void dev_select_do_io(fd_set *in_fdset)
     fmlog("Received %d bytes from device at fd %d\n", read_bytes, device_fd);
     fmlog_data(buf, read_bytes);
     frame_parse_bytes(buf, read_bytes);
-    fmlog("Moo");
   }
 }
 

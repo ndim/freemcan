@@ -48,7 +48,8 @@ static
 bool checksum_match(const uint8_t test)
 {
   const uint8_t checksum = (checksum_accu & 0xff);
-  return (checksum == test);
+  const bool retval = (checksum == test);
+  return retval;
 }
 
 
@@ -110,27 +111,23 @@ static uint8_t  frame_checksum;
 
 static frame_t  *frame_wip; /* work in progress */
 
+static unsigned int checksum_errors = 0;
+
 
 static
 void handle(const char ch)
 {
   const uint8_t u = ch;
 
-  /* update checksum even if we might reset it further down */
-  checksum_update(u);
-
-  fmlog("handle 0x%0x=%d", u, u);
-
   switch (state) {
   case STATE_MAGIC:
-    fmlog("MAGIC");
     if (ch == magic[offset]) {
       if (offset == 0) {
 	/* beginning of magic and header and frame */
 	/* start new checksum */
 	checksum_reset();
-	checksum_update(u);
       }
+      checksum_update(u);
       offset++;
       if (offset <= 3) {
 	state = STATE_MAGIC;
@@ -147,7 +144,7 @@ void handle(const char ch)
     }
     break;
   case STATE_SIZE:
-    fmlog("SIZE");
+    checksum_update(u);
     switch (offset) {
     case 0:
       frame_size = (frame_size & 0xff00) | u;
@@ -162,7 +159,7 @@ void handle(const char ch)
     }
     break;
   case STATE_FRAME_TYPE:
-    fmlog("TYPE");
+    checksum_update(u);
     frame_type = u;
     offset = 0;
     frame_wip = malloc(sizeof(frame_t)+frame_size);
@@ -170,7 +167,7 @@ void handle(const char ch)
     state = STATE_PAYLOAD;
     return;
   case STATE_PAYLOAD:
-    fmlog("PAYLOAD");
+    checksum_update(u);
     frame_wip->payload[offset] = u;
     offset++;
     if (offset < frame_size) {
@@ -183,7 +180,6 @@ void handle(const char ch)
     }
     break;
   case STATE_CHECKSUM:
-    fmlog("CHECKSUM");
     frame_checksum = u;
     if (checksum_match(frame_checksum)) {
       if (frame_handler) {
@@ -196,6 +192,7 @@ void handle(const char ch)
       state = STATE_MAGIC;
       return;
     } else {
+      checksum_errors++;
       offset = 0;
       state = STATE_MAGIC;
       return;

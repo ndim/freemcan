@@ -26,6 +26,8 @@ SRC = main.c uart-comm.c frame-comm.c
 ASRC = ISR-ADC_vect.S
 OPT = s
 
+# Comment out the following two files to remove the printf implementation
+# from the firmware.
 SRC += uart-printf.c
 CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 

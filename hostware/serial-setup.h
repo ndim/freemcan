@@ -22,9 +22,16 @@
 #ifndef SERIAL_SETUP_H
 #define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
+/** Open serial port device file with the appropriate flags. */
+extern int  serial_open(const char *device_name);
+
+/** Set up serial port parameters */
 extern void serial_setup(const int fd, const long baud);
 
+/** Compute which baud rate the user wants.
+ *
+ * Uses a simple adding hash function.
+ */
 extern long serial_string_to_baud(const char *arg);
 
 #endif /* !SERIAL_SETUP_H */

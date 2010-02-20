@@ -45,7 +45,6 @@
 static int device_fd = -1;
 
 
-/** Open device */
 void dev_init(const char *device_name)
 {
   /** \todo Run stat(2) on device_name, then change open()-like code
@@ -83,7 +82,6 @@ void dev_init(const char *device_name)
 }
 
 
-/** Close device */
 void dev_fini(void)
 {
   assert(device_fd > 0);
@@ -91,7 +89,6 @@ void dev_fini(void)
 }
 
 
-/** Set up select() data structure with device data */
 int dev_select_set_in(fd_set *in_fdset, int maxfd)
 {
   assert(device_fd > 0);
@@ -101,7 +98,6 @@ int dev_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
-/** Do device's IO stuff if necessary (from select loop) */
 void dev_select_do_io(fd_set *in_fdset)
 {
   assert(device_fd > 0);
@@ -118,13 +114,12 @@ void dev_select_do_io(fd_set *in_fdset)
     buf[bytes_to_read] = '\0';
     fmlog("Received %d bytes from device at fd %d\n", read_bytes, device_fd);
     fmlog_data(buf, read_bytes);
-    frame_parse(buf, read_bytes);
+    frame_parse_bytes(buf, read_bytes);
     fmlog("Moo");
   }
 }
 
 
-/** Write data buffer to device after removing all invalid commands */
 void dev_write(const char *buf, const size_t size)
 {
   fmlog("Writing %d bytes to device fd %d", size, device_fd);

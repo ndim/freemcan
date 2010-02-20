@@ -36,10 +36,10 @@ typedef void (*fmlog_handler_t)(void *data,
 				const char *message,
 				const size_t length);
 
-/** Reset fmlog message handler to default */
+/** Reset fmlog message handler to the default handler */
 void fmlog_reset_handler(void);
 
-/** Set fmlog message handler */
+/** Set the fmlog message handler to the given handler function */
 void fmlog_set_handler(fmlog_handler_t the_fmlog_handler,  void *the_data);
 
 /** Log a message */

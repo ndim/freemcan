@@ -28,7 +28,6 @@
 #include <stdio.h>
 
 
-/** Set up serial port parameters */
 void serial_setup(const int fd, const long baud)
 {
   struct termios tio;
@@ -157,10 +156,6 @@ typedef enum {
 } userbaud_t;
 
 
-/** Compute which baud rate the user wants.
- *
- * Uses a simple adding hash function.
- */
 long serial_string_to_baud(const char *arg)
 {
   const userbaud_t whichBaud = (arg[0] + arg[1]);
@@ -180,8 +175,6 @@ long serial_string_to_baud(const char *arg)
 }
 
 
-/** Open serial port device file with the appropriate flags.
- */
 int serial_open(const char *device_name)
 {
   /*

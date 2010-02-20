@@ -68,6 +68,7 @@ void checksum_update(const uint8_t value)
  * Frame Handler (next layer)
  ************************************************************************/
 
+
 static frame_handler_t frame_handler;
 static void *frame_handler_data;
 
@@ -91,31 +92,48 @@ void frame_reset_handler(void){
  ************************************************************************/
 
 
+/** Parser state machine states */
 typedef enum {
+  /** waiting for magic number bytes to appear */
   STATE_MAGIC,
+  /** waiting for frame size bytes */
   STATE_SIZE,
+  /** waiting for frame type byte */
   STATE_FRAME_TYPE,
+  /** waiting for payload bytes */
   STATE_PAYLOAD,
+  /** waiting for checksum byte */
   STATE_CHECKSUM
 } state_t;
 
+/** Parser state machine state */
 static state_t state = STATE_MAGIC;
 
+/** Parser state machine state data */
 static size_t offset = 0;
 
+/** Static magic constant for comparision */
 static const char *magic = "FMPK";
 
+/** The frame size for frame in progress */
 static uint16_t frame_size;
+
+/** The frame type for frame in progress */
 static uint8_t  frame_type;
+
+/** The frame checksum for frame in progress */
 static uint8_t  frame_checksum;
 
+/** The parsed frame in progress */
 static frame_t  *frame_wip; /* work in progress */
 
+/** Count the number of checksum errors we get */
 static unsigned int checksum_errors = 0;
 
 
+/** step the parser FSM */
 static
-void handle(const char ch)
+void step_fsm(const char ch)
 {
   const uint8_t u = ch;
 
@@ -204,10 +222,10 @@ void handle(const char ch)
 }
 
 
-void frame_parse(const void *buf, const size_t size)
+void frame_parse_bytes(const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;
   for (size_t i=0; i<size; i++) {
-    handle(cbuf[i]);
+    step_fsm(cbuf[i]);
   }
 }

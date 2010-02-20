@@ -31,12 +31,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+/** Open device */
 void dev_init(const char *device_name);
+
+/** Close device */
 void dev_fini(void);
 
-int dev_select_set_in(fd_set *in_fdset, int maxfd);
+/** Set up select() data structure with device data */
+int  dev_select_set_in(fd_set *in_fdset, int maxfd);
+
+/** Do device's IO stuff if necessary (from select loop) */
 void dev_select_do_io(fd_set *in_fdset);
 
+/** Write data buffer to device after removing all invalid commands
+ *
+ * Only valid commands (i.e. commands in #frame_cmd_t) will be
+ * sent. All other commands will be discarded.
+ */
 void dev_write(const char *buf, const size_t size);
 
 #endif /* !FREEMCAN_DEVICE_H */

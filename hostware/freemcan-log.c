@@ -32,7 +32,8 @@
 #include "freemcan-log.h"
 
 
-/**
+/** Default fmlog handler writing to stderr
+ *
  * \todo Use writev(2)?
  */
 static void default_fmlog_handler(void *data __attribute__ (( unused )),
@@ -46,7 +47,11 @@ static void default_fmlog_handler(void *data __attribute__ (( unused )),
 }
 
 
+/** Pointer to log handler function */
 static fmlog_handler_t fmlog_handler = default_fmlog_handler;
+
+
+/** Pointer to log handler function's data */
 static void *fmlog_handler_data = NULL;
 
 
@@ -104,7 +109,6 @@ void fmlog_error(const char *format, ...)
 
   fmlog_handler(fmlog_handler_data, buf, to_write);
 }
-
 
 
 /** Print debug string */

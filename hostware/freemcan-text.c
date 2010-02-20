@@ -55,10 +55,10 @@ static bool quit_flag = false;
 
 
 
-/** */
+/** Saved TTY fd */
 static int tty_savefd = -1;
 
-/** */
+/** Saved termios data */
 static struct termios tty_save_termios;
 
 
@@ -117,6 +117,7 @@ int tty_reset()
 }
 
 
+/** Handle ABRT signal */
 static void sigabrt_handler(int i __attribute__((unused)))
 {
   tty_reset();
@@ -124,6 +125,7 @@ static void sigabrt_handler(int i __attribute__((unused)))
 }
 
 
+/** Initialize ABRT signal handling */
 static void sigabrt_init()
 {
   sighandler_t abrt_handler __attribute__((unused))
@@ -137,6 +139,7 @@ static void sigabrt_init()
 FILE *stdlog = NULL;
 
 
+/** TUI specific message logger for #fmlog() & Co. */
 static void
 tui_log_handler(void *data __attribute__ (( unused )),
 		const char *message,
@@ -151,6 +154,7 @@ tui_log_handler(void *data __attribute__ (( unused )),
 }
 
 
+/** TUI specific data frame handler */
 static
 void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
 {
@@ -160,7 +164,7 @@ void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
 }
 
 
-/** initialize curses stuff */
+/** Initialize TTY stuff */
 void tui_init()
 {
   tty_init();
@@ -175,34 +179,6 @@ void tui_init()
 }
 
 
-/** handle arriving packet from DPS */
-static
-void tui_packet_handler(const frame_t *const p, void *data)
-  __attribute__ ((unused));
-
-
-static
-void tui_packet_handler(const frame_t *const p, void *data __attribute__ ((unused)))
-{
-  fmlog("%s", __PRETTY_FUNCTION__);
-  fmlog_data((void *)p, sizeof(*p));
-  /*
-  screen_element_t *sel = (screen_element_t *)(data);
-  WINDOW *window = sel->window;
-  mvwprintw(window,  1, 2, "current   limits");
-  mvwprintw(window,  2, 2, "frame_t * %p", p);
-  mvwprintw(window,  2, 2, "%05.2f V  %05.2f V    %s", 
-	    p->u, p->lim_u, (p->remote?"RS232 access":"LOCAL access"));
-  mvwprintw(window,  3, 2, "%05.3f A  %05.3f A    %s", 
-	    p->i, p->lim_i, (p->output?"output ON ":"output N/C"));
-  mvwprintw(window,  4, 2, "%05.1f W  %05.1f W    %s", 
-	    p->p, p->lim_p, (p->overtemp?"OVERTEMP":"temp ok"));
-  wrefresh(window);
-  refresh();
-  */
-}
-
-
 /** Set up select() data structure with (ncurses based) text UI */
 int tui_select_set_in(fd_set *in_fdset, int maxfd)
 {
@@ -212,7 +188,7 @@ int tui_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
-/** Do (ncurses based) text UI's IO stuff if necessary (from select loop) */
+/** Do TUI's IO stuff if necessary (from select loop) */
 void tui_select_do_io(fd_set *in_fdset)
 {
   /* user interface do_io */
@@ -249,6 +225,11 @@ void tui_select_do_io(fd_set *in_fdset)
 }
 
 
+/** TUI specific cleanup function
+ *
+ * Most important task is to reset the terminal state to something
+ * usable, as we mess with it quite seriously.q
+ */
 static
 void atexit_func(void)
 {
@@ -259,7 +240,7 @@ void atexit_func(void)
 
 
 
-/** main program with select(2) based main loop */
+/** TUI's main program with select(2) based main loop */
 int main(int argc, char *argv[])
 {
   assert(argv[0]);

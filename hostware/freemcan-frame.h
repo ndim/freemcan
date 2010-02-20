@@ -27,22 +27,43 @@
 
 #include "frame-defs.h"
 
+
+/** Data frame (parsed)
+ *
+ * In this parsed state, the header magic number and trailing checksum
+ * have already been verified to be correct and thus thrown aside.
+ */
 typedef struct {
+  /** Frame type */
   frame_type_t type;
+  /** Payload size in bytes */
   uint16_t size;
+  /** Payload */
   uint8_t payload[];
 } frame_t;
 
-/** Handle frame
+
+/** Handler function for newly parsed frames
  * \param frame The frame to handle
  * \param data Private data for the handler function
  */
 typedef void (*frame_handler_t)(const frame_t *frame,
 				void *data);
 
+/** Set frame handler function to the given function */
 void frame_set_handler(frame_handler_t handler, void *data);
+
+/** Reset frame handler function to No-Op */
 void frame_reset_handler(void);
 
-void frame_parse(const void *buf, const size_t size);
+
+/** Parse a few bytes as frame
+ *
+ * Call this function repeatedly as the data is trickling in. Whenever
+ * a complete frame is detected by the internal parsing logic, the
+ * hander function the caller should have set by calling
+ * #frame_set_handler will be called with the parsed frame.
+ */
+void frame_parse_bytes(const void *buf, const size_t size);
 
 #endif /* !FREEMCAN_FRAME_H */

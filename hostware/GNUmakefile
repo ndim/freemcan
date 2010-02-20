@@ -12,6 +12,7 @@ CFLAGS += -std=c99
 CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
 CFLAGS += -Werror
+CFLAGS += -g
 CFLAGS += -I../include
 
 bin_PROGRAMS += querySerial

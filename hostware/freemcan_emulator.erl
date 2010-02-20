@@ -48,26 +48,27 @@ checksum(Bin) when is_binary(Bin) ->
 
 
 frame(text, Text) ->
-    frame($T, Text);
+    bin_frame($T, Text);
 frame(status, StatusMsg) ->
-    frame($S, StatusMsg);
+    bin_frame($S, StatusMsg);
 frame(histogram, Histogram) ->
     BinHist = [ <<Val:32/little-integer>> || Val <- Histogram ],
     Payload = list_to_binary([<<4>>|BinHist]),
-    frame($H, Payload);
-frame(Type, Payload) when is_integer(Type), is_binary(Payload) ->
+    bin_frame($H, Payload).
+
+bin_frame(Type, Payload) when is_integer(Type)  ->
     BinPayload = list_to_binary(Payload),
-    Length = length(Payload),
+    ByteSize = byte_size(BinPayload),
     DummyChecksum = checksum(BinPayload),
-    <<"FMPK", Length:16/little-integer, Type, Payload/binary, DummyChecksum>>.
+    <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary, DummyChecksum>>.
 
 
 fsm(boot, {timeout, _}) ->
-    {start, frame(status, "Booted"), none};
+    {ready, frame(status, "READY"), none};
 
-fsm(start, <<"r">>) ->
+fsm(ready, <<"r">>) ->
     {reset, none, 100};
-fsm(start, <<"m">>) ->
+fsm(ready, <<"m">>) ->
     {{measuring, 0}, frame(status, "Measuring"), 10000};
 
 fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->

@@ -85,6 +85,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 		      none -> 100000;
 		      N when is_integer(N) -> N
 		  end,
+    io:format("Current state: ~p~n", [CurState]),
     receive
 	{Port, {data, Cmd}} ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
@@ -92,12 +93,14 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 	    {NextState, Reply, NextTimeOut} = fsm(CurState, Cmd),
 	    io:format("Sending reply:    ~p~n", [Reply]),
 	    Port ! {self(), {command, Reply}},
+	    io:format("Next state: ~p~n", [NextState]),
 	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
 	Unhandled ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    {error, {unhandled, Unhandled}}
     after RealTimeOut ->
+	    io:format("Timeout after ~w~n", [RealTimeOut]),
 	    case TimeOut of
 		none -> loop(LoopState);
 		TimeOut ->
@@ -109,6 +112,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 			Reply ->
 			    Port ! {self(), {command, Reply}}
 		    end,
+		    io:format("Next state: ~p~n", [NextState]),
 		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
 	    end
     end.

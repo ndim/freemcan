@@ -43,7 +43,6 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#include "freemcan.h"
 #include "freemcan-common.h"
 #include "freemcan-device.h"
 #include "freemcan-frame.h"

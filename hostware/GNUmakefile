@@ -17,10 +17,6 @@ CLEANFILES   += querySerial
 CLEANFILES += querySerial.o
 CLEANFILES += serial-setup.o
 
-# bin_PROGRAMS += freemcan-ncurses
-# CLEANFILES   += freemcan-ncurses
-# CLEANFILES   += freemcan-ncurses.o
-
 bin_PROGRAMS += freemcan-text
 CLEANFILES   += freemcan-text
 CLEANFILES   += freemcan-text.o
@@ -44,11 +40,8 @@ querySerial : querySerial.o serial-setup.o
 querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
 
-freemcan-ncurses.o : CFLAGS += -D_GNU_SOURCE
-freemcan-ncurses.o : freemcan-main.c serial-setup.h
-
 freemcan-text.o : CFLAGS += -D_GNU_SOURCE
-freemcan-text.o : freemcan-text.c freemcan.h freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
+freemcan-text.o : freemcan-text.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
 freemcan-log.o : freemcan-log.c freemcan-log.h
 
@@ -64,10 +57,6 @@ freemcan-frame.o : freemcan-frame.c freemcan-frame.h freemcan-log.h ../include/f
 
 HOST_SRC = common device frame log select text
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
-
-freemcan-ncurses : LDLIBS += -lncurses
-freemcan-ncurses : freemcan-ncurses.o serial-setup.o $(HOST_OBJ)
-	$(LINK.c) $^ $(LDLIBS) -o $@
 
 freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@

@@ -207,6 +207,22 @@ void trigger_src_conf(void)
 
 }
 
+/** Returns floor of ADC prescaler selection value 
+ *  Input: ADC frequency divider 
+ */
+uint8_t adc_prescaler_selection(uint8_t divider) 
+{
+  uint8_t num;
+  num=0;
+
+  while (divider >= 2)
+  {
+        divider >>= 1;
+        num++;
+  }
+  
+  return(num);
+}
 
 /** ADC initialisation and configuration
  *
@@ -232,9 +248,11 @@ void adc_init(void)
 
   /* ADC prescaler selection (ADC Prescaler Select Bits) */
   /* bits ADPS0 .. ADPS2 */
-  const uint8_t adc_ps = ADC_DIVIDER;
-  ADCSRA |= ((((adc_ps>>2) & 0x01)*BIT(ADPS2)) |
-	     (((adc_ps>>1) & 0x01)*BIT(ADPS1)) |
+  uint8_t adc_ps;
+  adc_ps = adc_prescaler_selection(ADC_DIVIDER);
+  
+  ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
+	     (((adc_ps>>1) & 0x1)*BIT(ADPS1)) |
 	     ((adc_ps & 0x01)*BIT(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */

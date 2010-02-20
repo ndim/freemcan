@@ -124,10 +124,26 @@ void dev_select_do_io(fd_set *in_fdset)
 }
 
 
-/** Write data buffer to device as-is */
+/** Write data buffer to device after removing all invalid commands */
 void dev_write(const char *buf, const size_t size)
 {
-  fmlog("Writing %d bytes to device fd %d\n", size, device_fd);
-  write(device_fd, buf, size);
+  fmlog("Writing %d bytes to device fd %d", size, device_fd);
+  size_t ignored = 0;
+  for (size_t i=0; i<size; i++) {
+    frame_cmd_t cmd = buf[i];
+    switch (cmd) {
+    case FRAME_CMD_ABORT:
+    case FRAME_CMD_INTERMEDIATE:
+    case FRAME_CMD_MEASURE:
+    case FRAME_CMD_RESET:
+      write(device_fd, &buf[i], 1);
+      continue;
+    }
+    ignored++;
+  }
+  if (ignored) {
+    fmlog("Ignored %d illegal command bytes of %d total bytes",
+	  ignored, size);
+  }
 }
 

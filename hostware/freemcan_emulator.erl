@@ -36,12 +36,12 @@ dummy_histogram() ->
 
 
 checksum(Bin) when is_binary(Bin) ->
-    Mod = (1 bsl 16),
     lists:foldl(fun(C, Acc) ->
 			N = C,
-			X = (8*N+2*N+N) rem Mod,
-			R = ((Acc bsl 3) rem Mod) bor ((Acc bsr 13) rem Mod),
-			R bxor X
+			X = (8*N+2*N+N) band 16#ffff,
+			R = ((Acc bsl 3) band 16#ffff) bor ((Acc bsr 13) band 16#ffff),
+			V = R bxor X,
+			V
 		end,
 		16#3e59,
 		binary_to_list(Bin)).
@@ -59,8 +59,9 @@ frame(histogram, Histogram) ->
 bin_frame(Type, Payload) when is_integer(Type)  ->
     BinPayload = list_to_binary(Payload),
     ByteSize = byte_size(BinPayload),
-    DummyChecksum = checksum(BinPayload),
-    <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary, DummyChecksum>>.
+    FrameData = <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary>>,
+    DummyChecksum = checksum(FrameData),
+    list_to_binary([FrameData, <<DummyChecksum>>]).
 
 
 fsm(boot, {timeout, _}) ->

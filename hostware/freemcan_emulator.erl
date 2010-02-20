@@ -36,10 +36,11 @@ dummy_histogram() ->
 
 
 checksum(Bin) when is_binary(Bin) ->
+    Mod = (1 bsl 16),
     lists:foldl(fun(C, Acc) ->
 			N = C,
-			X = 8*N+2*N*N,
-			R = ((Acc bsl 3) rem (1 bsl 16)) bor ((Acc bsr 13) rem (1 bsl 16)),
+			X = (8*N+2*N+N) rem Mod,
+			R = ((Acc bsl 3) rem Mod) bor ((Acc bsr 13) rem Mod),
 			R bxor X
 		end,
 		16#3e59,

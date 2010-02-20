@@ -32,6 +32,9 @@ bin_PROGRAMS += freemcan-text
 CLEANFILES   += freemcan-text
 CLEANFILES   += freemcan-text.o
 
+bin_PROGRAMS += test-log
+CLEANFILES   += test-log
+
 ERL_SOURCES = freemcan_emulator.erl
 BEAMS = $(ERL_SOURCES:.erl=.beam)
 CLEANFILES += $(BEAMS)
@@ -76,6 +79,10 @@ freemcan-ncurses : freemcan-ncurses.o serial-setup.o $(HOST_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)
+	$(LINK.c) $^ $(LDLIBS) -o $@
+
+
+test-log : test-log.o freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 ERL_LIB = /usr/lib/erlang/lib

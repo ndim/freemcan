@@ -139,12 +139,21 @@ tui_log_handler(void *data __attribute__ (( unused )),
 		const char *message,
 		const size_t length __attribute__ (( unused )))
 {
-  fprintf(stdout, "%s\n", message);
+  fprintf(stdout, "%s\r\n", message);
   fflush(stdout);
   if (stdlog) {
     fprintf(stdlog, "LL %s\n", message);
     fflush(stdlog);
   }
+}
+
+
+static
+void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
+{
+  fmlog("Received Frame of type %c (%d=0x%x), size %d=0x%x",
+	frame->type, frame->type, frame->type, frame->size, frame->size);
+  fmlog_data((void *)frame->payload, frame->size);
 }
 
 
@@ -158,6 +167,8 @@ void tui_init()
   stdlog = fopen("std.log", "w");
   fprintf(stdlog, "stdlog=%p\n", (void*)stdlog);
   fmlog_set_handler(tui_log_handler, NULL);
+
+  frame_set_handler(frame_handler, NULL);
 }
 
 
@@ -165,6 +176,7 @@ void tui_init()
 static
 void tui_packet_handler(const frame_t *const p, void *data)
   __attribute__ ((unused));
+
 
 static
 void tui_packet_handler(const frame_t *const p, void *data __attribute__ ((unused)))
@@ -212,7 +224,7 @@ void tui_select_do_io(fd_set *in_fdset)
     const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from fd %d: %s\n", read_bytes, STDIN_FILENO, buf);
+    fmlog("Received %d bytes from fd %d: %s", read_bytes, STDIN_FILENO, buf);
     fmlog_data(buf, read_bytes);
     dev_write(buf, read_bytes);
   }

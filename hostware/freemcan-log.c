@@ -126,26 +126,29 @@ static char printable(const char ch)
 
 
 /* Print hexdump of data block */
-void fmlog_data(const char *buf, const size_t size)
+void fmlog_data(const void *data, const size_t size)
 {
+  const char *buf = (const char *)data;
   const uint8_t *b = (const uint8_t *)buf;
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;
-    idx = sprintf(&buf[idx], "%04x ", y);
-    for (int x=0; x<16; x++) {
-      if (y+x<size) {
-	idx = sprintf(&buf[idx], " %02x", b[y+x]);
+    idx += sprintf(&(buf[idx]), "%04x ", y);
+    for (size_t x=0; x<16; x++) {
+      const size_t i = x+y;
+      if (i<size) {
+	idx += sprintf(&(buf[idx]), " %02x", b[i]);
       } else {
-	idx = sprintf(&buf[idx], "   ");
+	idx += sprintf(&(buf[idx]), "   ");
       }
     }
-    idx = sprintf(&buf[idx], "  ");
+    idx += sprintf(&buf[idx], "  ");
     for (size_t x=0; x<16; x++) {
-      if (y+x<size) {
-	idx = sprintf(&buf[idx], "%c", printable(b[y+x]));
+      const size_t i = x+y;
+      if (i<size) {
+	idx += sprintf(&buf[idx], "%c", printable(b[i]));
       } else {
-	idx = sprintf(&buf[idx], " ");
+	idx += sprintf(&buf[idx], " ");
       }
     }
     fmlog("%s", buf);

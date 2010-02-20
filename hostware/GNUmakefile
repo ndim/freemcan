@@ -70,9 +70,11 @@ freemcan-common.o : freemcan-common.c freemcan-common.h
 freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
 
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE
-freemcan-device.o : freemcan-device.c freemcan-device.h freemcan-log.h freemcan-select.h serial-setup.h
+freemcan-device.o : freemcan-device.c freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h serial-setup.h
 
-HOST_SRC = common device log select text
+freemcan-frame.o : freemcan-frame.c freemcan-frame.h freemcan-log.h ../include/frame-defs.h
+
+HOST_SRC = common device frame log select text
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
 freemcan-ncurses : LDLIBS += -lncurses

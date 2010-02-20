@@ -30,6 +30,8 @@
  *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
  * </table>
  *
+ * \bug Use section and subsection doxygen commands properly.
+ *
  * \subsection Frames sent from firmware to hostware
  *
  * <table>

@@ -23,10 +23,26 @@
 #ifndef FREEMCAN_FRAME_H
 #define FREEMCAN_FRAME_H
 
+#include <stdlib.h>
+
 #include "frame-defs.h"
 
 typedef struct {
-  int moo;
+  frame_type_t type;
+  uint16_t size;
+  uint8_t payload[];
 } frame_t;
+
+/** Handle frame
+ * \param frame The frame to handle
+ * \param data Private data for the handler function
+ */
+typedef void (*frame_handler_t)(const frame_t *frame,
+				void *data);
+
+void frame_set_handler(frame_handler_t handler, void *data);
+void frame_reset_handler(void);
+
+void frame_parse(const void *buf, const size_t size);
 
 #endif /* !FREEMCAN_FRAME_H */

@@ -53,6 +53,6 @@ void fmlog_error(const char *format, ...)
 		  nonnull(1) ));
 
 /** Log a block of data */
-void fmlog_data(const char *buf, const size_t size);
+void fmlog_data(const void *data, const size_t size);
 
 #endif

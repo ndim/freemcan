@@ -36,6 +36,7 @@
 
 
 #include "freemcan-device.h"
+#include "freemcan-frame.h"
 #include "freemcan-log.h"
 #include "freemcan-select.h"
 #include "serial-setup.h"
@@ -115,8 +116,10 @@ void dev_select_do_io(fd_set *in_fdset)
     const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from fd %d: %s\n", read_bytes, device_fd, buf);
+    fmlog("Received %d bytes from device at fd %d\n", read_bytes, device_fd);
     fmlog_data(buf, read_bytes);
+    frame_parse(buf, read_bytes);
+    fmlog("Moo");
   }
 }
 

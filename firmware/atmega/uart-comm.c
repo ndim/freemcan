@@ -63,7 +63,7 @@ void uart_checksum_reset(void)
 
 /** Update checksum
  *
- * FIXME: Use a good algorithm with good values.
+ * \todo Use a good checksum algorithm with good values.
  */
 static inline
 void uart_checksum_update(const char c)

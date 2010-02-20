@@ -1,5 +1,5 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
+/** \file freemcan-device.h
+ * \brief FreeMCAn device (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,12 +19,24 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
+#ifndef FREEMCAN_DEVICE_H
+#define FREEMCAN_DEVICE_H
 
-extern long serial_string_to_baud(const char *arg);
+/* According to POSIX.1-2001 */
+#include <sys/select.h>
 
-#endif /* !SERIAL_SETUP_H */
+/* According to earlier standards */
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+void dev_init(const char *device_name);
+void dev_fini(void);
+
+int dev_select_set_in(fd_set *in_fdset, int maxfd);
+void dev_select_do_io(fd_set *in_fdset);
+
+void dev_write(const char *buf, const size_t size);
+
+#endif /* !FREEMCAN_DEVICE_H */

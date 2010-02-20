@@ -1,5 +1,5 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
+/** \file freemcan-select.c
+ * \brief select(2) helper functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,12 +19,10 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
+#ifndef FREEMCAN_SELECT_H
+#define FREEMCAN_SELECT_H
 
-extern long serial_string_to_baud(const char *arg);
+int read_size(const int in_fd);
 
-#endif /* !SERIAL_SETUP_H */
+#endif /* !FREEMCAN_SELECT_H */

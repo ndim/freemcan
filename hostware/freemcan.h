@@ -1,5 +1,5 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
+/** \file freemcan.h
+ * \brief Stuff.
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,12 +19,12 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
+#ifndef FREEMCAN_H
+#define FREEMCAN_H
 
-extern long serial_string_to_baud(const char *arg);
+typedef struct {
+  int device_fd;
+} freemcan_t;
 
-#endif /* !SERIAL_SETUP_H */
+#endif /* !FREEMCAN_H */

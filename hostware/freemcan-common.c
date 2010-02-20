@@ -1,0 +1,84 @@
+/** \file freemcan-common.c
+ * \brief Common text user interface functions (implementation)
+ *
+ * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free
+ *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ *  Boston, MA 02110-1301 USA
+ */
+
+
+#include <assert.h>
+#include <signal.h>
+#include <stdio.h>
+
+#include <stdarg.h>
+#include <errno.h>
+#include <string.h>
+
+#include "freemcan-common.h"
+#include "freemcan-log.h"
+
+
+/** flag set by SIGINT handler */
+bool sigint = false;
+
+
+/** our SIGINT handler */
+void sigint_handler(int i __attribute__((unused)))
+{
+  sigint = true;
+}
+
+
+/** flag set by SIGTERM handler */
+bool sigterm = false;
+
+
+/** our SIGTERM handler */
+void sigterm_handler(int i __attribute__((unused)))
+{
+  sigterm = true;
+}
+
+/** set up our special signal handling */
+static void signals_init(void);
+
+/** set up our special signal handling */
+static void signals_init(void)
+{
+  sighandler_t int_handler __attribute__((unused)) 
+    = signal(SIGINT, sigint_handler);
+  sighandler_t term_handler __attribute__((unused)) 
+    = signal(SIGTERM, sigterm_handler);
+  /* linux will try and restart an interrupted system call by default */
+  siginterrupt(SIGINT, 1); /* stop system calls on SIGINT */
+  siginterrupt(SIGTERM, 1); /* stop system calls on SIGTERM */
+}
+
+
+static void common_init(void) __attribute__((constructor));
+static void common_init(void)
+{
+  fmlog("common.c: common_init()");
+  signals_init();
+}
+
+
+static void common_done(void) __attribute__((destructor));
+static void common_done(void)
+{
+  fmlog("common.c: common_done()");
+}

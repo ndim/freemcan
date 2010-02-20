@@ -38,35 +38,38 @@ dummy_histogram() ->
 checksum(Bin) when is_binary(Bin) ->
     lists:foldl(fun(C, Acc) ->
 			N = C,
-			X = 8*N+2*N*N,
-			R = ((Acc bsl 3) rem (1 bsl 16)) bor ((Acc bsr 13) rem (1 bsl 16)),
-			R bxor X
+			X = (8*N+2*N+N) band 16#ffff,
+			R = ((Acc bsl 3) band 16#ffff) bor ((Acc bsr 13) band 16#ffff),
+			V = R bxor X,
+			V
 		end,
 		16#3e59,
 		binary_to_list(Bin)).
 
 
 frame(text, Text) ->
-    frame($T, Text);
+    bin_frame($T, Text);
 frame(status, StatusMsg) ->
-    frame($S, StatusMsg);
+    bin_frame($S, StatusMsg);
 frame(histogram, Histogram) ->
     BinHist = [ <<Val:32/little-integer>> || Val <- Histogram ],
     Payload = list_to_binary([<<4>>|BinHist]),
-    frame($H, Payload);
-frame(Type, Payload) when is_integer(Type), is_binary(Payload) ->
+    bin_frame($H, Payload).
+
+bin_frame(Type, Payload) when is_integer(Type)  ->
     BinPayload = list_to_binary(Payload),
-    Length = length(Payload),
-    DummyChecksum = checksum(BinPayload),
-    <<"FMPK", Length:16/little-integer, Type, Payload/binary, DummyChecksum>>.
+    ByteSize = byte_size(BinPayload),
+    FrameData = <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary>>,
+    DummyChecksum = checksum(FrameData),
+    list_to_binary([FrameData, <<DummyChecksum>>]).
 
 
 fsm(boot, {timeout, _}) ->
-    {start, frame(status, "Booted"), none};
+    {ready, frame(status, "READY"), none};
 
-fsm(start, <<"r">>) ->
+fsm(ready, <<"r">>) ->
     {reset, none, 100};
-fsm(start, <<"m">>) ->
+fsm(ready, <<"m">>) ->
     {{measuring, 0}, frame(status, "Measuring"), 10000};
 
 fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
@@ -83,6 +86,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 		      none -> 100000;
 		      N when is_integer(N) -> N
 		  end,
+    io:format("Current state: ~p~n", [CurState]),
     receive
 	{Port, {data, Cmd}} ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
@@ -90,12 +94,14 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 	    {NextState, Reply, NextTimeOut} = fsm(CurState, Cmd),
 	    io:format("Sending reply:    ~p~n", [Reply]),
 	    Port ! {self(), {command, Reply}},
+	    io:format("Next state: ~p~n", [NextState]),
 	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
 	Unhandled ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    {error, {unhandled, Unhandled}}
     after RealTimeOut ->
+	    io:format("Timeout after ~w~n", [RealTimeOut]),
 	    case TimeOut of
 		none -> loop(LoopState);
 		TimeOut ->
@@ -107,6 +113,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 			Reply ->
 			    Port ! {self(), {command, Reply}}
 		    end,
+		    io:format("Next state: ~p~n", [NextState]),
 		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
 	    end
     end.
@@ -139,7 +146,8 @@ init(FIFO) ->
 
 intermain(FIFO) ->
     InitState = init(FIFO),
-    spawn(?MODULE, loop, [InitState]).
+    % spawn(?MODULE, loop, [InitState]),
+    loop(InitState).
 
 start() ->
     start([]).

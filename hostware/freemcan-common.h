@@ -1,5 +1,5 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
+/** \file freemcan-common.h
+ * \brief Common text user interface functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,12 +19,25 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
+#ifndef __COMMON_H__
+#define __COMMON_H__
 
-extern long serial_string_to_baud(const char *arg);
+#if 0
+#include "include/system.h"
+#endif
 
-#endif /* !SERIAL_SETUP_H */
+#include <stdbool.h>
+
+
+/** signal handler function prototype */
+typedef void (*sighandler_t)(int);
+
+/** flag set by SIGINT handler */
+extern bool sigint;
+
+/** flag set by SIGTERM handler */
+extern bool sigterm;
+
+
+#endif /* !__COMMON_H__ */

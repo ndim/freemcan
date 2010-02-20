@@ -1,5 +1,5 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
+/** \file freemcan-select.c
+ * \brief select(2) helper functions (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -19,12 +19,21 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
+#include <sys/ioctl.h>
 
-extern long serial_string_to_baud(const char *arg);
+#include "freemcan-log.h"
+#include "freemcan-select.h"
 
-#endif /* !SERIAL_SETUP_H */
+
+/** Data size you can read from file descriptor without blocking */
+int read_size(const int in_fd)
+{
+  int bytes_to_read;
+  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
+  if (r < 0) {
+    fmlog_error("cannot determine number of characters to read from stdin");
+    abort();
+  }
+  return bytes_to_read;
+}

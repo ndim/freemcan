@@ -161,7 +161,7 @@ typedef enum {
  *
  * Uses a simple adding hash function.
  */
-long string_to_baud(const char *arg)
+long serial_string_to_baud(const char *arg)
 {
   const userbaud_t whichBaud = (arg[0] + arg[1]);
   switch (whichBaud) {
@@ -170,10 +170,23 @@ long string_to_baud(const char *arg)
     case USERBAUD9600: return B9600;
     case USERBAUD1920: return B19200;
     case USERBAUD3840: return B38400;
+      /* No "default:" label to force the compiler to complain about
+       * unhandled cases. */
   }
   fprintf(stderr,
 	  "Baud rate %s is not supported, "
-	 "use 1200, 2400, 9600, 19200 or 38400.\n", arg);
+	  "use 1200, 2400, 9600, 19200 or 38400.\n", arg);
   exit(1);
 }
 
+
+/** Open serial port device file with the appropriate flags.
+ */
+int serial_open(const char *device_name)
+{
+  /*
+   * O_NDELAY - tells port to operate and ignore the DCD line
+   * O_NOCTTY - do not make this our controlling tty, ever
+   */
+  return open(device_name, O_RDWR | O_NDELAY | O_NOCTTY);
+}

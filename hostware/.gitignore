@@ -3,5 +3,7 @@
 /*.strace
 /erl_crash.dump
 /erl_unix_port
-/freemcan
+/freemcan-ncurses
+/freemcan-text
 /querySerial
+/test-log

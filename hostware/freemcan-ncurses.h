@@ -1,7 +1,7 @@
-/** \file serial-setup.h
- * \brief Serial port access code interface
- *
+/** \file freemcan-ncurses.h
+ * \brief Freemcan text user interface (ncurses based)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
+ * \bug Bury this file, put main() into freemcan-ncurses.c.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -19,12 +19,15 @@
  *  Boston, MA 02110-1301 USA
  */
 
-#ifndef SERIAL_SETUP_H
-#define SERIAL_SETUP_H
 
-extern int serial_open(const char *device_name);
-extern void serial_setup(const int fd, const long baud);
 
-extern long serial_string_to_baud(const char *arg);
+#ifndef FREEMCAN_TUI_H
+#define FREEMCAN_TUI_H
 
-#endif /* !SERIAL_SETUP_H */
+
+void tui_init();
+
+int tui_select_set_in(fd_set *in_fdset, int maxfd);
+void tui_select_do_io(fd_set *in_fdset);
+
+#endif /* !FREEMCAN_TUI_H */

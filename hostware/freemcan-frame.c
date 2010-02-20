@@ -180,7 +180,12 @@ void step_fsm(const char ch)
     checksum_update(u);
     frame_type = u;
     offset = 0;
-    frame_wip = malloc(sizeof(frame_t)+frame_size);
+    /* Total size composed from:
+     *  - size fixed parts of frame_t data structure
+     *  - dynamic payload size
+     *  - terminating convenience nul byte
+     */
+    frame_wip = malloc(sizeof(frame_t)+frame_size+1);
     assert(frame_wip);
     state = STATE_PAYLOAD;
     return;
@@ -192,7 +197,6 @@ void step_fsm(const char ch)
       state = STATE_PAYLOAD;
       return;
     } else if (offset == frame_size) {
-      offset = 0;
       state = STATE_CHECKSUM;
       return;
     }
@@ -201,6 +205,8 @@ void step_fsm(const char ch)
     frame_checksum = u;
     if (checksum_match(frame_checksum)) {
       if (frame_handler) {
+	/* nul-terminate the payload buffer for convenience */
+	frame_wip->payload[offset] = '\0';
 	frame_wip->type = frame_type;
 	frame_wip->size = frame_size;
 	frame_handler(frame_wip, frame_handler_data);

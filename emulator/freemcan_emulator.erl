@@ -32,7 +32,7 @@
 dummy_histogram() ->
     ElementCount = 256,
     [ (((301*N*N*N)+(37*N*N)) rem (1 bsl 32))
-      || N <- lists:seq(ElementCount) ].
+      || N <- lists:seq(1, ElementCount) ].
 
 
 checksum(Bin) when is_binary(Bin) ->

@@ -101,7 +101,18 @@ static void main_loop(const char *unix_name)
     abort();
   }
 
-  /** \todo Discard data received from Erlang while not connected */
+  /** \bug Discard data received from Erlang while not connected */
+
+  /** \bug Fold the two while loops into one?
+   *
+   * The aim would be to simulate a FreeMCA device that boots whenever
+   * someone connects to the UNIX socket.
+   */
+
+  /**
+   * \todo Make the Erlang code updatable at run-time.
+   * \todo Make Erlang code send its data in randomly sized chunks.
+   */
   while (1) {
     DEBUG("Waiting for socket connection\n");
     const int connfd = accept(sock, NULL, NULL);

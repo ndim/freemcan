@@ -22,12 +22,22 @@
  *
  * \subsection Frames sent from hostware to firmware
  *
- * To keep the parser in the firmware simple, all "frames" sent from
+ * To keep the parser in the firmware simple, most "frames" sent from
  * the hostware to the firmware are actually just a single byte:
  *
  * <table>
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
+ * </table>
+ *
+ * The single exception is the "start measurement" command which looks
+ * as follows:
+ *
+ * <table>
+ *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>1</td> <td>FRAME_CMD_MEASURE</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
+ *  <tr><td>2</td> <td>?</td> <td>uint16_t</td> <td>timervalue (measurement duration)</td></tr>
+ *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over the last three bytes</td></tr>
  * </table>
  *
  * \bug Use section and subsection doxygen commands properly.
@@ -69,12 +79,17 @@
  *
  *   null -> booting;
  *
- *   reset -> booting [ label="done\n./." ];
- *   ready -> measuring [ label="cmd 'm'\nstatus 'measuring'" ];
+ *   reset -> booting [ label="done\n-/-" ];
  *
  *   booting -> ready [ label="done\nstatus 'ready'" ];
- *   measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" ];
  *
+ *   ready -> timer0 [ label="cmd 'm'\n-/-" ];
+ *   timer0 -> timer1 [ label="timer byte 0\n-/-" ];
+ *   timer1 -> checksum [ label="timer byte 1\n-/-" ];
+ *   checksum -> measuring [ label="chksum byte, if match\nstatus 'measuring'" ];
+ *   checksum -> reset [ label="chksum byte, if fail\nstatus 'chksumfail'" ];
+ *
+ *   measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" ];
  *   measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate'" ];
  *
  *   ready -> reset [ label="cmd 'r'\nstatus 'reset'"];

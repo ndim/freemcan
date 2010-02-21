@@ -51,4 +51,22 @@
 /** ADC clock divider */
 #define ADC_DIVIDER (F_CPU/F_ADC_CLK_SRC)
 
+/** Timer prescaler settings for 8Bit timer
+ *
+ *  1: no prescaling
+ *  2: divider=8
+ *  3: divider=64
+ *  4: divider=256
+ *  5: divider=1024
+ *  Select the prescaler to have an compare match value as integer
+ */
+#define TIMER_PRESCALER (3)
+
+/** Timer compare match value for 8Bit timer
+ *
+ *  TIMER_COMPARE_MATCH_VAL = ((F_CPU/divider)*ms/1000) - 1
+ *  E.g. ((16MHz/64)/1000) - 1 = 249
+ */
+#define TIMER_COMPARE_MATCH_VAL 249
+
 #endif /* !GLOBAL_H */

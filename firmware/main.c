@@ -86,6 +86,8 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
+volatile uint16_t timer_msec = 0;
+
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
 
@@ -169,6 +171,25 @@ ISR(ADC_vect) {
 }
 
 
+ISR (TIMER0_COMPA_vect)
+{
+  timer_msec++;
+  /* if 1000 mseconds are elapsed */
+  if(timer_msec == 1000) {
+    timer_msec = 0;
+    /* toggle a sign PORTD ^= BIT(PD5); */
+    /* decrement the timer counter which is a multiple of 1000 sec */
+    if (!timer_flag) {
+       timer_count--;
+       /* if the timer count multiples are over set a 8 bit flag   */
+       if (timer_count == 0) {
+          timer_flag = 1;
+       }
+    }
+  }
+}
+
+
 /** Setup of INT0
  *
  * INT0 Pin 16 is configured but not enabled
@@ -207,10 +228,10 @@ void trigger_src_conf(void)
 
 }
 
-/** Returns floor of ADC prescaler selection value 
- *  Input: ADC frequency divider 
+/** Returns floor of ADC prescaler selection value
+ *  Input: ADC frequency divider
  */
-uint8_t adc_prescaler_selection(uint8_t divider) 
+uint8_t adc_prescaler_selection(uint8_t divider)
 {
   uint8_t num;
   num=0;
@@ -220,7 +241,7 @@ uint8_t adc_prescaler_selection(uint8_t divider)
         divider >>= 1;
         num++;
   }
-  
+
   return(num);
 }
 
@@ -250,7 +271,7 @@ void adc_init(void)
   /* bits ADPS0 .. ADPS2 */
   uint8_t adc_ps;
   adc_ps = adc_prescaler_selection(ADC_DIVIDER);
-  
+
   ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
 	     (((adc_ps>>1) & 0x1)*BIT(ADPS1)) |
 	     ((adc_ps & 0x01)*BIT(ADPS0)));
@@ -278,6 +299,28 @@ void adc_init(void)
   /* ADC auto trigger enable: ADC will be started by trigger signal */
   ADCSRA |= BIT(ADATE);
 }
+
+static
+void timer_init(void){
+
+  /* Prepare timer 0 control register A for
+     clear timer on compare match (CTC)                           */
+  TCCR0A = BIT(WGM01);
+
+  /* Prescaler settings on timer conrtrol reg. B (CS00;CS01;CS02) */
+  TCCR0B =  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS02)) |
+	        (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS01)) |
+	        ((TIMER_PRESCALER & 0x01)*BIT(CS00)));
+
+  /* Compare match value into output compare reg. A               */
+  OCR0A = TIMER_COMPARE_MATCH_VAL;
+
+  /* output compare match A interrupt enable                      */
+  TIMSK0 |= BIT(OCIE0A);
+
+  /*sei();*/
+}
+
 
 inline static
 void run_measurement(void)
@@ -436,9 +479,10 @@ int main(void)
 
     /* set up timer with the value we just got */
     /* set_up_timer_registers() */
-    timer_counter = timer_value;
+    timer_count = timer_value;
 
     /* begin measurement */
+    timer_init();
     sei();
 
     while (1) {

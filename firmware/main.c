@@ -34,7 +34,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "registers.h"
 #include "global.h"
 #include "uart-comm.h"
 #include "frame-comm.h"

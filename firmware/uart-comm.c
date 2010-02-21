@@ -23,7 +23,6 @@
 #include <avr/io.h>
 #include <stdint.h>
 
-#include "registers.h"
 #include "uart-comm.h"
 #include "global.h"
 

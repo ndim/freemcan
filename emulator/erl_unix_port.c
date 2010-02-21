@@ -50,6 +50,14 @@
     } while (0)
 
 
+static inline
+int max(const int a, const int b)
+{
+    if (a>b) return a;
+    else return b;
+}
+
+
 static void do_copy_data(const int in_fd, const int out_fd,
                          const int data_size)
 {
@@ -73,17 +81,98 @@ static int read_size(const int in_fd)
 }
 
 
-static inline
-int max(const int a, const int b)
+/************************************************************************
+ * Erlang port communications
+ ************************************************************************/
+
+
+/* Forward declaration */
+static int connfd = -1;
+
+
+static int port_select_set_in(fd_set *in_fdset, int max_in)
 {
-    if (a>b) return a;
-    else return b;
+    FD_SET(READ_FILENO, in_fdset);
+    return max(max_in, READ_FILENO);
 }
 
 
-static void main_loop(const char *unix_name)
+static void port_select_do_io(fd_set *in_fdset)
 {
-    const int listen_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (FD_ISSET(READ_FILENO, in_fdset)) {
+        DEBUG("Data from READ_FILENO\n");
+        const int bytes_to_read = read_size(READ_FILENO);
+        if (bytes_to_read > 0) {
+            do_copy_data(READ_FILENO, connfd, bytes_to_read);
+        } else {
+            /* connection to Erlang close, abort this */
+            DEBUG("No data?\n");
+            abort();
+        }
+    }
+}
+
+
+/************************************************************************
+ * connection sockets
+ ************************************************************************/
+
+
+static void conn_init(const int fd)
+{
+    DEBUG("Connected: fd=%d\n", fd);
+    assert(connfd == -1);
+    connfd = fd;
+}
+
+
+static void conn_fini()
+{
+    close(connfd);
+    connfd = -1;
+}
+
+
+static int conn_select_set_in(fd_set *in_fdset, int max_in)
+{
+    if (connfd == -1) {
+        return max_in;
+    }
+    FD_SET(connfd, in_fdset);
+    return max(connfd, max_in);
+}
+
+
+static void conn_select_do_io(fd_set *in_fdset)
+{
+    if (connfd == -1) {
+        return;
+    }
+    if (FD_ISSET(connfd, in_fdset)) {
+        const int bytes_to_read = read_size(connfd);
+        if (bytes_to_read > 0) {
+            DEBUG("Data from connfd\n");
+            do_copy_data(connfd, WRITE_FILENO, bytes_to_read);
+        } else {
+            /* connection closed */
+            DEBUG("Closed connection from connfd\n");
+            conn_fini();
+        }
+    }
+}
+
+
+/************************************************************************
+ * listen sockets
+ ************************************************************************/
+
+
+static int listen_sock = -1;
+
+
+static void listen_init(const char *unix_name)
+{
+    listen_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     assert(listen_sock>0);
     struct sockaddr_un addr;
     addr.sun_family = AF_UNIX;
@@ -95,80 +184,78 @@ static void main_loop(const char *unix_name)
         perror("bind");
         abort();
     }
-
     const int listen_ret = listen(listen_sock, 0);
     if (listen_ret < 0) {
         perror("listen");
         abort();
     }
+}
 
-    /** \bug Discard data received from Erlang while not connected */
 
-    /** \bug Fold the two while loops into one?
-     *
-     * The aim would be to simulate a FreeMCA device that boots whenever
-     * someone connects to the UNIX socket.
-     */
+static int listen_select_set_in(fd_set *in_fdset, int max_in)
+{
+    FD_SET(listen_sock, in_fdset);
+    return max(listen_sock, max_in);
+}
 
-    /**
-     * \todo Make the Erlang code updatable at run-time.
-     * \todo Make Erlang code send its data in randomly sized chunks.
-     */
-    while (1) {
-        DEBUG("Waiting for socket connection\n");
+
+static void listen_select_do_io(fd_set *in_fdset)
+{
+    if (FD_ISSET(listen_sock, in_fdset)) {
         const int connfd = accept(listen_sock, NULL, NULL);
         if (connfd < 0) {
             if (errno == EINTR) {
-                continue;
-            } else {
+                return;
+            }  else {
                 perror("accept");
                 abort();
             }
         }
-        DEBUG("Connected\n");
-        DEBUG("FDs: connfd=%d, erlread=%d, erlwrite=%d\n",
-              connfd, READ_FILENO, WRITE_FILENO);
+        conn_init(connfd);
+    }
+}
 
-        while (1) {
-            fd_set in_fdset;
-            FD_ZERO(&in_fdset);
-            FD_SET(READ_FILENO, &in_fdset);
-            FD_SET(connfd, &in_fdset);
-            DEBUG("Waiting for data\n");
-            const int max_fd = max(READ_FILENO, connfd);
-            int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
-            if (n<0) { /* error */
-                if (errno != EINTR) {
-                    perror("select");
-                    abort();
-                }
-            } else if (0 == n) { /* timeout */
-                DEBUG("select timeout\n");
+
+/************************************************************************
+ *
+ ************************************************************************/
+
+
+static void main_loop(const char *unix_name)
+{
+    listen_init(unix_name);
+
+    /** \bug Discard data received from Erlang while not connected */
+
+    /** \todo Simulate a FreeMCA device that boots whenever someone
+     * connects to the UNIX socket.
+     */
+
+    /** \todo Make the Erlang code updatable at run-time. */
+    /** \todo Make Erlang code send its data in randomly sized chunks. */
+
+    while (1) {
+        fd_set in_fdset;
+        FD_ZERO(&in_fdset);
+        int max_fd = -1;
+        max_fd = port_select_set_in(&in_fdset, max_fd);
+        max_fd = conn_select_set_in(&in_fdset, max_fd);
+        max_fd = listen_select_set_in(&in_fdset, max_fd);
+        assert(max_fd >= 1);
+        DEBUG("Waiting for... uhm... stuff to happen.\n");
+        int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
+        if (n<0) { /* error */
+            if (errno != EINTR) {
+                perror("select");
                 abort();
-            } else { /* n>0 */
-                if (FD_ISSET(READ_FILENO, &in_fdset)) {
-                    DEBUG("Data from READ_FILENO\n");
-                    const int bytes_to_read = read_size(READ_FILENO);
-                    if (bytes_to_read > 0) {
-                        do_copy_data(READ_FILENO, connfd, bytes_to_read);
-                    } else {
-                        /* connection to Erlang close, abort this */
-                        DEBUG("No data?\n");
-                        exit(1);
-                    }
-                }
-                if (FD_ISSET(connfd, &in_fdset)) {
-                    const int bytes_to_read = read_size(connfd);
-                    if (bytes_to_read > 0) {
-                        DEBUG("Data from connfd\n");
-                        do_copy_data(connfd, WRITE_FILENO, bytes_to_read);
-                    } else {
-                        /* connection closed */
-                        DEBUG("Closed connection from connfd\n");
-                        break;
-                    }
-                }
             }
+        } else if (0 == n) { /* timeout */
+            DEBUG("select timeout\n");
+            abort();
+        } else { /* n>0 */
+            port_select_do_io(&in_fdset);
+            conn_select_do_io(&in_fdset);
+            listen_select_do_io(&in_fdset);
         }
     }
 }

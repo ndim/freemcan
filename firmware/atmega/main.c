@@ -346,6 +346,10 @@ void send_text(const char *msg)
   frame_send(FRAME_TYPE_TEXT, msg, len);
 }
 
+/**
+ * \todo Implement "set measurement timing" command.
+ * \todo Implement communication FSM according to frame-defs.h.
+ */
 
 /** AVR firmware's main "loop" function
  *

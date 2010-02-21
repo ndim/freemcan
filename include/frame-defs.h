@@ -82,6 +82,8 @@
  * }
  * \enddot
  *
+ *
+ * \todo Implement "set measurement timing" command.
  */
 
 #ifndef FRAME_DEFS_H

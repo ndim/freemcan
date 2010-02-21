@@ -19,6 +19,10 @@
  */
 
 
+/**
+ * \todo Implement "set measurement timing" command.
+ */
+
 #include <stdbool.h>
 
 #include <unistd.h>
@@ -334,9 +338,7 @@ int main(int argc, char *argv[])
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
 
-
     int max_fd = -1;
-
     max_fd = tui_select_set_in(&in_fdset, max_fd);
     max_fd = dev_select_set_in(&in_fdset, max_fd);
     assert(max_fd >= 0);

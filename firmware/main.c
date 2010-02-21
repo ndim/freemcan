@@ -169,25 +169,22 @@ ISR(ADC_vect) {
   EIFR |= BIT(INTF0);
 }
 
-
-ISR (TIMER0_COMPA_vect)
+/** 16 Bit timer ISR
+ *
+ *  If timer is elapsed the global flag timer_flag is set
+ */
+ISR (TIMER1_COMPA_vect)
 {
-  timer_msec++;
-  /* if 1000 mseconds are elapsed */
-  if(timer_msec == 1000) {
-    timer_msec = 0;
-    /* toggle a sign PORTD ^= BIT(PD5); */
-    /* decrement the timer counter which is a multiple of 1000 sec */
-    if (!timer_flag) {
-       timer_count--;
-       /* if the timer count multiples are over set a 8 bit flag   */
-       if (timer_count == 0) {
-          timer_flag = 1;
-       }
+  /* toggle a sign: PORTD ^= BIT(PD5);                          */
+  /* if the timer is elapsed set a flag to control main program */
+  if (!timer_flag) {
+    timer_count--;
+    /* if the timer count multiples are over set a 8 bit flag   */
+    if (timer_count == 0) {
+       timer_flag = 1;
     }
   }
 }
-
 
 /** Setup of INT0
  *
@@ -299,42 +296,28 @@ void adc_init(void)
   ADCSRA |= BIT(ADATE);
 }
 
+
+/** Configure 16 bit timer to trigger a ISR each 1 second         */
 static
 void timer_init(void){
 
   /* Prepare timer 0 control register A for
      clear timer on compare match (CTC)                           */
-  TCCR0A = BIT(WGM01);
+  TCCR1A = 0;
 
-  /* Prescaler settings on timer conrtrol reg. B (CS00;CS01;CS02) */
-  TCCR0B =  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS02)) |
-	        (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS01)) |
-	        ((TIMER_PRESCALER & 0x01)*BIT(CS00)));
+  TCCR1B =  BIT(WGM12);
+
+  /* Prescaler settings on timer conrtrol reg. B                  */
+  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS12)) |
+              (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS11)) |
+	      ((TIMER_PRESCALER & 0x01)*BIT(CS10)));
 
   /* Compare match value into output compare reg. A               */
-  OCR0A = TIMER_COMPARE_MATCH_VAL;
+  OCR1A = TIMER_COMPARE_MATCH_VAL;
 
   /* output compare match A interrupt enable                      */
-  TIMSK0 |= BIT(OCIE0A);
-
-  /*sei();*/
+  TIMSK1 |= BIT(OCIE1A);
 }
-
-
-/** \todo Bury this function */
-inline static
-void run_measurement(void)
-{
-    sei(); /* enable interrupts I-Flag bit 7  in SREQ (status register) */
-    while (measurement_count < 4) {
-    }
-    cli(); /* disable interrupts */
-
-    /** \bug Port these register things into main loop */
-    ADCSRA &= ~BIT(ADATE);  // autotrigger off
-    EIMSK &= ~(BIT(INT0));
-}
-
 
 /** Example counter ISR */
 inline static

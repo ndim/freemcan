@@ -1,5 +1,5 @@
 /** \file frame-defs.h
- * \brief Data frame definitions
+ * \brief Data frame definitions (layer 2)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -45,7 +45,6 @@
  * </table>
  *
  * \todo Document checksum algorithm.
- * \todo Implement checksum verification on hostware side.
  *
  * \subsection Firmware state machine
  *

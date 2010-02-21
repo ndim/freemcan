@@ -118,8 +118,8 @@ void dev_select_do_io(fd_set *in_fdset)
        * amounts of data, so we comment this out for now.
        */
       fmlog("Received %d bytes from device at fd %d", read_bytes, device_fd);
+      fmlog_data(buf, read_bytes);
     }
-    fmlog_data(buf, read_bytes);
     frame_parse_bytes(buf, read_bytes);
   }
 }

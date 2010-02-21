@@ -1,0 +1,69 @@
+/** \file packet-defs.h
+ * \brief Data packet definitions (layer 3)
+ *
+ * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1
+ *  of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free
+ *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ *  Boston, MA 02110-1301 USA
+ *
+ * \section Communication Protocol
+ *
+ * \subsection Packets sent from hostware to firmware
+ *
+ * The host never sends packets to the firmware. It only sends single
+ * bytes. See the frame documentation.
+ *
+ * \bug Use section and subsection doxygen commands properly.
+ *
+ * \subsection From firmware to hostware: Histogram packet
+ *
+ * The size of the histogram data is determined from the total packet
+ * data size by subtracting the size of all the fixed-size fields in
+ * front of it.
+ *
+ * <table>
+ *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>1</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
+ *  <tr><td>see above</td> <td>?</td> <td>histogram data</td></tr>
+ * </table>
+ *
+ */
+
+#ifndef PACKET_DEFS_H
+#define PACKET_DEFS_H
+
+
+#include <stdint.h>
+
+
+/** Histogram packet types (UNUSED SO FAR)
+ *
+ * The reason for sending the histogram. (UNUSED SO FAR)
+ */
+typedef enum {
+
+  /** Regular intermediate report. */
+  PACKET_HISTOGRAM_INTERMEDIATE = 'I',
+
+  /** Measurement has completed ("done"). */
+  PACKET_HISTOGRAM_DONE = 'D',
+
+  /** Measurement has been aborted, report results as gathered so far. */
+  PACKET_HISTOGRAM_ = 'A'
+
+} packet_histogram_type_t;
+
+
+#endif /* !PACKET_DEFS_H */

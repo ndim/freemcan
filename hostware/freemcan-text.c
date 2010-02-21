@@ -50,13 +50,26 @@
 #include "freemcan-select.h"
 
 
+/* Forward declaration */
+static void frame_handler(const frame_t *frame, void *data);
 
+
+/** Quit flag for the main loop. */
 static bool quit_flag = false;
 
 
+/************************************************************************
+ * TTY Setup (And Cleanup!) For The Local Interactive Terminal
+ ************************************************************************/
 
-/** Saved TTY fd */
+
+/** Saved TTY fd
+ *
+ * Doubles as a flag indicating whether there is a termios backup in
+ * #tty_save_termios or not.
+ */
 static int tty_savefd = -1;
+
 
 /** Saved termios data */
 static struct termios tty_save_termios;
@@ -66,7 +79,8 @@ static struct termios tty_save_termios;
  *
  * Stevens, page 354, Program 11.10
  */
-int tty_raw(int fd)
+static int tty_raw(int fd);
+static int tty_raw(int fd)
 {
   struct termios buf;
 
@@ -93,7 +107,8 @@ int tty_raw(int fd)
 }
 
 
-void tty_init()
+static void tty_init();
+static void tty_init()
 {
   assert(tty_raw(STDIN_FILENO) >= 0);
 }
@@ -103,7 +118,8 @@ void tty_init()
  *
  * Stevens, page 355, Program 11.10
  */
-int tty_reset()
+static int tty_reset();
+static int tty_reset()
 {
   if (tty_savefd < 0) {
     return 0;
@@ -115,6 +131,11 @@ int tty_reset()
 
   return 0;
 }
+
+
+/************************************************************************
+ * Text User Interface
+ ************************************************************************/
 
 
 /** Handle ABRT signal */
@@ -151,34 +172,6 @@ tui_log_handler(void *data __attribute__ (( unused )),
     fprintf(stdlog, "LL %s\n", message);
     fflush(stdlog);
   }
-}
-
-
-/** TUI specific data frame handler */
-static
-void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
-{
-  switch (frame->type) {
-  case FRAME_TYPE_STATUS:
-    fmlog("STATUS: %s", frame->payload);
-    return;
-  case FRAME_TYPE_TEXT:
-    fmlog("TEXT: %s", frame->payload);
-    return;
-  case FRAME_TYPE_HISTOGRAM:
-    if (1) {
-      const size_t hist_size = frame->size - 1;
-      const uint8_t element_size = frame->payload[0];
-      const size_t element_count = hist_size/element_size;
-      fmlog("Received histogram data of %d elements of %d bytes each:",
-	    element_count, element_size);
-      fmlog_data((void *)&(frame->payload[1]), hist_size);
-    }
-    return;
-  }
-  fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
-	frame->type, frame->type, frame->type, frame->size, frame->size);
-  fmlog_data((void *)frame->payload, frame->size);
 }
 
 
@@ -252,10 +245,47 @@ static
 void atexit_func(void)
 {
   fmlog_reset_handler();
-  tty_reset(tty_savefd);
+  tty_reset();
   fmlog("freemcan-text: atexit_func()");
 }
 
+
+/************************************************************************
+ * Data Handling
+ ************************************************************************/
+
+
+/** Data frame handler (could be TUI specific) */
+static 
+void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
+{
+  switch (frame->type) {
+  case FRAME_TYPE_STATUS:
+    fmlog("STATUS: %s", frame->payload);
+    return;
+  case FRAME_TYPE_TEXT:
+    fmlog("TEXT: %s", frame->payload);
+    return;
+  case FRAME_TYPE_HISTOGRAM:
+    if (1) {
+      const size_t hist_size = frame->size - 1;
+      const uint8_t element_size = frame->payload[0];
+      const size_t element_count = hist_size/element_size;
+      fmlog("Received histogram data of %d elements of %d bytes each:",
+	    element_count, element_size);
+      fmlog_data((void *)&(frame->payload[1]), hist_size);
+    }
+    return;
+  }
+  fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
+	frame->type, frame->type, frame->type, frame->size, frame->size);
+  fmlog_data((void *)frame->payload, frame->size);
+}
+
+
+/************************************************************************
+ * Main Program With Main Loop
+ ************************************************************************/
 
 
 /** TUI's main program with select(2) based main loop */

@@ -114,7 +114,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 		      none -> 100000;
 		      N when is_integer(N) -> N
 		  end,
-    io:format("Current state: ~p~n", [CurState]),
+    io:format("Current state:    ~p~n", [CurState]),
     receive
 	{Port, {data, Cmd}} ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),

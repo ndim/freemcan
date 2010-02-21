@@ -57,11 +57,11 @@ void dev_init(const char *device_name)
     perror("stat()");
     abort();
   }
-  if (S_ISCHR(sb.st_mode)) {
+  if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
     fmlog("%s: character device", device_name);
     device_fd = serial_open(device_name);
     serial_setup(device_fd, serial_string_to_baud("9600"));
-  } else if (S_ISSOCK(sb.st_mode)) {
+  } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
     fmlog("%s: socket", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     struct sockaddr_un addr;

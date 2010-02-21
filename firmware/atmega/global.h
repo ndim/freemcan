@@ -23,6 +23,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+/** XTAL frequency */
 #ifndef F_CPU
 /* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
 #define F_CPU 16000000UL		               //!< Pollin AVR Eval board
@@ -31,15 +32,21 @@
 /** UART baud rate */
 #define BAUDRATE 9600UL
 
-/** ADC clock rate in Hz*/
+/** ADC clock source frequency in Hz
+ *
+ * If you put in here a value the prescalers
+ * are calculated in order to set the next
+ * higher possible ADC frequency. E.g. with
+ * F_CPU = 16Mhz and F_ADC_CLK_SRC = 200khz
+ * a final ADC frequency of 250khz is set. */
 #define F_ADC_CLK_SRC 200000UL
 
 /** ADC resolution in bit
  *
  * Put in there resonable values:
  * E.g. 8 bit resolution at 500 Mhz.
- * (644p has 3,5LSB accuracy at 1Mhz)*/
-#define ADC_RESOLUTION 8
+ * (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V) */
+#define ADC_RESOLUTION 9
 
 /** ADC clock divider */
 #define ADC_DIVIDER (F_CPU/F_ADC_CLK_SRC)

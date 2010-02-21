@@ -50,7 +50,7 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS = -I../../include
+CINCS = -I../include
 
 
 CDEBUG = -g$(DEBUG)

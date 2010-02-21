@@ -14,12 +14,12 @@ CLEANFILES =
 
 # Override settings by defining them in settings.mk Things not defined
 # in settings.mk will be later defined with ?= later in this Makefile.
-# AVRDUDE_PROGRAMMER and AVRDUDE_PORT are good candidates for
+# AVRDUDE_PROGRAMMER, AVRDUDE_PORT, MCU are good candidates for
 # settings.mk.
 -include settings.mk
 
 
-MCU = atmega644p
+MCU ?= atmega644p
 FORMAT = ihex
 TARGET = firmware
 SRC = main.c uart-comm.c frame-comm.c

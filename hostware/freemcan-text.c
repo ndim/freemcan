@@ -176,7 +176,8 @@ tui_log_handler(void *data __attribute__ (( unused )),
   fprintf(stdout, "%s\r\n", message);
   fflush(stdout);
   if (stdlog) {
-    fprintf(stdlog, "LL %s\n", message);
+    /* We could print a timestamp in front of the message string here */
+    fprintf(stdlog, "%s\n", message);
     fflush(stdlog);
   }
 }
@@ -189,10 +190,8 @@ void tui_init()
 
   fmlog("MOO!");
 
-  stdlog = fopen("std.log", "w");
-  fprintf(stdlog, "stdlog=%p\n", (void*)stdlog);
+  stdlog = fopen("freemcan.log", "w");
   fmlog_set_handler(tui_log_handler, NULL);
-
 
   packet_set_handlers(packet_handler_histogram,
 		      packet_handler_status,

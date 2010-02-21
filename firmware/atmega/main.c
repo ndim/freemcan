@@ -327,7 +327,7 @@ void send_histogram(const packet_histogram_type_t type)
  *
  * Status messages are constant strings.
  */
-inline static
+static
 void send_status(const char *msg)
 {
   const size_t len = strlen(msg);
@@ -339,7 +339,7 @@ void send_status(const char *msg)
  *
  * If you need to send more than static text, use uprintf().
  */
-inline static
+static
 void send_text(const char *msg)
 {
   const size_t len = strlen(msg);

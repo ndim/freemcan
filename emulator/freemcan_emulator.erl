@@ -85,47 +85,39 @@ histogram_packet(Type, Histogram) when is_integer(Type) ->
     frame(histogram, Payload).
 
 
-fsm(boot, <<"a">>) ->
-    {boot, none, 1};
-fsm(boot, <<"i">>) ->
-    {boot, none, 1};
-fsm(boot, <<"m">>) ->
-    {boot, none, 1};
-fsm(boot, <<"r">>) ->
-    {boot, none, 1};
+decode_cmd(<<"a">>) ->
+    abort;
+decode_cmd(<<"r">>) ->
+    reset;
+decode_cmd(<<"i">>) ->
+    intermediate;
+decode_cmd(<<"m", TimerBin:2/binary, Checksum>>) ->
+    <<Periods:16/little-integer>> = TimerBin,
+    Data = list_to_binary([<<"m">>, TimerBin]),
+    OwnChecksum = checksum(Data),
+    Checksum = OwnChecksum,
+    {measure, Periods};
+decode_cmd(Binary) ->
+    Binary.
+
+
 fsm(boot, {timeout, _}) ->
     {ready, status_packet("READY"), none};
 
-fsm(ready, <<"a">>) ->
-    {ready, text_packet("IGNORED"), none};
-fsm(ready, <<"i">>) ->
-    {ready, text_packet("IGNORED"), none};
-fsm(ready, <<"m">>) ->
-    {{measuring, 0}, status_packet("Measuring"), 10000};
-fsm(ready, <<"r">>) ->
+fsm(ready, {measure, Seconds}) ->
+    {{measuring, Seconds}, status_packet("Measuring"), 1000};
+fsm(ready, reset) ->
     {reset, none, 100};
 
-fsm({measuring, _}=State, <<"a">>) ->
-    {State, histogram_packet(aborted, dummy_histogram()), 10};
-fsm({measuring, _}=State, <<"i">>) ->
+fsm({measuring, _}, abort) ->
+    {reset, histogram_packet(aborted, dummy_histogram()), 10};
+fsm({measuring, _}=State, intermediate) ->
     {State, histogram_packet(intermediate, dummy_histogram()), 10};
-fsm({measuring, _}=State, <<"m">>) ->
-    {State, status_packet("IGNORED"), 10};
-fsm({measuring, _}=State, <<"r">>) ->
-    {State, status_packet("IGNORED"), 10};
-fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
-    {{measuring, N+1}, histogram_packet(intermediate, dummy_histogram()), 10000};
-fsm({measuring, _}, {timeout, _}) ->
+fsm({measuring, 0}, {timeout, _}) ->
     {reset, histogram_packet(done, dummy_histogram()), 0};
+fsm({measuring, N}, {timeout, Period}) ->
+    {{measuring, N-1}, text_packet("STILL MEASURING"), Period};
 
-fsm(reset, <<"a">>) ->
-    {reset, none, 1};
-fsm(reset, <<"i">>) ->
-    {reset, none, 1};
-fsm(reset, <<"m">>) ->
-    {reset, none, 1};
-fsm(reset, <<"r">>) ->
-    {reset, none, 1};
 fsm(reset, {timeout, _}) ->
     {boot, status_packet("Resetting"), 100}.
 
@@ -140,7 +132,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 	{Port, {data, Cmd}} ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Received command: ~p~n", [Cmd]),
-	    {NextState, Reply, NextTimeOut} = fsm(CurState, Cmd),
+	    {NextState, Reply, NextTimeOut} = fsm(CurState, decode_cmd(Cmd)),
 	    io:format("Sending reply:    ~P~n", [Reply,30]),
 	    Port ! {self(), {command, Reply}},
 	    io:format("Next state:       ~p~n", [NextState]),

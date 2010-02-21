@@ -83,19 +83,19 @@ int max(const int a, const int b)
 
 static void main_loop(const char *unix_name)
 {
-  const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-  assert(sock>0);
+  const int listen_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  assert(listen_sock>0);
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
   assert(strlen(unix_name) < sizeof(addr.sun_path));
   strcpy(addr.sun_path, unix_name);
-  const int bind_ret = bind(sock, (const struct sockaddr *)&addr, sizeof(addr));
+  const int bind_ret = bind(listen_sock, (const struct sockaddr *)&addr, sizeof(addr));
   if (bind_ret < 0) {
     perror("bind");
     abort();
   }
 
-  const int listen_ret = listen(sock, 0);
+  const int listen_ret = listen(listen_sock, 0);
   if (listen_ret < 0) {
     perror("listen");
     abort();
@@ -115,7 +115,7 @@ static void main_loop(const char *unix_name)
    */
   while (1) {
     DEBUG("Waiting for socket connection\n");
-    const int connfd = accept(sock, NULL, NULL);
+    const int connfd = accept(listen_sock, NULL, NULL);
     if (connfd < 0) {
       if (errno == EINTR) {
 	continue;

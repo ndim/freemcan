@@ -207,7 +207,7 @@ void tui_select_do_io(fd_set *in_fdset)
     const int bytes_to_read = read_size(STDIN_FILENO);
     if (bytes_to_read == 0) {
       fmlog("EOF from stdin, exiting.\n");
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
     assert (bytes_to_read > 0);
     char buf[bytes_to_read+1];
@@ -360,6 +360,7 @@ int main(int argc, char *argv[])
   /* clean up */
   dev_fini();
 
-  return 0;
+  /* implicitly call atexit_func */
+  exit(EXIT_SUCCESS);
 }
 

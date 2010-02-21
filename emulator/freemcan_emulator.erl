@@ -36,15 +36,16 @@ dummy_histogram() ->
 
 
 checksum(Bin) when is_binary(Bin) ->
-    lists:foldl(fun(C, Acc) ->
-			N = C,
-			X = (8*N+2*N+N) band 16#ffff,
-			R = ((Acc bsl 3) band 16#ffff) bor ((Acc bsr 13) band 16#ffff),
-			V = R bxor X,
-			V
-		end,
-		16#3e59,
-		binary_to_list(Bin)).
+    State =lists:foldl(fun(C, Acc) ->
+			       N = C,
+			       X = (8*N+2*N+N) band 16#ffff,
+			       R = ((Acc bsl 3) band 16#ffff) bor ((Acc bsr 13) band 16#ffff),
+			       V = (R bxor X) band 16#ffff,
+			       V
+		       end,
+		       16#3e59,
+		       binary_to_list(Bin)),
+    State band 16#ff.
 
 
 frame(text, Text) ->

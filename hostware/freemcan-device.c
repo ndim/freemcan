@@ -57,11 +57,11 @@ void dev_init(const char *device_name)
     abort();
   }
   if (S_ISCHR(sb.st_mode)) {
-    fmlog("%s: character device\n", device_name);
+    fmlog("%s: character device", device_name);
     device_fd = serial_open(device_name);
     serial_setup(device_fd, serial_string_to_baud("9600"));
   } else if (S_ISSOCK(sb.st_mode)) {
-    fmlog("%s: socket\n", device_name);
+    fmlog("%s: socket", device_name);
     const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     struct sockaddr_un addr;
     addr.sun_family = AF_UNIX;
@@ -74,11 +74,11 @@ void dev_init(const char *device_name)
     }
     device_fd = sock;
   } else {
-    fmlog("unknown?\n");
+    fmlog("unknown?");
     abort();
   }
   assert(device_fd > 0);
-  fmlog("device_fd = %d\n", device_fd);
+  fmlog("device_fd = %d", device_fd);
 }
 
 
@@ -104,7 +104,7 @@ void dev_select_do_io(fd_set *in_fdset)
   if (FD_ISSET(device_fd, in_fdset)) {
     const int bytes_to_read = read_size(device_fd);
     if (bytes_to_read == 0) {
-      fmlog("EOF via device fd %d\n", device_fd);
+      fmlog("EOF via device fd %d", device_fd);
       abort();
     }
     assert(bytes_to_read > 0);
@@ -112,7 +112,7 @@ void dev_select_do_io(fd_set *in_fdset)
     const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from device at fd %d\n", read_bytes, device_fd);
+    fmlog("Received %d bytes from device at fd %d", read_bytes, device_fd);
     fmlog_data(buf, read_bytes);
     frame_parse_bytes(buf, read_bytes);
   }

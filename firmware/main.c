@@ -321,6 +321,7 @@ void timer_init(void){
 }
 
 
+/** \todo Bury this function */
 inline static
 void run_measurement(void)
 {
@@ -329,13 +330,16 @@ void run_measurement(void)
     }
     cli(); /* disable interrupts */
 
+    /** \bug Port these register things into main loop */
     ADCSRA &= ~BIT(ADATE);  // autotrigger off
     EIMSK &= ~(BIT(INT0));
 }
 
 
-/** counter overrun ISR */
-ISR(TIMER1_OVF_vect) {
+/** Example counter ISR */
+inline static
+void call_me_every_second(void)
+{
   if (!timer_flag) {
     timer_count--;
     if (timer_count == 0) {

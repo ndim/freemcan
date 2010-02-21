@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "frame-defs.h"
+
 /** Open device */
 void dev_init(const char *device_name);
 
@@ -43,11 +45,12 @@ int  dev_select_set_in(fd_set *in_fdset, int maxfd);
 /** Do device's IO stuff if necessary (from select loop) */
 void dev_select_do_io(fd_set *in_fdset);
 
-/** Write data buffer to device after removing all invalid commands
+/** Write a command to the device.
  *
- * Only valid commands (i.e. commands in #frame_cmd_t) will be
- * sent. All other commands will be discarded.
+ * \param cmd The #frame_cmd_t to send.
+ * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
+ *              Otherwise, it is ignored.
  */
-void dev_write(const char *buf, const size_t size);
+void dev_command(const frame_cmd_t cmd, const uint16_t param);
 
 #endif /* !FREEMCAN_DEVICE_H */

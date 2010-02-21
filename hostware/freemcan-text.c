@@ -236,8 +236,18 @@ void tui_select_do_io(fd_set *in_fdset)
       case 'X':
 	quit_flag = true;
 	break;
-      default:
-	dev_write(&buf[i], read_bytes);
+      case FRAME_CMD_ABORT:
+      case FRAME_CMD_INTERMEDIATE:
+      case FRAME_CMD_RESET:
+	dev_command(buf[i], 0);
+	break;
+      case FRAME_CMD_MEASURE: /* 'm' */
+	/* "SHORT" measurement */
+	dev_command(FRAME_CMD_MEASURE, 10);
+	break;
+      case 'M': /* 'm' */
+	/* "LONG" measurement */
+	dev_command(FRAME_CMD_MEASURE, 30);
 	break;
       }
     }

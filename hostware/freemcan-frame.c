@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 
 #include "frame-defs.h"
@@ -37,7 +38,6 @@
 static uint16_t checksum_accu;
 
 
-static
 void checksum_reset()
 {
   checksum_accu = 0x3e59;
@@ -53,7 +53,13 @@ bool checksum_match(const uint8_t test)
 }
 
 
-static
+void checksum_write(const int fd)
+{
+  const uint8_t checksum = (checksum_accu & 0xff);
+  write(fd, &checksum, sizeof(checksum));
+}
+
+
 void checksum_update(const uint8_t value)
 {
   const uint8_t  n = (uint8_t)value;

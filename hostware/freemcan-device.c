@@ -125,25 +125,28 @@ void dev_select_do_io(fd_set *in_fdset)
 }
 
 
-void dev_write(const char *buf, const size_t size)
+void dev_command(const frame_cmd_t cmd, const uint16_t param)
 {
-  fmlog("Writing %d bytes to device fd %d", size, device_fd);
-  size_t ignored = 0;
-  for (size_t i=0; i<size; i++) {
-    frame_cmd_t cmd = buf[i];
-    switch (cmd) {
-    case FRAME_CMD_ABORT:
-    case FRAME_CMD_INTERMEDIATE:
-    case FRAME_CMD_MEASURE:
-    case FRAME_CMD_RESET:
-      write(device_fd, &buf[i], 1);
-      continue;
+  fmlog("Sending %c command to device (param=%d=0x%04x)",
+	cmd, param, param);
+  switch (cmd) {
+  case FRAME_CMD_MEASURE:
+    if (1) {
+      checksum_reset();
+      const uint8_t cmd8 = cmd;
+      write(device_fd, &cmd8, 1);
+      checksum_update(cmd8);
+      const uint8_t byte0 = (param & 0xff);
+      checksum_update(byte0);
+      const uint8_t byte1 = ((param>>8) & 0xff);
+      checksum_update(byte1);
+      write(device_fd, &param, sizeof(param));
+      checksum_write(device_fd);
     }
-    ignored++;
-  }
-  if (ignored) {
-    fmlog("Ignored %d illegal command bytes of %d total bytes",
-	  ignored, size);
+    break;
+  default:
+    write(device_fd, &cmd, 1);
+    break;
   }
 }
 

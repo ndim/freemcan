@@ -71,7 +71,7 @@ Usage
 -----
 
 After building, you need to write the firmware to your hardware. To do that,
-generate a file firmware/atmega/settings.mk with your local avrdude settings,
+generate a file firmware/settings.mk with your local avrdude settings,
 such as e.g.
 
     AVRDUDE_PROGRAMMER = ponyser
@@ -83,7 +83,7 @@ shell script.
 
 Then
 
-  $ cd firmware/atmega
+  $ cd firmware
 
 and run the local make targets to write the firmware to your hardware.
 
@@ -106,12 +106,9 @@ Subdirectory Contents
 
 
    firmware/
-           Everything firmware related.
+           The device firmware for Atmel ATmega644 microcontroller
 
-   firmware/atmega/
-           The device firmware for Atmel ATmega AVR8 microcontroller.
-
-   firmware/code-comparison/
+   code-comparison/
            Some common tasks our firmware needs written in portable C
            and compiled for all platforms we have a cross compiler
            for. This lets us compare the assembly language generated
@@ -120,7 +117,12 @@ Subdirectory Contents
    hostware/
            All the software running on the PC host. For lack of a
            better word, we called it "hostware" to distinguish it from
-           the "firmware":
+           the "firmware".
+
+   emulator/
+           Simple attempt at emulating the device connected to a
+           device file by having an Erlang program connected to a
+           Unix domain socket.
 
 
 

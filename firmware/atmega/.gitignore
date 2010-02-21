@@ -1,4 +1,7 @@
 /*.lst
 /*.o
+/*.lfuse.txt
+/*.hfuse.txt
+/*.efuse.txt
 /settings.mk
 /firmware.*

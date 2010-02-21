@@ -28,8 +28,8 @@ OPT = s
 
 # Comment out the following two files to remove the printf implementation
 # from the firmware.
-SRC += uart-printf.c
-CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+# SRC += uart-printf.c
+# CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = Makefile

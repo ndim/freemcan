@@ -383,6 +383,7 @@ int main(void)
 #endif
 
     /* STATE: BOOT */
+    /** \todo configure unused pins */
 
     /* configure USART0 for 8N1 */
     uart_init();
@@ -434,9 +435,8 @@ int main(void)
     /* STATE: MEASURING */
 
     /* set up timer with the value we just got */
-    /* do_something_with(timer_value); */
-
-    /* configure unused pins */
+    /* set_up_timer_registers() */
+    timer_counter = timer_value;
 
     /* begin measurement */
     sei();

@@ -36,6 +36,7 @@
  * <table>
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
+ *  <tr><td>1</td> <td>packet_histogram_type_t</td> <td>histogram type (measurement completed, intermediate result, result at abort)</td></tr>
  *  <tr><td>see above</td> <td>?</td> <td>histogram data</td></tr>
  * </table>
  *

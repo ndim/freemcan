@@ -39,6 +39,7 @@
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "frame-defs.h"
+#include "packet-defs.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -303,13 +304,20 @@ ISR(TCC0_OVF_vect) {
 #endif
 
 
-/** Send table[] to controller via serial port. */
+/** Send histogram table[] to controller via serial port.
+ *
+ * \param type The type of histogram we are sending
+ *             (#packet_histogram_type_t).  You may also a dummy value
+ *             like '?' or -1 or 0xff or 0 until you make use of that
+ *             value on the receiver side.
+ */
 static
-void send_histogram(void)
+void send_histogram(const packet_histogram_type_t type)
 {
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(table)+1);
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(table)+1+1);
   const uint8_t element_size = sizeof(table[0]);
   uart_putc((const char)(element_size));
+  uart_putc((const char)(type));
   uart_putb((const void *)table, sizeof(table));
   frame_end();
 }
@@ -384,7 +392,7 @@ int main(void)
 
     run_measurement();
 
-    send_histogram();
+    send_histogram('?');
 
     /* reset the AVR device */
     soft_reset();

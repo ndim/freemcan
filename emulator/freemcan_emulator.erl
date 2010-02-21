@@ -77,7 +77,7 @@ histogram_packet(intermediate, Histogram) ->
 histogram_packet(aborted, Histogram) ->
     histogram_packet($A, Histogram);
 histogram_packet(Type, Histogram) when is_integer(Type) ->
-    Payload = [<<4>>,
+    Payload = [<<4>>, Type,
 	       [ <<Val:32/little-integer>> || Val <- Histogram ]],
     frame(histogram, Payload).
 

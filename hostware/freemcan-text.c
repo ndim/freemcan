@@ -220,7 +220,7 @@ void tui_select_do_io(fd_set *in_fdset)
     const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from fd %d: %s", read_bytes, STDIN_FILENO, buf);
+    fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
     fmlog_data(buf, read_bytes);
     for (ssize_t i=0; i<read_bytes; i++) {
       /* handle a few key input things internally */

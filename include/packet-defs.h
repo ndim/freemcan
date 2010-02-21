@@ -62,7 +62,7 @@ typedef enum {
   PACKET_HISTOGRAM_DONE = 'D',
 
   /** Measurement has been aborted, report results as gathered so far. */
-  PACKET_HISTOGRAM_ = 'A'
+  PACKET_HISTOGRAM_ABORTED = 'A'
 
 } packet_histogram_type_t;
 

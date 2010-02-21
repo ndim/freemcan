@@ -84,6 +84,18 @@ void uart_checksum_send(void)
 }
 
 
+/** Receive a byte and verify whether it matches the checksum
+ *
+ * \return boolean value in uint8_t
+ */
+char uart_checksum_recv(void)
+{
+  const uint8_t v = checksum_accu & 0xff;
+  const uint8_t c = uart_getc();
+  return (v == c);
+}
+
+
 /** Write character to UART */
 void uart_putc(const char c)
 {
@@ -122,11 +134,14 @@ void uart_putb(const void *buf, size_t len)
 }
 
 /** Read a character from the UART */
-void uart_getc(char *c)
+char uart_getc()
 {
     /* Poll til a character is inside the input buffer */
     loop_until_bit_is_set( UCSR0A, RXC0 );
 
     /* Get the character */
-    *c = UDR0 ;
+    const char ch = UDR0;
+
+    uart_checksum_update(ch);
+    return ch;
 }

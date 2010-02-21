@@ -29,9 +29,10 @@ extern void uart_init(void);
 extern void uart_putc(const char c);
 extern void uart_puts(const char *s);
 extern void uart_putb(const void *buf, size_t len);
-extern void uart_getc(char *c);
+extern char uart_getc(void);
 
 void uart_checksum_reset(void);
 void uart_checksum_send(void);
+char uart_checksum_recv(void);
 
 #endif /* !UART_COMM_H */

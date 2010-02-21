@@ -95,22 +95,22 @@ volatile uint32_t table[MAX_COUNTER];
  */
 volatile uint8_t measurement_count;
 
-#ifdef TIMER_STUFF
-/** maximum timer count
+
+/** timer counter
  *
  * Written by main() with value received from controller.
- * Read by timer interrupt handler.
+ * Read and written by timer interrupt handler.
  */
-volatile uint16_t max_timer_count = 0;
+volatile uint16_t timer_count = 0;
 
-/** maximum timer reached
+
+/** Timer counter has reached zero.
  *
  * Will be set to 1 when max_timer_count is exceeded, is 0 otherwise.
  * Written by timer interrupt handler.
- * Read by run_measurements() main loop.
+ * Read by main loop.
  */
-volatile uint8_t max_timer_flag = 0;
-#endif
+volatile uint8_t timer_flag = 0;
 
 
 /*------------------------------------------------------------------------------
@@ -139,7 +139,6 @@ void wdt_init(void)
 /*
 ISR(INT0_vect) {
 }*/
-
 
 
 /** AD conversion complete interrupt entry point
@@ -292,16 +291,16 @@ void run_measurement(void)
     EIMSK &= ~(BIT(INT0));
 }
 
-#if 0
+
 /** counter overrun ISR */
-ISR(TCC0_OVF_vect) {
-  static uint16_t timer_count = 0;
-  timer_count++;
-  if (timer_count > max_timer_count) {
-    max_timer_flag = 1;
+ISR(TIMER1_OVF_vect) {
+  if (!timer_flag) {
+    timer_count--;
+    if (timer_count == 0) {
+      timer_flag = 1;
+    }
   }
 }
-#endif
 
 
 /** Send histogram table[] to controller via serial port.
@@ -346,6 +345,7 @@ void send_text(const char *msg)
   frame_send(FRAME_TYPE_TEXT, msg, len);
 }
 
+
 /**
  * \todo Implement "set measurement timing" command.
  * \todo Implement communication FSM according to frame-defs.h.
@@ -382,6 +382,8 @@ int main(void)
     }
 #endif
 
+    /* STATE: BOOT */
+
     /* configure USART0 for 8N1 */
     uart_init();
 
@@ -392,12 +394,79 @@ int main(void)
      * at pin 40 ADC0 */
     adc_init();
 
+    /* STATE: READY */
+    send_status("READY");
+
+    uint8_t quit_flag = 0;
+    uint16_t timer_value;
+    while (!quit_flag) {
+      uart_checksum_reset();
+      const char ch = uart_getc();
+      const frame_cmd_t cmd = ch;
+      switch (cmd) {
+      case FRAME_CMD_RESET:
+	send_status("RESET");
+	/* STATE: RESET */
+	soft_reset();
+	break;
+      case FRAME_CMD_MEASURE:
+	if (1) {
+	  const uint8_t byte0 = uart_getc();
+	  const uint8_t byte1 = uart_getc();
+	  timer_value = (((uint16_t)byte1)<<8) | byte0;
+	  if (uart_checksum_recv()) { /* checksum successful */
+	    send_status("MEASURING");
+	    /* STATE: MEASURING */
+	    quit_flag = 1;
+	  } else { /* checksum fail */
+	    send_status("CHKSUMFAIL");
+	    /* STATE: RESET */
+	    soft_reset();
+	  }
+	}
+	break;
+      default:
+	/* ignore all other bytes */
+	break;
+      }
+    }
+
+    /* STATE: MEASURING */
+
+    /* set up timer with the value we just got */
+    /* do_something_with(timer_value); */
+
     /* configure unused pins */
 
-    run_measurement();
+    /* begin measurement */
+    sei();
 
-    send_histogram('?');
+    while (1) {
+      if (timer_flag) { /* done */
+	cli();
+	send_histogram(PACKET_HISTOGRAM_DONE);
+	soft_reset();
+	break;
+      } else if (bit_is_set(UCSR0A, RXC0)) {
+	/* there is a character in the UART input buffer */
+	const char ch = uart_getc();
+	const frame_cmd_t cmd = ch;
+	switch (cmd) {
+	case FRAME_CMD_ABORT:
+	  cli();
+	  send_histogram(PACKET_HISTOGRAM_ABORTED);
+	  soft_reset();
+	break;
+	case FRAME_CMD_INTERMEDIATE:
+	  cli();
+	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
+	  sei();
+	  break;
+	default:
+	  /* ignore all other bytes */
+	  break;
+	}
+      }
+    }
 
-    /* reset the AVR device */
-    soft_reset();
 }

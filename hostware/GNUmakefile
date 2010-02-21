@@ -42,20 +42,20 @@ querySerial : querySerial.o serial-setup.o
 querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
 
-freemcan-text.o : CFLAGS += -D_GNU_SOURCE
-freemcan-text.o : freemcan-text.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
-
-freemcan-log.o : freemcan-log.c freemcan-log.h
-
 freemcan-common.o : CFLAGS += -D_GNU_SOURCE
-freemcan-common.o : freemcan-common.c freemcan-common.h
-
-freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
+freemcan-common.o : freemcan-common.c freemcan-common.h freemcan-log.h
 
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE
 freemcan-device.o : freemcan-device.c freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h serial-setup.h
 
 freemcan-frame.o : freemcan-frame.c freemcan-frame.h freemcan-log.h ../include/frame-defs.h
+
+freemcan-log.o : freemcan-log.c freemcan-log.h
+
+freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
+
+freemcan-text.o : CFLAGS += -D_GNU_SOURCE
+freemcan-text.o : freemcan-text.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
 HOST_SRC = common device frame log select text
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)

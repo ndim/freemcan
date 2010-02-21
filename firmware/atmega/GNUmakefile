@@ -181,7 +181,7 @@ $(TARGET).fuses: $(TARGET).elf
 	  echo "0x$$efuse" > $(TARGET).efuse.txt; \
 	}
 
-compare-fuses: read-fuses
+compare-fuses: read-fuses $(TARGET).fuses
 	@echo "New fuse values to be written to device:"; \
 	for f in lfuse hfuse efuse; do \
 		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \

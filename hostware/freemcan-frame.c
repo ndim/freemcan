@@ -1,5 +1,5 @@
 /** \file freemcan-frame.c
- * \brief Data frame parser (implementation)
+ * \brief Data frame parser (layer 2) (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -70,19 +70,16 @@ void checksum_update(const uint8_t value)
 
 
 static frame_handler_t frame_handler;
-static void *frame_handler_data;
 
 
-void frame_set_handler(frame_handler_t handler, void *data)
+void frame_set_handler(frame_handler_t handler)
 {
   frame_handler = handler;
-  frame_handler_data = data;
 }
 
 
 void frame_reset_handler(void){
   frame_handler = NULL;
-  frame_handler_data = NULL;
 }
 
 
@@ -209,7 +206,7 @@ void step_fsm(const char ch)
 	frame_wip->payload[offset] = '\0';
 	frame_wip->type = frame_type;
 	frame_wip->size = frame_size;
-	frame_handler(frame_wip, frame_handler_data);
+	frame_handler(frame_wip);
       }
       free(frame_wip);
       offset = 0;

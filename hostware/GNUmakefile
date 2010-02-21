@@ -52,12 +52,14 @@ freemcan-frame.o : freemcan-frame.c freemcan-frame.h freemcan-log.h ../include/f
 
 freemcan-log.o : freemcan-log.c freemcan-log.h
 
+freemcan-packet.o : freemcan-packet.c freemcan-packet.h freemcan-frame.h freemcan-log.h ../include/frame-defs.h ../include/packet-defs.h
+
 freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
 
 freemcan-text.o : CFLAGS += -D_GNU_SOURCE
 freemcan-text.o : freemcan-text.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
-HOST_SRC = common device frame log select text
+HOST_SRC = common device frame log packet select text
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
 freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)

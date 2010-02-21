@@ -46,12 +46,15 @@
 #include "freemcan-common.h"
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
+#include "freemcan-packet.h"
 #include "freemcan-log.h"
 #include "freemcan-select.h"
 
 
 /* Forward declaration */
-static void frame_handler(const frame_t *frame, void *data);
+static void packet_handler_status(const char *status);
+static void packet_handler_text(const char *text);
+static void packet_handler_histogram(const packet_histogram_t *histogram_packet);
 
 
 /** Quit flag for the main loop. */
@@ -186,7 +189,10 @@ void tui_init()
   fprintf(stdlog, "stdlog=%p\n", (void*)stdlog);
   fmlog_set_handler(tui_log_handler, NULL);
 
-  frame_set_handler(frame_handler, NULL);
+
+  packet_set_handlers(packet_handler_histogram,
+		      packet_handler_status,
+		      packet_handler_text);
 }
 
 
@@ -255,31 +261,29 @@ void atexit_func(void)
  ************************************************************************/
 
 
-/** Data frame handler (could be TUI specific) */
-static 
-void frame_handler(const frame_t *frame, void *data __attribute__ ((unused)))
+/** Status data packet handler (TUI specific) */
+static void packet_handler_status(const char *status)
 {
-  switch (frame->type) {
-  case FRAME_TYPE_STATUS:
-    fmlog("STATUS: %s", frame->payload);
-    return;
-  case FRAME_TYPE_TEXT:
-    fmlog("TEXT: %s", frame->payload);
-    return;
-  case FRAME_TYPE_HISTOGRAM:
-    if (1) {
-      const size_t hist_size = frame->size - 1;
-      const uint8_t element_size = frame->payload[0];
-      const size_t element_count = hist_size/element_size;
-      fmlog("Received histogram data of %d elements of %d bytes each:",
-	    element_count, element_size);
-      fmlog_data((void *)&(frame->payload[1]), hist_size);
-    }
-    return;
-  }
-  fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
-	frame->type, frame->type, frame->type, frame->size, frame->size);
-  fmlog_data((void *)frame->payload, frame->size);
+  fmlog("STATUS: %s", status);
+}
+
+
+/** Text data packet handler (TUI specific) */
+static void packet_handler_text(const char *text)
+{
+  fmlog("TEXT: %s", text);
+}
+
+
+/** Histogram data packet handler (TUI specific) */
+static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
+{
+  const size_t element_count = histogram_packet->element_count;
+  const size_t element_size = histogram_packet->element_size;
+  fmlog("Received '%c' type histogram data of %d elements of %d bytes each:",
+	histogram_packet->type, element_count, element_size);
+  const size_t total_size = element_count * element_size;
+  fmlog_data(histogram_packet->elements.ev, total_size);
 }
 
 

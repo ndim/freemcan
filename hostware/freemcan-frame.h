@@ -1,5 +1,5 @@
 /** \file freemcan-frame.h
- * \brief Data frame parser (interface)
+ * \brief Data frame parser (layer 2) (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -47,11 +47,10 @@ typedef struct {
  * \param frame The frame to handle
  * \param data Private data for the handler function
  */
-typedef void (*frame_handler_t)(const frame_t *frame,
-				void *data);
+typedef void (*frame_handler_t)(const frame_t *frame);
 
 /** Set frame handler function to the given function */
-void frame_set_handler(frame_handler_t handler, void *data);
+void frame_set_handler(frame_handler_t handler);
 
 /** Reset frame handler function to No-Op */
 void frame_reset_handler(void);

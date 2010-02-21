@@ -65,7 +65,11 @@ static void do_copy_data(const int in_fd, const int out_fd,
     char buf[data_size];
     const ssize_t read_chars = read(in_fd, buf, sizeof(buf));
     assert(data_size == read_chars);
-    write(out_fd, buf, sizeof(buf));
+    if (out_fd < 0) {
+        DEBUG("Dropping the data\n");
+    } else {
+        write(out_fd, buf, sizeof(buf));
+    }
 }
 
 
@@ -224,8 +228,6 @@ static void listen_select_do_io(fd_set *in_fdset)
 static void main_loop(const char *unix_name)
 {
     listen_init(unix_name);
-
-    /** \bug Discard data received from Erlang while not connected */
 
     /** \todo Simulate a FreeMCA device that boots whenever someone
      * connects to the UNIX socket.

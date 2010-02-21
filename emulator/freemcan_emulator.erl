@@ -122,26 +122,25 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 	    {NextState, Reply, NextTimeOut} = fsm(CurState, Cmd),
 	    io:format("Sending reply:    ~p~n", [Reply]),
 	    Port ! {self(), {command, Reply}},
-	    io:format("Next state: ~p~n", [NextState]),
+	    io:format("Next state:       ~p~n", [NextState]),
 	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
 	Unhandled ->
 	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
 	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    {error, {unhandled, Unhandled}}
     after RealTimeOut ->
-	    io:format("Timeout after ~w~n", [RealTimeOut]),
 	    case TimeOut of
 		none -> loop(LoopState);
 		TimeOut ->
-		    {NextState, Reply, NextTimeOut} = fsm(CurState, {timeout, TimeOut}),
 		    io:format("Timeout:          ~p~n", [TimeOut]),
-		    io:format("Sending reply:    ~p~n", [Reply]),
+		    {NextState, Reply, NextTimeOut} = fsm(CurState, {timeout, TimeOut}),
+		    io:format("Sending message:  ~p~n", [Reply]),
 		    case Reply of
 			none -> ok;
 			Reply ->
 			    Port ! {self(), {command, Reply}}
 		    end,
-		    io:format("Next state: ~p~n", [NextState]),
+		    io:format("Next state:       ~p~n", [NextState]),
 		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
 	    end
     end.

@@ -52,7 +52,10 @@ void fmlog_error(const char *format, ...)
   __attribute__(( format(printf,1,2),
 		  nonnull(1) ));
 
-/** Log a block of data */
+/** Log a block of data as bytes */
 void fmlog_data(const void *data, const size_t size);
+
+/** Log a block of data as 32 bit integers */
+void fmlog_data32(const void *data, const size_t size);
 
 #endif

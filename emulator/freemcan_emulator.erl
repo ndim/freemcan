@@ -24,6 +24,8 @@
 
 -export([loop/1]).
 
+-export([checksum/1]).
+
 -define(DEFAULT_TIMEOUT, 5000).
 
 -record(state, {port, state=boot, timeout=100}).

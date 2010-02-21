@@ -1,3 +1,5 @@
+# FIXME: Add proper dependencies for all those *.c and *.h files.
+
 bin_PROGRAMS ?=
 
 CFLAGS ?=

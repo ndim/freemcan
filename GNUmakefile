@@ -43,7 +43,7 @@ README.html: README.rst
 .PHONY: clean-here
 clean-here:
 	rm -f $(CLEANFILES)
-	rm -rf dox
+	rm -rf dox Doxyfile
 
 
 TARBASE = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)-g$(GIT_VERSION)

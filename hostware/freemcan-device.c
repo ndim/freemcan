@@ -21,6 +21,7 @@
 
 
 #include <assert.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

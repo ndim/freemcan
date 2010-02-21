@@ -64,19 +64,47 @@ bin_frame(Type, Payload) when is_integer(Type)  ->
     list_to_binary([FrameData, <<DummyChecksum>>]).
 
 
+fsm(boot, <<"a">>) ->
+    {boot, none, 1};
+fsm(boot, <<"i">>) ->
+    {boot, none, 1};
+fsm(boot, <<"m">>) ->
+    {boot, none, 1};
+fsm(boot, <<"r">>) ->
+    {boot, none, 1};
 fsm(boot, {timeout, _}) ->
     {ready, frame(status, "READY"), none};
 
-fsm(ready, <<"r">>) ->
-    {reset, none, 100};
+fsm(ready, <<"a">>) ->
+    {ready, frame(text, "IGNORED"), none};
+fsm(ready, <<"i">>) ->
+    {ready, frame(text, "IGNORED"), none};
 fsm(ready, <<"m">>) ->
     {{measuring, 0}, frame(status, "Measuring"), 10000};
+fsm(ready, <<"r">>) ->
+    {reset, none, 100};
 
+fsm({measuring, _}=State, <<"a">>) ->
+    {State, frame(status, "IGNORED"), 10};
+fsm({measuring, _}=State, <<"i">>) ->
+    {State, frame(histogram, dummy_histogram()), 10};
+fsm({measuring, _}=State, <<"m">>) ->
+    {State, frame(status, "IGNORED"), 10};
+fsm({measuring, _}=State, <<"r">>) ->
+    {State, frame(status, "IGNORED"), 10};
 fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
     {{measuring, N+1}, frame(text, "Still measuring"), 10000};
 fsm({measuring, _}, {timeout, _}) ->
     {reset, frame(histogram, dummy_histogram()), 0};
 
+fsm(reset, <<"a">>) ->
+    {reset, none, 1};
+fsm(reset, <<"i">>) ->
+    {reset, none, 1};
+fsm(reset, <<"m">>) ->
+    {reset, none, 1};
+fsm(reset, <<"r">>) ->
+    {reset, none, 1};
 fsm(reset, {timeout, _}) ->
     {boot, frame(status, "Resetting"), 100}.
 

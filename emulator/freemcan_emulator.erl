@@ -51,9 +51,7 @@ frame(text, Text) ->
     bin_frame($T, Text);
 frame(status, StatusMsg) ->
     bin_frame($S, StatusMsg);
-frame(histogram, Histogram) ->
-    BinHist = [ <<Val:32/little-integer>> || Val <- Histogram ],
-    Payload = list_to_binary([<<4>>|BinHist]),
+frame(histogram, Payload) ->
     bin_frame($H, Payload).
 
 bin_frame(Type, Payload) when is_integer(Type)  ->
@@ -62,6 +60,26 @@ bin_frame(Type, Payload) when is_integer(Type)  ->
     FrameData = <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary>>,
     DummyChecksum = checksum(FrameData),
     list_to_binary([FrameData, <<DummyChecksum>>]).
+
+
+status_packet(StatusMessage) ->
+    frame(status, StatusMessage).
+
+
+text_packet(StatusMessage) ->
+    frame(status, StatusMessage).
+
+
+histogram_packet(done, Histogram) ->
+    histogram_packet($D, Histogram);
+histogram_packet(intermediate, Histogram) ->
+    histogram_packet($I, Histogram);
+histogram_packet(aborted, Histogram) ->
+    histogram_packet($A, Histogram);
+histogram_packet(Type, Histogram) when is_integer(Type) ->
+    Payload = [<<4>>,
+	       [ <<Val:32/little-integer>> || Val <- Histogram ]],
+    frame(histogram, Payload).
 
 
 fsm(boot, <<"a">>) ->
@@ -73,29 +91,29 @@ fsm(boot, <<"m">>) ->
 fsm(boot, <<"r">>) ->
     {boot, none, 1};
 fsm(boot, {timeout, _}) ->
-    {ready, frame(status, "READY"), none};
+    {ready, status_packet("READY"), none};
 
 fsm(ready, <<"a">>) ->
-    {ready, frame(text, "IGNORED"), none};
+    {ready, text_packet("IGNORED"), none};
 fsm(ready, <<"i">>) ->
-    {ready, frame(text, "IGNORED"), none};
+    {ready, text_packet("IGNORED"), none};
 fsm(ready, <<"m">>) ->
-    {{measuring, 0}, frame(status, "Measuring"), 10000};
+    {{measuring, 0}, status_packet("Measuring"), 10000};
 fsm(ready, <<"r">>) ->
     {reset, none, 100};
 
 fsm({measuring, _}=State, <<"a">>) ->
-    {State, frame(status, "IGNORED"), 10};
+    {State, histogram_packet(aborted, dummy_histogram()), 10};
 fsm({measuring, _}=State, <<"i">>) ->
-    {State, frame(histogram, dummy_histogram()), 10};
+    {State, histogram_packet(intermediate, dummy_histogram()), 10};
 fsm({measuring, _}=State, <<"m">>) ->
-    {State, frame(status, "IGNORED"), 10};
+    {State, status_packet("IGNORED"), 10};
 fsm({measuring, _}=State, <<"r">>) ->
-    {State, frame(status, "IGNORED"), 10};
+    {State, status_packet("IGNORED"), 10};
 fsm({measuring, N}, {timeout, _}) when is_integer(N), N =< 3 ->
-    {{measuring, N+1}, frame(text, "Still measuring"), 10000};
+    {{measuring, N+1}, histogram_packet(intermediate, dummy_histogram()), 10000};
 fsm({measuring, _}, {timeout, _}) ->
-    {reset, frame(histogram, dummy_histogram()), 0};
+    {reset, histogram_packet(done, dummy_histogram()), 0};
 
 fsm(reset, <<"a">>) ->
     {reset, none, 1};
@@ -106,7 +124,7 @@ fsm(reset, <<"m">>) ->
 fsm(reset, <<"r">>) ->
     {reset, none, 1};
 fsm(reset, {timeout, _}) ->
-    {boot, frame(status, "Resetting"), 100}.
+    {boot, status_packet("Resetting"), 100}.
 
 
 loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->

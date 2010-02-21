@@ -59,8 +59,8 @@ bin_frame(Type, Payload) when is_integer(Type)  ->
     BinPayload = list_to_binary(Payload),
     ByteSize = byte_size(BinPayload),
     FrameData = <<"FMPK", ByteSize:16/little-integer, Type, BinPayload/binary>>,
-    DummyChecksum = checksum(FrameData),
-    list_to_binary([FrameData, <<DummyChecksum>>]).
+    Checksum = checksum(FrameData),
+    list_to_binary([FrameData, <<Checksum>>]).
 
 
 status_packet(StatusMessage) ->

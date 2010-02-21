@@ -477,7 +477,6 @@ int main(void)
     /* STATE: MEASURING */
 
     /* set up timer with the value we just got */
-    /* set_up_timer_registers() */
     timer_count = timer_value;
 
     /* begin measurement */

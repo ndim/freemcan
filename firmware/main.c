@@ -99,17 +99,25 @@ volatile uint8_t measurement_count;
 
 /** timer counter
  *
- * Written by main() with value received from controller.
- * Read and written by timer interrupt handler.
+ * Initialized once by main() with value received from host
+ * controller. Never touched by main() again after starting the timer
+ * interrupt.
+ *
+ * Timer interrupt handler has exclusive access to read/writes
+ * timer_count to decrement, once the timer ISR has been enabled.
  */
 volatile uint16_t timer_count = 0;
 
 
 /** Timer counter has reached zero.
  *
+ * Used to signal from the timer ISR to the main program that the
+ * timer has elapsed.
+ *
  * Will be set to 1 when max_timer_count is exceeded, is 0 otherwise.
- * Written by timer interrupt handler.
- * Read by main loop.
+ * Written only once by timer interrupt handler. Read by main
+ * loop. 8bit value, and thus accessible with atomic read/write
+ * operations.
  */
 volatile uint8_t timer_flag = 0;
 
@@ -164,22 +172,26 @@ ISR(ADC_vect) {
   EIFR |= BIT(INTF0);
 }
 
+
 /** 16 Bit timer ISR
  *
- *  If timer is elapsed the global flag timer_flag is set
+ * When timer has elapsed, the global #timer_flag (8bit, therefore
+ * atomic read/writes) is set.
  */
 ISR (TIMER1_COMPA_vect)
 {
   /* toggle a sign: PORTD ^= BIT(PD5);                          */
-  /* if the timer is elapsed set a flag to control main program */
+
   if (!timer_flag) {
+    /* We do not touch the timer_flag ever again after setting it */
     timer_count--;
-    /* if the timer count multiples are over set a 8 bit flag   */
     if (timer_count == 0) {
+      /* timer has elapsed, set the flag to signal the main program */
        timer_flag = 1;
     }
   }
 }
+
 
 /** Setup of INT0
  *

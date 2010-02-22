@@ -295,19 +295,6 @@ void timer_init(void){
 }
 
 
-/* dig it */
-/* inline static
-void call_me_every_second(void)
-{
-  if (!timer_flag) {
-    timer_count--;
-    if (timer_count == 0) {
-      timer_flag = 1;
-    }
-  }
-}*/
-
-
 /** Send histogram table[] to controller via serial port.
  *
  * \param type The type of histogram we are sending

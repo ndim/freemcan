@@ -273,7 +273,7 @@ void adc_init(void)
 
 
 /** Configure 16 bit timer to trigger a ISR each 1 second         */
-static
+inline static
 void timer_init(void){
 
   /* Prepare timer 0 control register A for

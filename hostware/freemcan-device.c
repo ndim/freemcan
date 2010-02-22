@@ -46,11 +46,35 @@
 static int device_fd = -1;
 
 
+static
+void open_char_device(const char *device_name)
+{
+  fmlog("%s: character device", device_name);
+  device_fd = serial_open(device_name);
+  serial_setup(device_fd, serial_string_to_baud("9600"));
+}
+
+
+static
+void open_unix_socket(const char *socket_name)
+{
+  fmlog("%s: AF_UNIX socket", socket_name);
+  const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  struct sockaddr_un addr;
+  addr.sun_family = AF_UNIX;
+  assert(strlen(socket_name) < sizeof(addr.sun_path));
+  strcpy(addr.sun_path, socket_name);
+  const int connect_ret = connect(sock, (const struct sockaddr *)&addr, sizeof(addr));
+  if (connect_ret < 0) {
+    fmlog_error("connect");
+    abort();
+  }
+  device_fd = sock;
+}
+
+
 void dev_init(const char *device_name)
 {
-  /** \todo Run stat(2) on device_name, then change open()-like code
-   *       according to file type (device file, unix domain socket).
-   */
   struct stat sb;
   const int stat_ret = stat(device_name, &sb);
   if (stat_ret == -1) {
@@ -58,24 +82,11 @@ void dev_init(const char *device_name)
     abort();
   }
   if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
-    fmlog("%s: character device", device_name);
-    device_fd = serial_open(device_name);
-    serial_setup(device_fd, serial_string_to_baud("9600"));
+    open_char_device(device_name);
   } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
-    fmlog("%s: socket", device_name);
-    const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    struct sockaddr_un addr;
-    addr.sun_family = AF_UNIX;
-    assert(strlen(device_name) < sizeof(addr.sun_path));
-    strcpy(addr.sun_path, device_name);
-    const int connect_ret = connect(sock, (const struct sockaddr *)&addr, sizeof(addr));
-    if (connect_ret < 0) {
-      fmlog_error("connect");
-      abort();
-    }
-    device_fd = sock;
+    open_unix_socket(device_name);
   } else {
-    fmlog("unknown?");
+    fmlog("device of unknown type: %s", device_name);
     abort();
   }
   assert(device_fd > 0);

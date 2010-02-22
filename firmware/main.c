@@ -85,8 +85,6 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
-volatile uint16_t timer_msec = 0;
-
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
 

@@ -149,17 +149,12 @@ ISR(INT0_vect) {
 ISR(ADC_vect) {
 
   uint16_t result;
-  uint8_t index;
 
+  /* Read analog value */
   result = ADCW;
 
-  index = (uint8_t)(result>>(10-ADC_RESOLUTION));
-
-  /* Update histogram */
-  table[index]++;
-
-  /* Update measurement counter */
-  measurement_count++;
+  /* Update histogram: this can be a 8 or a 9 bit index! */
+  table[result>>(10-ADC_RESOLUTION)]++;
 
   /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
    * Since int0 is only configured but not enabled ISR(INT0_vect){} is

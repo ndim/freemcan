@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
   assert(isatty(STDOUT_FILENO));
 
   const char *device_name = argv[1];
-  fmlog("freemcan-main: device=%s\n", device_name);
+  fmlog("freemcan-text: device=%s\n", device_name);
 
   if (0 != atexit(atexit_func)) {
     fmlog_error("atexit() failed");

@@ -12,6 +12,7 @@ CFLAGS += -Wall -Wextra
 CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include
+CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
 
 bin_PROGRAMS += querySerial
 CLEANFILES   += querySerial
@@ -69,3 +70,14 @@ freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)
 test-log : test-log.o freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
+
+depend-here:
+	if grep '^# DO NOT DELETE' $(MAKEFILE) >/dev/null; \
+	then \
+		sed -e '/^# DO NOT DELETE/,$$d' $(MAKEFILE) > \
+			$(MAKEFILE).$$$$ && \
+		$(MV) $(MAKEFILE).$$$$ $(MAKEFILE); \
+	fi
+	echo '# DO NOT DELETE THIS LINE -- make depend depends on it.' \
+		>> $(MAKEFILE); \
+	$(CC) -M -mmcu=$(MCU) $(CDEFS) $(CINCS) $(SRC) $(ASRC) >> $(MAKEFILE)

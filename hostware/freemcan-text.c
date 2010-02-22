@@ -19,10 +19,6 @@
  */
 
 
-/**
- * \todo Implement "set measurement timing" command.
- */
-
 #include <stdbool.h>
 
 #include <unistd.h>

@@ -18,16 +18,14 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \section Communication Protocol
+ * \section packet_protocol Packet Communication Protocol (Layer 3)
  *
- * \subsection Packets sent from hostware to firmware
+ * \subsection packet_host_to_emb Packets sent from hostware to firmware
  *
  * The host never sends packets to the firmware. It only sends single
  * bytes. See the frame documentation.
  *
- * \bug Use section and subsection doxygen commands properly.
- *
- * \subsection From firmware to hostware: Histogram packet
+ * \subsection packet_emb_to_host From firmware to hostware: Histogram packet
  *
  * The size of the histogram data is determined from the total packet
  * data size by subtracting the size of all the fixed-size fields in

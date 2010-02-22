@@ -18,9 +18,9 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \section Communication Protocol
+ * \section frame_protocol Frame Communication Protocol (Layer 2)
  *
- * \subsection Frames sent from hostware to firmware
+ * \subsection frame_host_to_emb Frames sent from hostware to firmware
  *
  * To keep the parser in the firmware simple, most "frames" sent from
  * the hostware to the firmware are actually just a single byte:
@@ -40,9 +40,7 @@
  *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over the last three bytes</td></tr>
  * </table>
  *
- * \bug Use section and subsection doxygen commands properly.
- *
- * \subsection Frames sent from firmware to hostware
+ * \subsection frame_emb_to_host Frames sent from firmware to hostware
  *
  * <table>
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
@@ -56,10 +54,7 @@
  *
  * \todo Document checksum algorithm.
  *
- * \subsection Firmware state machine
- *
- * \todo The firmware state machine needs a way to read the time span
- * a measurement is supposed to take.
+ * \subsection embedded_fsm Firmware state machine
  *
  * \dot
  * digraph firmware_fsm {
@@ -97,8 +92,6 @@
  * }
  * \enddot
  *
- *
- * \todo Implement "set measurement timing" command.
  */
 
 #ifndef FRAME_DEFS_H

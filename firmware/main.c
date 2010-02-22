@@ -351,16 +351,15 @@ void send_text(const char *msg)
 }
 
 
-/**
- * \todo Implement "set measurement timing" command.
- * \todo Implement communication FSM according to frame-defs.h.
- */
-
 /** AVR firmware's main "loop" function
  *
  * Note that we create a "loop" by resetting the AVR device when we
  * are finished, which will cause the system to start again with the
  * hardware and software in the defined default state.
+ *
+ * The #main function implements the state machine as described in
+ * #frame_defs.h. The states from that state machine are what the
+ * "STATE: FOO" comments in #main refer to.
  *
  * avr-gcc knows that int main(void) ending with an endless loop and
  * not returning is normal, so we can avoid the
@@ -392,6 +391,7 @@ int main(void)
 
     /* configure USART0 for 8N1 */
     uart_init();
+    send_text("Booting");
 
     /* configure INT0 pin 16 on rising edge */
     trigger_src_conf();
@@ -417,12 +417,15 @@ int main(void)
 	break;
       case FRAME_CMD_MEASURE:
 	if (1) {
+	  /* STATUS: TIMER0 */
 	  const uint8_t byte0 = uart_getc();
+	  /* STATUS: TIMER1 */
 	  const uint8_t byte1 = uart_getc();
 	  timer_value = (((uint16_t)byte1)<<8) | byte0;
+	  /* STATUS: CHECKSUM */
 	  if (uart_checksum_recv()) { /* checksum successful */
 	    send_status("MEASURING");
-	    /* STATE: MEASURING */
+	    /* NEXT_STATE: MEASURING */
 	    quit_flag = 1;
 	  } else { /* checksum fail */
 	    send_status("CHKSUMFAIL");
@@ -433,6 +436,7 @@ int main(void)
 	break;
       default:
 	/* ignore all other bytes */
+	/* NEXT_STATE: READY */
 	break;
       }
     }
@@ -451,7 +455,6 @@ int main(void)
 	cli();
 	send_histogram(PACKET_HISTOGRAM_DONE);
 	soft_reset();
-	break;
       } else if (bit_is_set(UCSR0A, RXC0)) {
 	/* there is a character in the UART input buffer */
 	const char ch = uart_getc();
@@ -460,15 +463,18 @@ int main(void)
 	case FRAME_CMD_ABORT:
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_ABORTED);
+	  /* STATE: RESET */
 	  soft_reset();
 	break;
 	case FRAME_CMD_INTERMEDIATE:
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
 	  sei();
+	  /* NEXT_STATE: MEASURING */
 	  break;
 	default:
 	  /* ignore all other bytes */
+	  /* NEXT_STATE: MEASURING */
 	  break;
 	}
       }

@@ -122,6 +122,24 @@ fsm(reset, {timeout, _}) ->
     {boot, status_packet("Resetting"), 100}.
 
 
+send_reply(Port, Reply) when is_binary(Reply) ->
+    Size = size(Reply),
+    send_reply(Port, Size, Reply).
+
+send_reply(Port, Size, Reply) when Size > 2 ->
+    Size1 = random:uniform(Size),
+    {Reply1, Reply2} = erlang:split_binary(Reply, Size1),
+    send_reply_int(Port, Reply1),
+    send_reply_int(Port, Reply2);
+send_reply(Port, _Size, Reply) ->
+    send_reply_int(Port, Reply).
+
+send_reply_int(Port, Reply) when size(Reply) > 0 ->
+    Port ! {self(), {command, Reply}};
+send_reply_int(_, _) ->
+    ok.
+
+
 loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
     RealTimeOut = case TimeOut of
 		      none -> 100000;
@@ -134,7 +152,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 	    io:format("Received command: ~p~n", [Cmd]),
 	    {NextState, Reply, NextTimeOut} = fsm(CurState, decode_cmd(Cmd)),
 	    io:format("Sending reply:    ~P~n", [Reply,30]),
-	    Port ! {self(), {command, Reply}},
+	    send_reply(Port, Reply),
 	    io:format("Next state:       ~p~n", [NextState]),
 	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
 	Unhandled ->
@@ -151,7 +169,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 		    case Reply of
 			none -> ok;
 			Reply ->
-			    Port ! {self(), {command, Reply}}
+			    send_reply(Port, Reply)
 		    end,
 		    io:format("Next state:       ~p~n", [NextState]),
 		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})

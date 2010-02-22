@@ -224,23 +224,6 @@ void trigger_src_conf(void)
 
 }
 
-/** Returns floor of ADC prescaler selection value
- *  Input: ADC frequency divider
- */
-uint8_t adc_prescaler_selection(uint8_t divider)
-{
-  uint8_t num;
-  num=0;
-
-  while (divider >= 2)
-  {
-        divider >>= 1;
-        num++;
-  }
-
-  return(num);
-}
-
 /** ADC initialisation and configuration
  *
  * ADC configured as auto trigger
@@ -265,12 +248,9 @@ void adc_init(void)
 
   /* ADC prescaler selection (ADC Prescaler Select Bits) */
   /* bits ADPS0 .. ADPS2 */
-  uint8_t adc_ps;
-  adc_ps = adc_prescaler_selection(ADC_DIVIDER);
-
-  ADCSRA |= ((((adc_ps>>2) & 0x1)*BIT(ADPS2)) |
-	     (((adc_ps>>1) & 0x1)*BIT(ADPS1)) |
-	     ((adc_ps & 0x01)*BIT(ADPS0)));
+  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*BIT(ADPS2)) |
+             (((ADC_PRESCALER >> 1) & 0x1)*BIT(ADPS1)) |
+              ((ADC_PRESCALER & 0x01)*BIT(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */
   /* software triggered AD-Conversion */
@@ -310,7 +290,7 @@ void timer_init(void){
   /* Prescaler settings on timer conrtrol reg. B                  */
   TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS12)) |
               (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS11)) |
-	      ((TIMER_PRESCALER & 0x01)*BIT(CS10)));
+              ((TIMER_PRESCALER & 0x01)*BIT(CS10)));
 
   /* Compare match value into output compare reg. A               */
   OCR1A = TIMER_COMPARE_MATCH_VAL;
@@ -319,8 +299,9 @@ void timer_init(void){
   TIMSK1 |= BIT(OCIE1A);
 }
 
-/** Example counter ISR */
-inline static
+
+/* dig it */
+/* inline static
 void call_me_every_second(void)
 {
   if (!timer_flag) {
@@ -329,7 +310,7 @@ void call_me_every_second(void)
       timer_flag = 1;
     }
   }
-}
+}*/
 
 
 /** Send histogram table[] to controller via serial port.

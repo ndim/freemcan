@@ -36,7 +36,7 @@
 void uart_init(void)
 {
   /* These baud setting are valid only for asynchrounous normal mode */
-  const uint16_t baud_value=(F_CPU / (16L * BAUDRATE)) - 1;
+  const uint16_t baud_value=(F_CPU / (16L * UART_BAUDRATE)) - 1;
 
   UBRR0H=(uint8_t)(baud_value >> 8);
   UBRR0L=(uint8_t)baud_value;

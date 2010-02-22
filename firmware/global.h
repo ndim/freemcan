@@ -30,42 +30,53 @@
 #endif
 
 /** UART baud rate */
-#define BAUDRATE 9600UL
+#define UART_BAUDRATE 9600UL
 
-/** ADC clock source frequency in Hz
+/** ADC prescaler selection for ADC clock source frequency
  *
- * If you put in here a value the prescalers
- * are calculated in order to set the next
- * higher possible ADC frequency. E.g. with
- * F_CPU = 16Mhz and F_ADC_CLK_SRC = 200khz
- * a final ADC frequency of 250khz is set. */
-#define F_ADC_CLK_SRC 200000UL
+ *  0: ADC clock divider=2
+ *  1: ADC clock divider=2
+ *  2: ADC clock divider=4
+ *  3: ADC clock divider=8
+ *  4: ADC clock divider=16
+ *  5: ADC clock divider=32
+ *  6: ADC clock divider=64
+ *  7: ADC clock divider=128
+ *
+ *  Select a prescaler in order to set a resonable ADC clock frequency.
+ *  For ATMEGA644P the nominal frequency range lies between 50 - 200kHz.
+ *
+ *  ADC clock division factor = F_CPU [Hz]/ADC clock source frequency [Hz]
+ *  E.g. 16000kHz/64 = 250khz
+ */
+#define ADC_PRESCALER (6)
 
 /** ADC resolution in bit
  *
- * Put in there resonable values:
- * E.g. 8 bit resolution at 500 Mhz.
- * (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V) */
-#define ADC_RESOLUTION 9
+ *  Put in here resonable value:
+ *  E.g. 8 bit resolution at 500 kHz.
+ *  (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V)
+ */
+#define ADC_RESOLUTION (9)
 
-/** ADC clock divider */
-#define ADC_DIVIDER (F_CPU/F_ADC_CLK_SRC)
-
-/** Timer prescaler settings for 16Bit timer
+/** Timer prescaler selection (16Bit timer)
  *
- *  1: no prescaling
- *  2: divider=8
- *  3: divider=64
- *  4: divider=256
- *  5: divider=1024
- *  Select the prescaler to have an compare match value as integer
+ *  1: No prescaling
+ *  2: Divider=8
+ *  3: Divider=64
+ *  4: Divider=256
+ *  5: Divider=1024
+ *
+ *  Select a prescaler to have an compare match value as integer
  */
 #define TIMER_PRESCALER (5)
 
 /** Timer compare match value for 16Bit timer
  *
- *  TIMER_COMPARE_MATCH_VAL = (Time_elpased[sec]*F_CPU[Hz]/Divider) - 1
+ *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
  *  E.g. (1sec*16000000Hz/1024) - 1 = 15624
+ *
+ *  The data measurement is carried out in multiples of time_elapsed.
  */
 #define TIMER_COMPARE_MATCH_VAL 15624
 

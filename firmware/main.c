@@ -40,11 +40,13 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 
+
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
 #else
 # error Unsupported MCU!
 #endif
+
 
 /** Define AVR device fuses.
  *
@@ -64,9 +66,12 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
-/* Number of elements in the histogram table */
+
+/** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
 
+
+/** Bit mask shortcut */
 #define BIT(NO) (1<<(NO))
 
 
@@ -85,10 +90,10 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
-volatile uint16_t timer_msec = 0;
 
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
+
 
 /** count number of measurements
  *
@@ -145,11 +150,6 @@ void wdt_init(void)
 }
 
 
-/*
-ISR(INT0_vect) {
-}*/
-
-
 /** AD conversion complete interrupt entry point
  *
  * This function is called when an A/D conversion has completed.
@@ -178,7 +178,7 @@ ISR(ADC_vect) {
  * When timer has elapsed, the global #timer_flag (8bit, therefore
  * atomic read/writes) is set.
  */
-ISR (TIMER1_COMPA_vect)
+ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign: PORTD ^= BIT(PD5);                          */
 
@@ -230,6 +230,7 @@ void trigger_src_conf(void)
     // EIMSK |= (BIT(INT0));
 
 }
+
 
 /** ADC initialisation and configuration
  *

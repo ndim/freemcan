@@ -161,6 +161,8 @@ ISR(ADC_vect) {
   /* Read analog value */
   result = ADCW;
 
+  /** \todo Can the ADC return values exceeding 9bit? */
+  /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
   /* Update histogram: this can be a 8 or a 9 bit index! */
   table[result>>(10-ADC_RESOLUTION)]++;
 

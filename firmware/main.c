@@ -75,7 +75,7 @@ FUSES = {
   do {								\
     wdt_enable(WDTO_15MS);					\
     while (1) {							\
-      /* wait until watchdog has caused a systems reset */	\
+      /* wait until watchdog has caused a system reset */	\
     }								\
   } while(0)
 

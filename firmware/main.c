@@ -308,20 +308,7 @@ void timer_init(void){
 }
 
 
-/* dig it */
-/* inline static
-void call_me_every_second(void)
-{
-  if (!timer_flag) {
-    timer_count--;
-    if (timer_count == 0) {
-      timer_flag = 1;
-    }
-  }
-}*/
-
-
-/** Send histogram table[] to controller via serial port.
+/** Send histogram packet to controller via serial port (layer 3).
  *
  * \param type The type of histogram we are sending
  *             (#packet_histogram_type_t).  You may also a dummy value
@@ -340,7 +327,7 @@ void send_histogram(const packet_histogram_type_t type)
 }
 
 
-/** Send status message to host.
+/** Send status message packet to host (layer 3).
  *
  * Status messages are constant strings.
  */
@@ -352,7 +339,7 @@ void send_status(const char *msg)
 }
 
 
-/** Send text message to host.
+/** Send text message packet to host (layer 3).
  *
  * If you need to send more than static text, use uprintf().
  */

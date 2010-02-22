@@ -358,7 +358,7 @@ void send_text(const char *msg)
  * hardware and software in the defined default state.
  *
  * The #main function implements the state machine as described in
- * #frame_defs.h. The states from that state machine are what the
+ * \ref embedded_fsm. The states from that state machine are what the
  * "STATE: FOO" comments in #main refer to.
  *
  * avr-gcc knows that int main(void) ending with an endless loop and

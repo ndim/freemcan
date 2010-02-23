@@ -232,6 +232,18 @@ void tui_select_do_io(fd_set *in_fdset)
       case 'X':
 	quit_flag = true;
 	break;
+      case '?':
+      case 'h':
+      case 'H':
+	fmlog("Key                     Action");
+        fmlog("C-c, esc, q, Q, x, X    quit program");
+        fmlog("h, H, ?                 show this help message");
+        fmlog("a                       send command \"(a)bort\"");
+        fmlog("i                       send command \"(i)ntermediate result\"");
+        fmlog("m                       send command \"start (m)easurement\" (short runtime)");
+        fmlog("M                       send command \"start (m)easurement\" (long runtime)");
+        fmlog("r                       send command \"(r)eset\"");
+	break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:

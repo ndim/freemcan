@@ -132,8 +132,7 @@ static char printable(const char ch)
 /* Print hexdump of data block */
 void fmlog_data(const void *data, const size_t size)
 {
-  const char *buf = (const char *)data;
-  const uint8_t *b = (const uint8_t *)buf;
+  const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;
@@ -162,8 +161,7 @@ void fmlog_data(const void *data, const size_t size)
 
 void fmlog_data32(const void *data, const size_t size)
 {
-  const char *buf = (const char *)data;
-  const uint8_t *b = (const uint8_t *)buf;
+  const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;

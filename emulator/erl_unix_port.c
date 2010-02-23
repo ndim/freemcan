@@ -234,7 +234,6 @@ static void main_loop(const char *unix_name)
      */
 
     /** \todo Make the Erlang code updatable at run-time. */
-    /** \todo Make Erlang code send its data in randomly sized chunks. */
 
     while (1) {
         fd_set in_fdset;

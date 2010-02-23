@@ -85,8 +85,6 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
-volatile uint16_t timer_msec = 0;
-
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
 
@@ -273,7 +271,7 @@ void adc_init(void)
 
 
 /** Configure 16 bit timer to trigger a ISR each 1 second         */
-static
+inline static
 void timer_init(void){
 
   /* Prepare timer 0 control register A for
@@ -293,19 +291,6 @@ void timer_init(void){
   /* output compare match A interrupt enable                      */
   TIMSK1 |= BIT(OCIE1A);
 }
-
-
-/* dig it */
-/* inline static
-void call_me_every_second(void)
-{
-  if (!timer_flag) {
-    timer_count--;
-    if (timer_count == 0) {
-      timer_flag = 1;
-    }
-  }
-}*/
 
 
 /** Send histogram table[] to controller via serial port.

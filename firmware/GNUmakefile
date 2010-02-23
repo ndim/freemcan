@@ -32,7 +32,7 @@ OPT = s
 # CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 
 # Name of this Makefile (used for "make depend").
-MAKEFILE = Makefile
+MAKEFILE = GNUmakefile
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.

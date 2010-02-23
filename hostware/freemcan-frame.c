@@ -133,6 +133,9 @@ static frame_t  *frame_wip; /* work in progress */
 /** Count the number of checksum errors we get */
 static unsigned int checksum_errors = 0;
 
+/* documented in freemcan-frame.h */
+bool enable_layer2_dump = false;
+
 
 /** step the parser FSM */
 static
@@ -212,6 +215,18 @@ void step_fsm(const char ch)
 	frame_wip->payload[offset] = '\0';
 	frame_wip->type = frame_type;
 	frame_wip->size = frame_size;
+	if (enable_layer2_dump) {
+	  const frame_type_t type = frame_wip->type;
+	  const uint16_t size     = frame_wip->size;
+	  if ((32<=type) && (type<127)) {
+	    fmlog("Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
+		  type, type, type, size, size);
+	  } else {
+	    fmlog("Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
+		  type, type, size, size);
+	  }
+	  fmlog_data(frame_wip->payload, size);
+	}
 	frame_handler(frame_wip);
       }
       free(frame_wip);

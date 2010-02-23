@@ -236,6 +236,10 @@ void tui_select_do_io(fd_set *in_fdset)
 	enable_layer1_dump = !enable_layer1_dump;
 	fmlog("Layer 1 data dump now %s", enable_layer1_dump?"enabled":"disabled");
 	break;
+      case '2':
+	enable_layer2_dump = !enable_layer2_dump;
+	fmlog("Layer 2 data dump now %s", enable_layer2_dump?"enabled":"disabled");
+	break;
       case '?':
       case 'h':
       case 'H':
@@ -243,6 +247,7 @@ void tui_select_do_io(fd_set *in_fdset)
         fmlog("C-c, esc, q, Q, x, X    quit program");
         fmlog("h, H, ?                 show this help message");
         fmlog("1                       toggle hexdumping of all received layer 1 data (byte stream)");
+        fmlog("2                       toggle hexdumping of all received layer 2 data (frames)");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");

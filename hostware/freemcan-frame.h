@@ -81,4 +81,8 @@ void checksum_write(const int fd);
 bool enable_layer1_dump;
 
 
+/** Whether to dump layer 2 data (frames) into log */
+bool enable_layer2_dump;
+
+
 #endif /* !FREEMCAN_FRAME_H */

@@ -184,14 +184,14 @@ void tui_init()
 {
   tty_init();
 
-  fmlog("MOO!");
-
   stdlog = fopen("freemcan.log", "w");
   fmlog_set_handler(tui_log_handler, NULL);
 
   packet_set_handlers(packet_handler_histogram,
 		      packet_handler_status,
 		      packet_handler_text);
+
+  fmlog("freemcan-text: text user interface (TUI) set up");
 }
 
 

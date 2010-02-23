@@ -9,7 +9,7 @@ LDLIBS ?=
 CFLAGS += -std=c99
 CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
-CFLAGS += -Werror
+# CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include
 CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
@@ -26,6 +26,9 @@ CLEANFILES   += freemcan-text.o
 
 bin_PROGRAMS += test-log
 CLEANFILES   += test-log
+
+# Add to or override some variables here, if you want to
+-include local.mk
 
 .PHONY: all
 all: $(bin_PROGRAMS)

@@ -174,6 +174,7 @@ CLEANFILES += $(TARGET).fuses
 CLEANFILES += $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
 $(TARGET).fuses: $(TARGET).elf
 	$(OBJCOPY) -j .fuse -O binary $(TARGET).elf $(TARGET).fuses
+	@chmod -x $(TARGET).fuses
 	$(OD) -A n -t xC $(TARGET).fuses | \
 	{ read lfuse hfuse efuse restofline; \
 	  echo "0x$$lfuse" > $(TARGET).lfuse.txt; \

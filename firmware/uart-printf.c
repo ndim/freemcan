@@ -20,10 +20,10 @@
  *  Boston, MA 02110-1301 USA
  */
 #include <avr/io.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "uart-printf.h"
-#include "registers.h"
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "frame-defs.h"

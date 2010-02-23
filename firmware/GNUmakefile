@@ -32,7 +32,7 @@ OPT = s
 # CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 
 # Name of this Makefile (used for "make depend").
-MAKEFILE = Makefile
+MAKEFILE = GNUmakefile
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
@@ -174,6 +174,7 @@ CLEANFILES += $(TARGET).fuses
 CLEANFILES += $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
 $(TARGET).fuses: $(TARGET).elf
 	$(OBJCOPY) -j .fuse -O binary $(TARGET).elf $(TARGET).fuses
+	@chmod -x $(TARGET).fuses
 	$(OD) -A n -t xC $(TARGET).fuses | \
 	{ read lfuse hfuse efuse restofline; \
 	  echo "0x$$lfuse" > $(TARGET).lfuse.txt; \
@@ -283,5 +284,11 @@ depend:
 
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
 
-main.o: main.c global.h uart-comm.h frame-comm.h ../include/frame-defs.h ../include/packet-defs.h
-uart-printf.o: uart-printf.c uart-printf.h
+main.o: main.c global.h uart-comm.h frame-comm.h \
+	../include/frame-defs.h ../include/packet-defs.h
+uart-comm.o: uart-comm.c uart-comm.h  global.h
+frame-comm.o: frame-comm.c uart-comm.h frame-comm.h ../include/frame-defs.h
+uart-printf.o: uart-printf.c uart-printf.h uart-comm.h frame-comm.h \
+	../include/frame-defs.h
+
+

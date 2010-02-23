@@ -23,6 +23,7 @@
 #ifndef FREEMCAN_FRAME_H
 #define FREEMCAN_FRAME_H
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "frame-defs.h"
@@ -74,6 +75,14 @@ void checksum_update(const uint8_t value);
 
 /** Write checksum to file descriptor */
 void checksum_write(const int fd);
+
+
+/** Whether to dump layer 1 data (byte stream) into log */
+bool enable_layer1_dump;
+
+
+/** Whether to dump layer 2 data (frames) into log */
+bool enable_layer2_dump;
 
 
 #endif /* !FREEMCAN_FRAME_H */

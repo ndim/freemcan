@@ -231,9 +231,17 @@ void step_fsm(const char ch)
 }
 
 
+/* documented in freemcan-frame.h */
+bool enable_layer1_dump = false;
+
+
 void frame_parse_bytes(const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;
+  if (enable_layer1_dump) {
+    fmlog("Received 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog_data(buf, size);
+  }
   for (size_t i=0; i<size; i++) {
     step_fsm(cbuf[i]);
   }

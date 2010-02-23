@@ -232,12 +232,17 @@ void tui_select_do_io(fd_set *in_fdset)
       case 'X':
 	quit_flag = true;
 	break;
+      case '1':
+	enable_layer1_dump = !enable_layer1_dump;
+	fmlog("Layer 1 data dump now %s", enable_layer1_dump?"enabled":"disabled");
+	break;
       case '?':
       case 'h':
       case 'H':
 	fmlog("Key                     Action");
         fmlog("C-c, esc, q, Q, x, X    quit program");
         fmlog("h, H, ?                 show this help message");
+        fmlog("1                       toggle hexdumping of all received layer 1 data (byte stream)");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");

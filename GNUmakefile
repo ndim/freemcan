@@ -68,6 +68,6 @@ dox: Doxyfile
 
 .PHONY: sloccount
 sloccount:
-	@$(SLOCCOUNT) firmware/ hostware/ \
+	@$(SLOCCOUNT) emulator/ firmware/ hostware/ \
 	| $(AWK) 'BEGIN { verb=0; } /^SLOCCount/ { verb=0; } /^SLOC/ { verb=1; } /^SLOCCount/ { verb=0; } (verb) { print; }'; \
 	echo; echo "Statistics generated using David A. Wheeler's 'SLOCCount'."

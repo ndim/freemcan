@@ -1,5 +1,5 @@
 /** \file frame-comm.c
- * \brief ATmega frame based communication implementation
+ * \brief ATmega frame based communication implementation (layer 2)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *

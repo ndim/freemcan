@@ -1,5 +1,5 @@
 /** \file uart-comm.c
- * \brief ATmega UART communication implementation
+ * \brief ATmega UART communication implementation (layer 1)
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

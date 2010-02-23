@@ -40,16 +40,21 @@
 #include <sys/un.h>
 
 
+/** Read from Erlang on this file descriptor */
 #define READ_FILENO 3
+
+/** Write to Erlang on this file descriptor */
 #define WRITE_FILENO 4
 
 
+/** Print debug message on stderr (FD 2) */
 #define DEBUG(...)                              \
     do {                                        \
         fprintf(stderr, "EUP: " __VA_ARGS__);   \
     } while (0)
 
 
+/** We need a max() function a few times in preparation for select(2) */
 static inline
 int max(const int a, const int b)
 {
@@ -58,6 +63,7 @@ int max(const int a, const int b)
 }
 
 
+/** Copy a given number of bytes from one FD to another */
 static void do_copy_data(const int in_fd, const int out_fd,
                          const int data_size)
 {
@@ -73,6 +79,7 @@ static void do_copy_data(const int in_fd, const int out_fd,
 }
 
 
+/** Size of data to be read from a file descriptor without blocking */
 static int read_size(const int in_fd)
 {
     int bytes_to_read;
@@ -90,10 +97,18 @@ static int read_size(const int in_fd)
  ************************************************************************/
 
 
-/* Forward declaration */
+/** Connection file descriptor
+ *
+ * Is maintained at value -1 when there is no connection, and some FD
+ * >= 0 when there is a connection on the UNIX domain socket.
+ *
+ * Forward declaration, it does not really belong at this place, but
+ * we need to define it here.
+ */
 static int connfd = -1;
 
 
+/** Erlang port select(2) setup */
 static int port_select_set_in(fd_set *in_fdset, int max_in)
 {
     FD_SET(READ_FILENO, in_fdset);
@@ -101,6 +116,7 @@ static int port_select_set_in(fd_set *in_fdset, int max_in)
 }
 
 
+/** Erlang port select(2) IO execution */
 static void port_select_do_io(fd_set *in_fdset)
 {
     if (FD_ISSET(READ_FILENO, in_fdset)) {
@@ -122,6 +138,7 @@ static void port_select_do_io(fd_set *in_fdset)
  ************************************************************************/
 
 
+/** Init connection socket logic with file descriptor */
 static void conn_init(const int fd)
 {
     DEBUG("Connected: fd=%d\n", fd);
@@ -130,6 +147,7 @@ static void conn_init(const int fd)
 }
 
 
+/** Close down connection socket logic */
 static void conn_fini()
 {
     close(connfd);
@@ -137,6 +155,7 @@ static void conn_fini()
 }
 
 
+/** Connection logic select(2) setup */
 static int conn_select_set_in(fd_set *in_fdset, int max_in)
 {
     if (connfd == -1) {
@@ -147,6 +166,7 @@ static int conn_select_set_in(fd_set *in_fdset, int max_in)
 }
 
 
+/** Connection logic select(2) IO execution */
 static void conn_select_do_io(fd_set *in_fdset)
 {
     if (connfd == -1) {

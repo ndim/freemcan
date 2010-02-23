@@ -40,11 +40,13 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 
+
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
 #else
 # error Unsupported MCU!
 #endif
+
 
 /** Define AVR device fuses.
  *
@@ -64,9 +66,12 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
-/* Number of elements in the histogram table */
+
+/** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
 
+
+/** Bit mask shortcut */
 #define BIT(NO) (1<<(NO))
 
 
@@ -75,7 +80,7 @@ FUSES = {
   do {								\
     wdt_enable(WDTO_15MS);					\
     while (1) {							\
-      /* wait until watchdog has caused a systems reset */	\
+      /* wait until watchdog has caused a system reset */	\
     }								\
   } while(0)
 
@@ -85,8 +90,10 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
+
 /** histogram table */
 volatile uint32_t table[MAX_COUNTER];
+
 
 /** count number of measurements
  *
@@ -97,17 +104,25 @@ volatile uint8_t measurement_count;
 
 /** timer counter
  *
- * Written by main() with value received from controller.
- * Read and written by timer interrupt handler.
+ * Initialized once by main() with value received from host
+ * controller. Never touched by main() again after starting the timer
+ * interrupt.
+ *
+ * Timer interrupt handler has exclusive access to read/writes
+ * timer_count to decrement, once the timer ISR has been enabled.
  */
 volatile uint16_t timer_count = 0;
 
 
 /** Timer counter has reached zero.
  *
+ * Used to signal from the timer ISR to the main program that the
+ * timer has elapsed.
+ *
  * Will be set to 1 when max_timer_count is exceeded, is 0 otherwise.
- * Written by timer interrupt handler.
- * Read by main loop.
+ * Written only once by timer interrupt handler. Read by main
+ * loop. 8bit value, and thus accessible with atomic read/write
+ * operations.
  */
 volatile uint8_t timer_flag = 0;
 
@@ -135,11 +150,6 @@ void wdt_init(void)
 }
 
 
-/*
-ISR(INT0_vect) {
-}*/
-
-
 /** AD conversion complete interrupt entry point
  *
  * This function is called when an A/D conversion has completed.
@@ -151,6 +161,8 @@ ISR(ADC_vect) {
   /* Read analog value */
   result = ADCW;
 
+  /** \todo Can the ADC return values exceeding 9bit? */
+  /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
   /* Update histogram: this can be a 8 or a 9 bit index! */
   table[result>>(10-ADC_RESOLUTION)]++;
 
@@ -162,22 +174,26 @@ ISR(ADC_vect) {
   EIFR |= BIT(INTF0);
 }
 
+
 /** 16 Bit timer ISR
  *
- *  If timer is elapsed the global flag timer_flag is set
+ * When timer has elapsed, the global #timer_flag (8bit, therefore
+ * atomic read/writes) is set.
  */
-ISR (TIMER1_COMPA_vect)
+ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign: PORTD ^= BIT(PD5);                          */
-  /* if the timer is elapsed set a flag to control main program */
+
   if (!timer_flag) {
+    /* We do not touch the timer_flag ever again after setting it */
     timer_count--;
-    /* if the timer count multiples are over set a 8 bit flag   */
     if (timer_count == 0) {
+      /* timer has elapsed, set the flag to signal the main program */
        timer_flag = 1;
     }
   }
 }
+
 
 /** Setup of INT0
  *
@@ -216,6 +232,7 @@ void trigger_src_conf(void)
     // EIMSK |= (BIT(INT0));
 
 }
+
 
 /** ADC initialisation and configuration
  *
@@ -293,7 +310,7 @@ void timer_init(void){
 }
 
 
-/** Send histogram table[] to controller via serial port.
+/** Send histogram packet to controller via serial port (layer 3).
  *
  * \param type The type of histogram we are sending
  *             (#packet_histogram_type_t).  You may also a dummy value
@@ -312,7 +329,7 @@ void send_histogram(const packet_histogram_type_t type)
 }
 
 
-/** Send status message to host.
+/** Send status message packet to host (layer 3).
  *
  * Status messages are constant strings.
  */
@@ -324,7 +341,7 @@ void send_status(const char *msg)
 }
 
 
-/** Send text message to host.
+/** Send text message packet to host (layer 3).
  *
  * If you need to send more than static text, use uprintf().
  */
@@ -336,16 +353,15 @@ void send_text(const char *msg)
 }
 
 
-/**
- * \todo Implement "set measurement timing" command.
- * \todo Implement communication FSM according to frame-defs.h.
- */
-
 /** AVR firmware's main "loop" function
  *
  * Note that we create a "loop" by resetting the AVR device when we
  * are finished, which will cause the system to start again with the
  * hardware and software in the defined default state.
+ *
+ * The #main function implements the state machine as described in
+ * \ref embedded_fsm. The states from that state machine are what the
+ * "STATE: FOO" comments in #main refer to.
  *
  * avr-gcc knows that int main(void) ending with an endless loop and
  * not returning is normal, so we can avoid the
@@ -377,6 +393,7 @@ int main(void)
 
     /* configure USART0 for 8N1 */
     uart_init();
+    send_text("Booting");
 
     /* configure INT0 pin 16 on rising edge */
     trigger_src_conf();
@@ -402,12 +419,15 @@ int main(void)
 	break;
       case FRAME_CMD_MEASURE:
 	if (1) {
+	  /* STATUS: TIMER0 */
 	  const uint8_t byte0 = uart_getc();
+	  /* STATUS: TIMER1 */
 	  const uint8_t byte1 = uart_getc();
 	  timer_value = (((uint16_t)byte1)<<8) | byte0;
+	  /* STATUS: CHECKSUM */
 	  if (uart_checksum_recv()) { /* checksum successful */
 	    send_status("MEASURING");
-	    /* STATE: MEASURING */
+	    /* NEXT_STATE: MEASURING */
 	    quit_flag = 1;
 	  } else { /* checksum fail */
 	    send_status("CHKSUMFAIL");
@@ -418,6 +438,7 @@ int main(void)
 	break;
       default:
 	/* ignore all other bytes */
+	/* NEXT_STATE: READY */
 	break;
       }
     }
@@ -436,7 +457,6 @@ int main(void)
 	cli();
 	send_histogram(PACKET_HISTOGRAM_DONE);
 	soft_reset();
-	break;
       } else if (bit_is_set(UCSR0A, RXC0)) {
 	/* there is a character in the UART input buffer */
 	const char ch = uart_getc();
@@ -445,15 +465,18 @@ int main(void)
 	case FRAME_CMD_ABORT:
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_ABORTED);
+	  /* STATE: RESET */
 	  soft_reset();
 	break;
 	case FRAME_CMD_INTERMEDIATE:
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
 	  sei();
+	  /* NEXT_STATE: MEASURING */
 	  break;
 	default:
 	  /* ignore all other bytes */
+	  /* NEXT_STATE: MEASURING */
 	  break;
 	}
       }

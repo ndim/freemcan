@@ -192,10 +192,10 @@ program-fuses: $(TARGET).fuses
 	for f in lfuse hfuse efuse; do \
 		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
 	done
-	$(AVRDUDE) $(AVRDUDE_FLAGS) \
-		-U lfuse:w:$(TARGET).lfuse.txt:h \
-		-U hfuse:w:$(TARGET).hfuse.txt:h \
-		-U efuse:w:$(TARGET).efuse.txt:h
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -u \
+		-U lfuse:w:$(shell cat $(TARGET).lfuse.txt):m \
+		-U hfuse:w:$(shell cat $(TARGET).hfuse.txt):m \
+		-U efuse:w:$(shell cat $(TARGET).efuse.txt):m
 
 read-fuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) \

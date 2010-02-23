@@ -166,10 +166,11 @@ void fmlog_data32(const void *data, const size_t size)
     char buf[80];
     ssize_t idx = 0;
     idx += sprintf(&(buf[idx]), "%04x ", y);
-    for (size_t x=0; x<4; x++) {
+    for (size_t x=0; x<16; x+=4) {
       const size_t i = x+y;
       if (i<size) {
-	idx += sprintf(&(buf[idx]), " %08x", b[i]);
+	const uint32_t value = *((const uint32_t *)&b[i]);
+	idx += sprintf(&(buf[idx]), " %08x", value);
       } else {
 	idx += sprintf(&(buf[idx]), " " "    " "    ");
       }

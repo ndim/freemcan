@@ -316,6 +316,8 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
   const size_t total_size = element_count * element_size;
   if (element_size == 4) {
     fmlog_data32(histogram_packet->elements.ev, total_size);
+  } else if (element_size == 2) {
+    fmlog_data16(histogram_packet->elements.ev, total_size);
   } else {
     fmlog_data(histogram_packet->elements.ev, total_size);
   }

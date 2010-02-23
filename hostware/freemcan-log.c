@@ -178,3 +178,24 @@ void fmlog_data32(const void *data, const size_t size)
     fmlog("%s", buf);
   }
 }
+
+
+void fmlog_data16(const void *data, const size_t size)
+{
+  const uint8_t *b = (const uint8_t *)data;
+  for (size_t y=0; y<size; y+=16) {
+    char buf[80];
+    ssize_t idx = 0;
+    idx += sprintf(&(buf[idx]), "%04x ", y);
+    for (size_t x=0; x<16; x+=8) {
+      const size_t i = x+y;
+      if (i<size) {
+	const uint16_t value = *((const uint16_t *)&b[i]);
+	idx += sprintf(&(buf[idx]), " %04x", value);
+      } else {
+	idx += sprintf(&(buf[idx]), " " "    " "    ");
+      }
+    }
+    fmlog("%s", buf);
+  }
+}

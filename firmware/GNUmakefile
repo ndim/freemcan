@@ -284,5 +284,11 @@ depend:
 
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
 
-main.o: main.c global.h uart-comm.h frame-comm.h ../include/frame-defs.h ../include/packet-defs.h
-uart-printf.o: uart-printf.c uart-printf.h
+main.o: main.c global.h uart-comm.h frame-comm.h \
+	../include/frame-defs.h ../include/packet-defs.h
+uart-comm.o: uart-comm.c uart-comm.h  global.h
+frame-comm.o: frame-comm.c uart-comm.h frame-comm.h ../include/frame-defs.h
+uart-printf.o: uart-printf.c uart-printf.h uart-comm.h frame-comm.h \
+	../include/frame-defs.h
+
+

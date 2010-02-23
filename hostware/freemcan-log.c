@@ -187,7 +187,7 @@ void fmlog_data16(const void *data, const size_t size)
     char buf[80];
     ssize_t idx = 0;
     idx += sprintf(&(buf[idx]), "%04x ", y);
-    for (size_t x=0; x<16; x+=8) {
+    for (size_t x=0; x<16; x+=2) {
       const size_t i = x+y;
       if (i<size) {
 	const uint16_t value = *((const uint16_t *)&b[i]);

@@ -250,6 +250,7 @@ void step_fsm(const char ch)
 bool enable_layer1_dump = false;
 
 
+/* documented in freemcan-frame.h */
 void frame_parse_bytes(const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;

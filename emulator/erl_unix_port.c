@@ -1,6 +1,8 @@
 /** \file erl_unix_port.c
  * \brief Specialized Erlang port to interface to AF_UNIX sockets
  *
+ * \bug Should perhaps be replaced by kernel-2.13.4/examples/uds_dist
+ *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  * The contents of this file are subject to the Erlang Public License,

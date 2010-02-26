@@ -1,7 +1,6 @@
 /*.o
 /*.strace
-/freemcan.log
-/freemcan-ncurses
-/freemcan-text
+/freemcan-tui
+/freemcan-tui.log
 /querySerial
 /test-log

@@ -17,12 +17,9 @@ CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buf
 bin_PROGRAMS += querySerial
 CLEANFILES   += querySerial
 
-CLEANFILES += querySerial.o
-CLEANFILES += serial-setup.o
 
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
-CLEANFILES   += freemcan-tui.o
 
 bin_PROGRAMS += test-log
 CLEANFILES   += test-log
@@ -39,6 +36,7 @@ ALL: all
 .PHONY: clean
 clean:
 	rm -f $(CLEANFILES)
+	rm -f *.o
 
 querySerial : querySerial.o serial-setup.o
 	$(LINK.c) $^ $(LDLIBS) -o $@

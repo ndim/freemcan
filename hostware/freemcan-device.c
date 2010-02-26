@@ -49,7 +49,7 @@ static int device_fd = -1;
 static
 void open_char_device(const char *device_name)
 {
-  fmlog("%s: character device", device_name);
+  fmlog("%s: opening character device %s", __PRETTY_FUNCTION__, device_name);
   device_fd = serial_open(device_name);
   serial_setup(device_fd, serial_string_to_baud("9600"));
 }
@@ -58,7 +58,7 @@ void open_char_device(const char *device_name)
 static
 void open_unix_socket(const char *socket_name)
 {
-  fmlog("%s: AF_UNIX socket", socket_name);
+  fmlog("%s: opening AF_UNIX socket %s", __PRETTY_FUNCTION__, socket_name);
   const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;

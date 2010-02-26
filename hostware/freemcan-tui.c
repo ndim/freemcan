@@ -1,4 +1,4 @@
-/** \file freemcan-text.c
+/** \file freemcan-tui.c
  * \brief Freemcan interactive text user interface (non-ncurses)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -184,14 +184,14 @@ void tui_init()
 {
   tty_init();
 
-  stdlog = fopen("freemcan.log", "w");
+  stdlog = fopen("freemcan-tui.log", "w");
   fmlog_set_handler(tui_log_handler, NULL);
 
   packet_set_handlers(packet_handler_histogram,
 		      packet_handler_status,
 		      packet_handler_text);
 
-  fmlog("freemcan-text: text user interface (TUI) set up");
+  fmlog("Text user interface (TUI) set up");
 }
 
 
@@ -283,7 +283,6 @@ void atexit_func(void)
 {
   fmlog_reset_handler();
   tty_reset();
-  fmlog("freemcan-text: atexit_func()");
 }
 
 
@@ -347,7 +346,6 @@ int main(int argc, char *argv[])
   assert(isatty(STDOUT_FILENO));
 
   const char *device_name = argv[1];
-  fmlog("freemcan-text: device=%s\n", device_name);
 
   if (0 != atexit(atexit_func)) {
     fmlog_error("atexit() failed");

@@ -20,9 +20,9 @@ CLEANFILES   += querySerial
 CLEANFILES += querySerial.o
 CLEANFILES += serial-setup.o
 
-bin_PROGRAMS += freemcan-text
-CLEANFILES   += freemcan-text
-CLEANFILES   += freemcan-text.o
+bin_PROGRAMS += freemcan-tui
+CLEANFILES   += freemcan-tui
+CLEANFILES   += freemcan-tui.o
 
 bin_PROGRAMS += test-log
 CLEANFILES   += test-log
@@ -60,13 +60,13 @@ freemcan-packet.o : freemcan-packet.c freemcan-packet.h freemcan-frame.h freemca
 
 freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
 
-freemcan-text.o : CFLAGS += -D_GNU_SOURCE
-freemcan-text.o : freemcan-text.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
+freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
+freemcan-tui.o : freemcan-tui.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
-HOST_SRC = common device frame log packet select text
+HOST_SRC = common device frame log packet select
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
-freemcan-text : freemcan-text.o serial-setup.o $(HOST_OBJ)
+freemcan-tui : freemcan-tui.o serial-setup.o $(HOST_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 

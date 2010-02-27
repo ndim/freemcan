@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_frame
+ * @{
  */
 
 
@@ -84,5 +87,6 @@ bool enable_layer1_dump;
 /** Whether to dump layer 2 data (frames) into log */
 bool enable_layer2_dump;
 
+/** @} */
 
 #endif /* !FREEMCAN_FRAME_H */

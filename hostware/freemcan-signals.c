@@ -1,5 +1,6 @@
 /** \file freemcan-signals.c
  * \brief Common text user interface related signal functions (implementation)
+ * \ingroup hostware_tui
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *

@@ -16,6 +16,12 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup hostware_tui Hostware Text User Interface
+ *
+ * The text user interface is an interactive frontend to the MCA
+ * hardware for the text console.
+ *
  */
 
 
@@ -62,12 +68,13 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 static bool quit_flag = false;
 
 
-/************************************************************************
- * TTY Setup (And Cleanup!) For The Local Interactive Terminal
- ************************************************************************/
+/************************************************************************/
+/** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal */
+/************************************************************************/
 
 
-/** Saved TTY fd
+/** \brief Saved TTY fd
+ * \ingroup tui_tty
  *
  * Doubles as a flag indicating whether there is a termios backup in
  * #tty_save_termios or not.
@@ -137,9 +144,9 @@ static int tty_reset()
 }
 
 
-/************************************************************************
- * Text User Interface
- ************************************************************************/
+/************************************************************************/
+/** \section tui_code Text User Interface */
+/************************************************************************/
 
 
 /** Handle ABRT signal */
@@ -287,9 +294,9 @@ void atexit_func(void)
 }
 
 
-/************************************************************************
- * Data Handling
- ************************************************************************/
+/************************************************************************/
+/** \section tui_data_handling Data Handling (Layer 4) */
+/************************************************************************/
 
 
 /** Status data packet handler (TUI specific) */
@@ -327,9 +334,9 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 }
 
 
-/************************************************************************
- * Main Program With Main Loop
- ************************************************************************/
+/************************************************************************/
+/** \section tui_main Main Program With Main Loop */
+/************************************************************************/
 
 
 /** TUI's main program with select(2) based main loop */

@@ -72,13 +72,15 @@ void fmlog_set_handler(fmlog_handler_t the_fmlog_handler,  void *the_data)
 void fmlog(const char *format, ...)
 {
   va_list ap;
-  va_start(ap, format);
-  static char buf[4096];
-  int r = vsnprintf(buf, sizeof(buf), format, ap);
-  assert((r >= 0) && (((unsigned int)r)<sizeof(buf)));
-  va_end(ap);
+  if (fmlog_handler) {
+    va_start(ap, format);
+    static char buf[4096];
+    int r = vsnprintf(buf, sizeof(buf), format, ap);
+    assert((r >= 0) && (((unsigned int)r)<sizeof(buf)));
+    va_end(ap);
 
-  fmlog_handler(fmlog_handler_data, buf, r);
+    fmlog_handler(fmlog_handler_data, buf, r);
+  }
 }
 
 
@@ -86,28 +88,30 @@ void fmlog_error(const char *format, ...)
 {
   const int errno_copy = errno;
   va_list ap;
-  va_start(ap, format);
-  static char buf[4096];
-  int r = vsnprintf(buf, sizeof(buf), format, ap);
-  assert((r >= 0) && (((unsigned int)r)<sizeof(buf)));
-  va_end(ap);
+  if (fmlog_handler) {
+    va_start(ap, format);
+    static char buf[4096];
+    int r = vsnprintf(buf, sizeof(buf), format, ap);
+    assert((r >= 0) && (((unsigned int)r)<sizeof(buf)));
+    va_end(ap);
 
-  const char *errmsg = strerror(errno_copy);
-  const size_t errlen = strlen(errmsg);
+    const char *errmsg = strerror(errno_copy);
+    const size_t errlen = strlen(errmsg);
 
-  /* buf = buf + ": " + strerror(errno_copy); */
-  char *p;
-  for (p=buf; *p!='\0'; p++) /* look for \0 */ ;
-  assert(buf+sizeof(buf) >= p+2+errlen+1);
-  *p++ = ':';
-  *p++ = ' ';
-  for (const char *q = errmsg; *q != '\0'; q++, p++) {
-    *p = *q;
+    /* buf = buf + ": " + strerror(errno_copy); */
+    char *p;
+    for (p=buf; *p!='\0'; p++) /* look for \0 */ ;
+    assert(buf+sizeof(buf) >= p+2+errlen+1);
+    *p++ = ':';
+    *p++ = ' ';
+    for (const char *q = errmsg; *q != '\0'; q++, p++) {
+      *p = *q;
+    }
+    *p = '\0';
+    ssize_t to_write = p-buf;
+
+    fmlog_handler(fmlog_handler_data, buf, to_write);
   }
-  *p = '\0';
-  ssize_t to_write = p-buf;
-
-  fmlog_handler(fmlog_handler_data, buf, to_write);
 }
 
 

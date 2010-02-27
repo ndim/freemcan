@@ -112,7 +112,8 @@ fsm(ready, reset) ->
 fsm({measuring, _}, abort) ->
     {reset, histogram_packet(aborted, dummy_histogram()), 10};
 fsm({measuring, _}=State, intermediate) ->
-    {State, histogram_packet(intermediate, dummy_histogram()), 10};
+    %% FIXME: Use the proper timeout here :-/
+    {State, histogram_packet(intermediate, dummy_histogram()), 1000};
 fsm({measuring, 0}, {timeout, _}) ->
     {reset, histogram_packet(done, dummy_histogram()), 0};
 fsm({measuring, N}, {timeout, Period}) ->

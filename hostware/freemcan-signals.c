@@ -1,7 +1,5 @@
-/** \file freemcan-common.c
- * \brief Common text user interface functions (implementation)
- *
- * \bug This appears only to be about signal handling.
+/** \file freemcan-signals.c
+ * \brief Common text user interface related signal functions (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -30,8 +28,8 @@
 #include <errno.h>
 #include <string.h>
 
-#include "freemcan-common.h"
 #include "freemcan-log.h"
+#include "freemcan-signals.h"
 
 
 /** flag set by SIGINT handler */
@@ -74,7 +72,7 @@ static void signals_init(void)
 static void common_init(void) __attribute__((constructor));
 static void common_init(void)
 {
-  fmlog("common.c: common_init()");
+  fmlog("freemcan-signals.c: common_init()");
   signals_init();
 }
 
@@ -82,5 +80,5 @@ static void common_init(void)
 static void common_done(void) __attribute__((destructor));
 static void common_done(void)
 {
-  fmlog("common.c: common_done()");
+  fmlog("freemcan-signals.c: common_done()");
 }

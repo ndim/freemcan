@@ -1,5 +1,5 @@
-/** \file freemcan-common.h
- * \brief Common text user interface functions (interface)
+/** \file freemcan-signals.h
+ * \brief Common text user interface related signal functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -20,8 +20,8 @@
  */
 
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#ifndef FREEMCAN_SIGNALS_H
+#define FREEMCAN_SIGNALS_H
 
 #if 0
 #include "include/system.h"
@@ -40,4 +40,4 @@ extern bool sigint;
 extern bool sigterm;
 
 
-#endif /* !__COMMON_H__ */
+#endif /* !FREEMCAN_SIGNALS_H */

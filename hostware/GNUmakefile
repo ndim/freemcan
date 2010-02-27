@@ -44,8 +44,8 @@ querySerial : querySerial.o serial-setup.o
 querySerial.o  : querySerial.c  serial-setup.h
 serial-setup.o : serial-setup.c serial-setup.h
 
-freemcan-common.o : CFLAGS += -D_GNU_SOURCE
-freemcan-common.o : freemcan-common.c freemcan-common.h freemcan-log.h
+freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
+freemcan-signals.o : freemcan-signals.c freemcan-signals.h freemcan-log.h
 
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE
 freemcan-device.o : freemcan-device.c freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h serial-setup.h
@@ -61,9 +61,9 @@ freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
 freemcan-export.o : freemcan-export.c freemcan-export.h freemcan-packet.h
 
 freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
-freemcan-tui.o : freemcan-tui.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
+freemcan-tui.o : freemcan-tui.c freemcan-signals.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
-HOST_SRC = common device frame log packet select
+HOST_SRC = device frame log packet select signals
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
 freemcan-tui : freemcan-tui.o serial-setup.o freemcan-export.o $(HOST_OBJ)

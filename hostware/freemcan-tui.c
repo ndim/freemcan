@@ -43,13 +43,13 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#include "freemcan-common.h"
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
 #include "freemcan-export.h"
 #include "freemcan-log.h"
 #include "freemcan-select.h"
+#include "freemcan-signals.h"
 
 
 /* Forward declaration */

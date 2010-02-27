@@ -47,7 +47,7 @@ void frame_handler(const frame_t *frame)
     }
     return;
   case FRAME_TYPE_HISTOGRAM:
-    if (1) {
+    if (packet_handler_histogram) {
       const size_t hist_size = frame->size - 1 - 1;
       const uint8_t element_size = frame->payload[0];
       const size_t element_count = hist_size/element_size;

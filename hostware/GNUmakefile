@@ -58,13 +58,15 @@ freemcan-packet.o : freemcan-packet.c freemcan-packet.h freemcan-frame.h freemca
 
 freemcan-select.o : freemcan-select.c freemcan-select.h freemcan-log.h
 
+freemcan-export.o : freemcan-export.c freemcan-export.h freemcan-packet.h
+
 freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
 freemcan-tui.o : freemcan-tui.c freemcan-common.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
 HOST_SRC = common device frame log packet select
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
-freemcan-tui : freemcan-tui.o serial-setup.o $(HOST_OBJ)
+freemcan-tui : freemcan-tui.o serial-setup.o freemcan-export.o $(HOST_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 

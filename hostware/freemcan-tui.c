@@ -47,6 +47,7 @@
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
+#include "freemcan-export.h"
 #include "freemcan-log.h"
 #include "freemcan-select.h"
 
@@ -320,6 +321,9 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
   } else {
     fmlog_data(histogram_packet->elements.ev, total_size);
   }
+
+  /* export current histogram to freemcan-export.dat */
+  export_histogram(histogram_packet);
 }
 
 

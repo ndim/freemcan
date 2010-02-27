@@ -1,5 +1,6 @@
 /*.o
 /*.strace
+/hist.*.dat
 /freemcan-tui
 /freemcan-tui.log
 /querySerial

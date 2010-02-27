@@ -287,8 +287,54 @@ void atexit_func(void)
 
 
 /************************************************************************
- * Data Handling
+ * Data Handling (Layer 4)
  ************************************************************************/
+
+
+/** Write the given histogram to a newly created file
+ *
+ * The name of the newly created file is created based on the current
+ * local time of day. Given the rate at which we can receive new
+ * histograms is much less than one per second, this should avoid file
+ * name collisions.
+ *
+ * If a file of the same name happens to already exist, it will be
+ * overwritten.
+ */
+static void write_histogram_file(const packet_histogram_t *histogram_packet)
+{
+  const size_t element_count = histogram_packet->element_count;
+  const size_t element_size = histogram_packet->element_size;
+  const time_t t = time(NULL);
+  const struct tm *tm_ = localtime(&t);
+  assert(tm_);
+  char type = 'X';
+  switch (histogram_packet->type) {
+  case PACKET_HISTOGRAM_DONE:
+  case PACKET_HISTOGRAM_ABORTED:
+  case PACKET_HISTOGRAM_INTERMEDIATE:
+    type = histogram_packet->type;
+    break;
+  }
+  char date[128];
+  strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
+  char fname[256];
+  snprintf(fname, sizeof(fname), "hist.%s.%c.dat", date, type);
+  FILE *histfile = fopen(fname, "w");
+  assert(histfile);
+  fmlog("Writing histogram to file %s", fname);
+  for (size_t i=0; i<element_count; i++) {
+    uint32_t value;
+    switch (element_size) {
+    case 1: value = histogram_packet->elements.e8[i]; break;
+    case 2: value = histogram_packet->elements.e16[i]; break;
+    case 4: value = histogram_packet->elements.e32[i]; break;
+    default: abort();
+    }
+    fprintf(histfile, "%d\t%u\n", i, value);
+  }
+  fclose(histfile);
+}
 
 
 /** Status data packet handler (TUI specific) */
@@ -320,6 +366,7 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
   } else {
     fmlog_data(histogram_packet->elements.ev, total_size);
   }
+  write_histogram_file(histogram_packet);
 }
 
 

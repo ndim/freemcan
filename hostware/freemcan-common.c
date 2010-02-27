@@ -1,6 +1,8 @@
 /** \file freemcan-common.c
  * \brief Common text user interface functions (implementation)
  *
+ * \bug This appears only to be about signal handling.
+ *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or

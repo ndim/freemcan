@@ -73,6 +73,7 @@ void fmlog(const char *format, ...)
 {
   va_list ap;
   if (fmlog_handler) {
+    /** \bug Use va_copy? */
     va_start(ap, format);
     static char buf[4096];
     int r = vsnprintf(buf, sizeof(buf), format, ap);
@@ -89,6 +90,7 @@ void fmlog_error(const char *format, ...)
   const int errno_copy = errno;
   va_list ap;
   if (fmlog_handler) {
+    /** \bug Use va_copy? */
     va_start(ap, format);
     static char buf[4096];
     int r = vsnprintf(buf, sizeof(buf), format, ap);

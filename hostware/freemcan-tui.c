@@ -392,6 +392,7 @@ int main(int argc, char *argv[])
       tui_select_do_io(&in_fdset);
     }
 
+    /** \bug sigterm flag? */
     if (sigint || quit_flag) {
       break;
     }

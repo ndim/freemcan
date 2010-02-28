@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup serial_setup
+ * @{
  */
 
 #ifndef SERIAL_SETUP_H
@@ -33,5 +36,7 @@ extern void serial_setup(const int fd, const long baud);
  * Uses a simple adding hash function.
  */
 extern long serial_string_to_baud(const char *arg);
+
+/** @} */
 
 #endif /* !SERIAL_SETUP_H */

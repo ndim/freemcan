@@ -17,6 +17,10 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup freemcan_device Device Interface
+ * \ingroup hostware_tui
+ * @{
  */
 
 
@@ -161,3 +165,5 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
   }
 }
 
+
+/** @} */

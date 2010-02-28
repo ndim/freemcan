@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_export
+ * @{
  */
 
 
@@ -27,5 +30,7 @@
 
 /** external prototype for gnuplot-export function call */
 void export_histogram(const packet_histogram_t *histogram_packet);
+
+/** @} */
 
 #endif /* !FREEMCAN_EXPORT_H */

@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_device
+ * @{
  */
 
 
@@ -52,5 +55,7 @@ void dev_select_do_io(fd_set *in_fdset);
  *              Otherwise, it is ignored.
  */
 void dev_command(const frame_cmd_t cmd, const uint16_t param);
+
+/** @} */
 
 #endif /* !FREEMCAN_DEVICE_H */

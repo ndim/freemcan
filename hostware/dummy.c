@@ -1,5 +1,5 @@
-/** \file dummy.c
- * \brief Dummy C file (contains only doxygen documentation)
+/** \file hostware/dummy.c
+ * \brief Dummy C file (hostware documentation for doxygen)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -20,5 +20,7 @@
  *
  * \defgroup hostware Hostware
  *
+ * \defgroup hostware_generic Generic Hostware Components
+ * \ingroup hostware
  *
  */

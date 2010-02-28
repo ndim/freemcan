@@ -18,6 +18,10 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
+ * \defgroup packet_defs Packet Format Definitions
+ * \ingroup common
+ * @{
+ *
  * \section packet_protocol Packet Communication Protocol (Layer 3)
  *
  * \subsection packet_host_to_emb Packets sent from hostware to firmware
@@ -64,5 +68,6 @@ typedef enum {
 
 } packet_histogram_type_t;
 
+/** @} */
 
 #endif /* !PACKET_DEFS_H */

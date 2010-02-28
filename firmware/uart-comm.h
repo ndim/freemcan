@@ -18,6 +18,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup uart_comm
+ * @{
  */
 
 #ifndef UART_COMM_H
@@ -34,5 +37,7 @@ extern char uart_getc(void);
 void uart_checksum_reset(void);
 void uart_checksum_send(void);
 char uart_checksum_recv(void);
+
+/** @} */
 
 #endif /* !UART_COMM_H */

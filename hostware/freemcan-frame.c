@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_frame Data Frame Parser (Layer 2)
- * \ingroup hostware
+ * \ingroup hostware_generic
  * @{
  */
 

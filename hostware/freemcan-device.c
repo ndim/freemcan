@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_device Device Interface
- * \ingroup hostware
+ * \ingroup hostware_generic
  * @{
  */
 
@@ -136,7 +136,7 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
 
 
 /**
- * \defgroup freemcan_device_select Device Handling for select(2) based main loop
+ * \defgroup freemcan_device_select Device Handling for select(2) based main loop (Layer 1)
  * \ingroup hostware_tui
  * @{
  */

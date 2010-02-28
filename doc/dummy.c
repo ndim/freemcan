@@ -1,7 +1,6 @@
-/** \file uart-printf.h
- * \brief Interface to printf via UART
+/** \file doc/dummy.c
+ * \brief Dummy C file (General Documentation for doxygen)
  *
- * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,20 +18,14 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup uart_printf
- * @{
+ * \mainpage The FreeMCAn software
+ *
+ * For the software documentation, see the "Modules" page.
+ *
+ * The hardware is documented somewhere outside doxygen.
+ *
+ * \defgroup common Common Definitions
+ *
+ * Definitions common to \ref firmware and \ref hostware.
  */
-
-#ifndef UART_PRINTF_H
-#define UART_PRINTF_H
-
-#ifdef HAVE_UPRINTF_IMPLEMENTATION
-extern void uprintf(const char *format, ...);
-#else
-# define uprintf(...) do {} while (0)
-#endif
-
-/** @} */
-
-#endif /* !UART_PRINTF_H */
 

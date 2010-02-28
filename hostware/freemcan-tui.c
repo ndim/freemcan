@@ -17,7 +17,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup hostware_tui Hostware Text User Interface
+ * \defgroup hostware_tui Text User Interface
  * \ingroup hostware
  *
  * The text user interface is an interactive frontend to the MCA

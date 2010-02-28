@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_log FreeMCAn logging system
- * \ingroup hostware
+ * \ingroup hostware_generic
  *
  * The FreeMCAn logging system. It provides a way to log status
  * messages, error messages (including errno codes) in a way that can

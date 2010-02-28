@@ -17,6 +17,10 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup frame_comm Frame Communication (Layer 2)
+ * \ingroup firmware
+ * @{
  */
 
 
@@ -56,3 +60,5 @@ void frame_send(const frame_type_t frame_type,
   uart_putb(payload, payload_size);
   frame_end();
 }
+
+/** @} */

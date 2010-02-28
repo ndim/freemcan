@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_packet Data Packet Parser (Layer 3)
- * \ingroup hostware
+ * \ingroup hostware_generic
  *
  * @{
  */

@@ -18,6 +18,10 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
+ * \defgroup frame_defs Frame Format Definition
+ * \ingroup common
+ * @{
+ *
  * \section frame_protocol Frame Communication Protocol (Layer 2)
  *
  * \subsection frame_host_to_emb Frames sent from hostware to firmware
@@ -152,5 +156,6 @@ typedef enum {
 
 } frame_cmd_t;
 
+/** @} */
 
 #endif /* !FRAME_DEFS_H */

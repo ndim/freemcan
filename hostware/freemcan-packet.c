@@ -17,6 +17,11 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup freemcan_packet Data Packet Parser (Layer 3)
+ * \ingroup hostware_tui
+ *
+ * @{
  */
 
 #include "frame-defs.h"
@@ -84,3 +89,5 @@ void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
   packet_handler_text = text_packet_handler;
   frame_set_handler(frame_handler);
 }
+
+/** @} */

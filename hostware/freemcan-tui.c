@@ -22,6 +22,7 @@
  * The text user interface is an interactive frontend to the MCA
  * hardware for the text console.
  *
+ * @{
  */
 
 
@@ -69,12 +70,13 @@ static bool quit_flag = false;
 
 
 /************************************************************************/
-/** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal */
+/** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal
+ * @{
+ */
 /************************************************************************/
 
 
 /** \brief Saved TTY fd
- * \ingroup tui_tty
  *
  * Doubles as a flag indicating whether there is a termios backup in
  * #tty_save_termios or not.
@@ -144,8 +146,13 @@ static int tty_reset()
 }
 
 
+/** @} */
+
+
 /************************************************************************/
-/** \section tui_code Text User Interface */
+/** \section tui_code Text User Interface
+ * @{
+ */
 /************************************************************************/
 
 
@@ -293,9 +300,13 @@ void atexit_func(void)
   tty_reset();
 }
 
+/** @} */
+
 
 /************************************************************************/
-/** \section tui_data_handling Data Handling (Layer 4) */
+/** \section tui_data_handling Data Handling (Layer 4)
+ * @{
+ */
 /************************************************************************/
 
 
@@ -333,9 +344,12 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
   export_histogram(histogram_packet);
 }
 
+/** @} */
 
 /************************************************************************/
-/** \section tui_main Main Program With Main Loop */
+/** \section tui_main Main Program With Main Loop
+ * @{
+ */
 /************************************************************************/
 
 
@@ -413,3 +427,5 @@ int main(int argc, char *argv[])
   exit(EXIT_SUCCESS);
 }
 
+/** @} */
+/** @} */

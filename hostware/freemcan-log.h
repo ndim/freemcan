@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_log
+ * @{
  */
 
 
@@ -60,5 +63,7 @@ void fmlog_data16(const void *data, const size_t size);
 
 /** Log a block of data as 32 bit integers */
 void fmlog_data32(const void *data, const size_t size);
+
+/** @} */
 
 #endif

@@ -23,7 +23,11 @@
  * \defgroup freemcan_log FreeMCAn logging system
  * \ingroup hostware_tui
  *
- * Moo log foo.
+ * The FreeMCAn logging system. It provides a way to log status
+ * messages, error messages (including errno codes) in a way that can
+ * be used with different user interfaces.
+ *
+ * @{
  */
 
 
@@ -212,3 +216,5 @@ void fmlog_data16(const void *data, const size_t size)
     fmlog("%s", buf);
   }
 }
+
+/** @} */

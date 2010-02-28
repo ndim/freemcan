@@ -20,6 +20,7 @@
  *
  * \defgroup freemcan_frame Data Frame Parser (Layer 2)
  * \ingroup hostware_tui
+ * @{
  */
 
 
@@ -265,3 +266,5 @@ void frame_parse_bytes(const void *buf, const size_t size)
     step_fsm(cbuf[i]);
   }
 }
+
+/** @} */

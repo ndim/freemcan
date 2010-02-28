@@ -18,6 +18,11 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup freemcan_signals Signal Handling (probably TUI specific)
+ * \ingroup hostware_tui
+ *
+ * @{
  */
 
 
@@ -83,3 +88,6 @@ static void common_done(void)
 {
   fmlog("freemcan-signals.c: common_done()");
 }
+
+
+/** @} */

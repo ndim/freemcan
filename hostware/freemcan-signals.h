@@ -26,10 +26,6 @@
 #ifndef FREEMCAN_SIGNALS_H
 #define FREEMCAN_SIGNALS_H
 
-#if 0
-#include "include/system.h"
-#endif
-
 #include <stdbool.h>
 
 

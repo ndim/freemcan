@@ -40,6 +40,7 @@
 #include <sys/un.h>
 
 
+#include "freemcan-checksum.h"
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
 #include "freemcan-log.h"

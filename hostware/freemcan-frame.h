@@ -70,16 +70,6 @@ void frame_reset_handler(void);
 void frame_parse_bytes(const void *buf, const size_t size);
 
 
-/** Reset checksum state machine */
-void checksum_reset(void);
-
-/** Update checksum state machine with value */
-void checksum_update(const uint8_t value);
-
-/** Write checksum to file descriptor */
-void checksum_write(const int fd);
-
-
 /** Whether to dump layer 1 data (byte stream) into log */
 bool enable_layer1_dump;
 

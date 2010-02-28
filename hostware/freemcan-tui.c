@@ -16,6 +16,14 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup hostware_tui Text User Interface
+ * \ingroup hostware
+ *
+ * The text user interface is an interactive frontend to the MCA
+ * hardware for the text console.
+ *
+ * @{
  */
 
 
@@ -62,12 +70,14 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 static bool quit_flag = false;
 
 
-/************************************************************************
- * TTY Setup (And Cleanup!) For The Local Interactive Terminal
- ************************************************************************/
+/************************************************************************/
+/** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal
+ * @{
+ */
+/************************************************************************/
 
 
-/** Saved TTY fd
+/** \brief Saved TTY fd
  *
  * Doubles as a flag indicating whether there is a termios backup in
  * #tty_save_termios or not.
@@ -137,9 +147,14 @@ static int tty_reset()
 }
 
 
-/************************************************************************
- * Text User Interface
- ************************************************************************/
+/** @} */
+
+
+/************************************************************************/
+/** \section tui_code Text User Interface
+ * @{
+ */
+/************************************************************************/
 
 
 /** Handle ABRT signal */
@@ -196,7 +211,15 @@ void tui_init()
 }
 
 
-/** Set up select() data structure with (ncurses based) text UI */
+/**
+ * \defgroup freemcan_tui_select TUI handling for select(2) based main loop
+ * \ingroup hostware_tui
+ */
+
+
+/** Set up select() data structure with (ncurses based) text UI
+ * \ingroup freemcan_tui_select
+ */
 int tui_select_set_in(fd_set *in_fdset, int maxfd)
 {
   FD_SET(STDIN_FILENO, in_fdset);
@@ -205,7 +228,9 @@ int tui_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
-/** Do TUI's IO stuff if necessary (from select loop) */
+/** Do TUI's IO stuff if necessary (from select loop)
+ * \ingroup freemcan_tui_select
+ */
 void tui_select_do_io(fd_set *in_fdset)
 {
   /* user interface do_io */
@@ -286,10 +311,14 @@ void atexit_func(void)
   tty_reset();
 }
 
+/** @} */
 
-/************************************************************************
- * Data Handling
- ************************************************************************/
+
+/************************************************************************/
+/** \section tui_data_handling Data Handling (Layer 4)
+ * @{
+ */
+/************************************************************************/
 
 
 /** Status data packet handler (TUI specific) */
@@ -326,10 +355,13 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
   export_histogram(histogram_packet);
 }
 
+/** @} */
 
-/************************************************************************
- * Main Program With Main Loop
- ************************************************************************/
+/************************************************************************/
+/** \section tui_main Main Program With Main Loop
+ * @{
+ */
+/************************************************************************/
 
 
 /** TUI's main program with select(2) based main loop */
@@ -406,3 +438,5 @@ int main(int argc, char *argv[])
   exit(EXIT_SUCCESS);
 }
 
+/** @} */
+/** @} */

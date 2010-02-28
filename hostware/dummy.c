@@ -1,7 +1,6 @@
-/** \file uart-printf.h
- * \brief Interface to printf via UART
+/** \file hostware/dummy.c
+ * \brief Dummy C file (hostware documentation for doxygen)
  *
- * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,20 +18,9 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup uart_printf
- * @{
+ * \defgroup hostware Hostware
+ *
+ * \defgroup hostware_generic Generic Hostware Components
+ * \ingroup hostware
+ *
  */
-
-#ifndef UART_PRINTF_H
-#define UART_PRINTF_H
-
-#ifdef HAVE_UPRINTF_IMPLEMENTATION
-extern void uprintf(const char *format, ...);
-#else
-# define uprintf(...) do {} while (0)
-#endif
-
-/** @} */
-
-#endif /* !UART_PRINTF_H */
-

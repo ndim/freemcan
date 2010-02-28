@@ -17,6 +17,15 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup freemcan_log FreeMCAn logging system
+ * \ingroup hostware_generic
+ *
+ * The FreeMCAn logging system. It provides a way to log status
+ * messages, error messages (including errno codes) in a way that can
+ * be used with different user interfaces.
+ *
+ * @{
  */
 
 
@@ -205,3 +214,5 @@ void fmlog_data16(const void *data, const size_t size)
     fmlog("%s", buf);
   }
 }
+
+/** @} */

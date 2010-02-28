@@ -19,6 +19,10 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup serial_setup Serial Port Setup
+ * \ingroup hostware_generic
+ * @{
  */
 
 #include <sys/ioctl.h>
@@ -183,3 +187,6 @@ int serial_open(const char *device_name)
    */
   return open(device_name, O_RDWR | O_NDELAY | O_NOCTTY);
 }
+
+
+/** @} */

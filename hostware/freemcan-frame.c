@@ -17,6 +17,10 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \defgroup freemcan_frame Data Frame Parser (Layer 2)
+ * \ingroup hostware_generic
+ * @{
  */
 
 
@@ -26,48 +30,10 @@
 
 
 #include "frame-defs.h"
+#include "freemcan-checksum.h"
 #include "freemcan-frame.h"
 #include "freemcan-log.h"
 
-
-/************************************************************************
- * Checksum
- ************************************************************************/
-
-
-static uint16_t checksum_accu;
-
-
-void checksum_reset()
-{
-  checksum_accu = 0x3e59;
-}
-
-
-static
-bool checksum_match(const uint8_t test)
-{
-  const uint8_t checksum = (checksum_accu & 0xff);
-  const bool retval = (checksum == test);
-  return retval;
-}
-
-
-void checksum_write(const int fd)
-{
-  const uint8_t checksum = (checksum_accu & 0xff);
-  write(fd, &checksum, sizeof(checksum));
-}
-
-
-void checksum_update(const uint8_t value)
-{
-  const uint8_t  n = (uint8_t)value;
-  const uint16_t x = 8*n+2*n+n;
-  const uint16_t r = (checksum_accu << 3) | (checksum_accu >> 13);
-  const uint16_t v = r ^ x;
-  checksum_accu = v;
-}
 
 
 /************************************************************************
@@ -262,3 +228,5 @@ void frame_parse_bytes(const void *buf, const size_t size)
     step_fsm(cbuf[i]);
   }
 }
+
+/** @} */

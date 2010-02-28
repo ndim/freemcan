@@ -17,6 +17,9 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_packet
+ * @{
  */
 
 #ifndef FREEMCAN_PACKET_H
@@ -80,5 +83,6 @@ void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
 			 packet_handler_status_t status_packet_handler,
 			 packet_handler_text_t text_packet_handler);
 
+/** @} */
 
 #endif /* !FREEMCAN_PACKET_H */

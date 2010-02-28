@@ -63,7 +63,7 @@ freemcan-export.o : freemcan-export.c freemcan-export.h freemcan-packet.h
 freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
 freemcan-tui.o : freemcan-tui.c freemcan-signals.h freemcan-device.h freemcan-frame.h freemcan-log.h freemcan-select.h
 
-HOST_SRC = device frame log packet select signals
+HOST_SRC = checksum device frame log packet select signals
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
 freemcan-tui : freemcan-tui.o serial-setup.o freemcan-export.o $(HOST_OBJ)

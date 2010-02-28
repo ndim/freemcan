@@ -1,7 +1,6 @@
-/** \file uart-printf.h
- * \brief Interface to printf via UART
+/** \file freemcan-checksum.h
+ * \brief Checksum for layer 2 frames (interface)
  *
- * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,20 +18,33 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup uart_printf
+ * \addtogroup freemcan_frame_checksum
  * @{
  */
 
-#ifndef UART_PRINTF_H
-#define UART_PRINTF_H
 
-#ifdef HAVE_UPRINTF_IMPLEMENTATION
-extern void uprintf(const char *format, ...);
-#else
-# define uprintf(...) do {} while (0)
-#endif
+#ifndef FREEMCAN_CHECKSUM_H
+#define FREEMCAN_CHECKSUM_H
+
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "frame-defs.h"
+
+
+/** Reset checksum state machine */
+void checksum_reset(void);
+
+/** Update checksum state machine with value */
+void checksum_update(const uint8_t value);
+
+/** Write checksum to file descriptor */
+void checksum_write(const int fd);
+
+/** Match value against internal checksum state */
+bool checksum_match(const uint8_t value);
+
 
 /** @} */
 
-#endif /* !UART_PRINTF_H */
-
+#endif /* !FREEMCAN_CHECKSUM_H */

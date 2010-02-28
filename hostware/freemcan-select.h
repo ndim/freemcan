@@ -17,12 +17,19 @@
  *  License along with this library; if not, write to the Free
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
+ *
+ * \addtogroup freemcan_select
+ *
+ * @{
  */
 
 
 #ifndef FREEMCAN_SELECT_H
 #define FREEMCAN_SELECT_H
 
+/** Data size you can read from file descriptor without blocking */
 int read_size(const int in_fd);
+
+/** @} */
 
 #endif /* !FREEMCAN_SELECT_H */

@@ -28,11 +28,11 @@
 
 #include <stdlib.h>
 
-extern void uart_init(void);
-extern void uart_putc(const char c);
-extern void uart_puts(const char *s);
-extern void uart_putb(const void *buf, size_t len);
-extern char uart_getc(void);
+void uart_init(void);
+void uart_putc(const char c);
+void uart_puts(const char *s);
+void uart_putb(const void *buf, size_t len);
+char uart_getc(void);
 
 void uart_checksum_reset(void);
 void uart_checksum_send(void);

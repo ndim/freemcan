@@ -27,7 +27,7 @@
 #define UART_PRINTF_H
 
 #ifdef HAVE_UPRINTF_IMPLEMENTATION
-extern void uprintf(const char *format, ...);
+void uprintf(const char *format, ...);
 #else
 # define uprintf(...) do {} while (0)
 #endif

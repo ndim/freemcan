@@ -37,10 +37,10 @@
 typedef void (*sighandler_t)(int);
 
 /** flag set by SIGINT handler */
-extern bool sigint;
+bool sigint;
 
 /** flag set by SIGTERM handler */
-extern bool sigterm;
+bool sigterm;
 
 /** @} */
 

@@ -29,12 +29,12 @@
 
 #include "frame-defs.h"
 
-extern void frame_send(const frame_type_t frame_type,
-		       const void *payload, const size_t payload_size);
+void frame_send(const frame_type_t frame_type,
+		const void *payload, const size_t payload_size);
 
-extern void frame_start(const frame_type_t frame_type,
-			const size_t payload_size);
-extern void frame_end(void);
+void frame_start(const frame_type_t frame_type,
+		 const size_t payload_size);
+void frame_end(void);
 
 /** @} */
 

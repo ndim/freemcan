@@ -64,6 +64,10 @@ void frame_handler(const frame_t *frame)
       packet_handler_histogram(&hist);
     }
     return;
+  /* No "default:" case on purpose: Let compiler complain about
+   * unhandled values. We are still prepared for uncaught values, but
+   * after the switch() statement itself. (We might have received an
+   * unhandled value from a remote system.) */
   }
   fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
 	frame->type, frame->type, frame->type, frame->size, frame->size);

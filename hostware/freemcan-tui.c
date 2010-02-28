@@ -293,6 +293,7 @@ void tui_select_do_io(fd_set *in_fdset)
 	/* "LONG" measurement */
 	dev_command(FRAME_CMD_MEASURE, 30);
 	break;
+      /* No "default:" case as we ignore all other characters. */
       }
     }
   }

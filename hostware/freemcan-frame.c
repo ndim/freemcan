@@ -146,6 +146,9 @@ void step_fsm(const char ch)
       offset = 0;
       state = STATE_FRAME_TYPE;
       return;
+      /* We have the value of (offset) firmly under control from
+       * within this very function, so we do not need to catch any
+       * other cases. */
     }
     break;
   case STATE_FRAME_TYPE:
@@ -206,6 +209,8 @@ void step_fsm(const char ch)
       return;
     }
     break;
+  /* No "default:" case on purpose: Let compiler complain about
+   * unhandled values. */
   }
   fmlog("Illegal frame parser state.");
   abort();

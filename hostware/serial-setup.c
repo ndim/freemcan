@@ -170,7 +170,8 @@ long serial_string_to_baud(const char *arg)
     case USERBAUD1920: return B19200;
     case USERBAUD3840: return B38400;
       /* No "default:" label to force the compiler to complain about
-       * unhandled cases. */
+       * unhandled cases. We still handle other cases, but after the
+       * switch() statement. */
   }
   fprintf(stderr,
 	  "Baud rate %s is not supported, "

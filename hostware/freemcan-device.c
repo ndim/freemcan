@@ -112,6 +112,7 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
 	cmd, param, param);
   switch (cmd) {
   case FRAME_CMD_MEASURE:
+    /* this is the only command with a parameter */
     if (1) {
       checksum_reset();
       const uint8_t cmd8 = cmd;
@@ -126,6 +127,7 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
     }
     break;
   default:
+    /* all other commands are without parameters */
     write(device_fd, &cmd, 1);
     break;
   }

@@ -21,7 +21,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup serial_setup Serial Port Setup
- * \ingroup hostware_tui
+ * \ingroup hostware
  * @{
  */
 

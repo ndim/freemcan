@@ -18,10 +18,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \ingroup hostware_tui
- *
  * \defgroup freemcan_log FreeMCAn logging system
- * \ingroup hostware_tui
+ * \ingroup hostware
  *
  * The FreeMCAn logging system. It provides a way to log status
  * messages, error messages (including errno codes) in a way that can

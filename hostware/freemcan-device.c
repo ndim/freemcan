@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_device Device Interface
- * \ingroup hostware_tui
+ * \ingroup hostware
  * @{
  */
 
@@ -105,6 +105,42 @@ void dev_fini(void)
 }
 
 
+void dev_command(const frame_cmd_t cmd, const uint16_t param)
+{
+  fmlog("Sending %c command to device (param=%d=0x%04x)",
+	cmd, param, param);
+  switch (cmd) {
+  case FRAME_CMD_MEASURE:
+    if (1) {
+      checksum_reset();
+      const uint8_t cmd8 = cmd;
+      write(device_fd, &cmd8, 1);
+      checksum_update(cmd8);
+      const uint8_t byte0 = (param & 0xff);
+      checksum_update(byte0);
+      const uint8_t byte1 = ((param>>8) & 0xff);
+      checksum_update(byte1);
+      write(device_fd, &param, sizeof(param));
+      checksum_write(device_fd);
+    }
+    break;
+  default:
+    write(device_fd, &cmd, 1);
+    break;
+  }
+}
+
+
+/** @} */
+
+
+/**
+ * \defgroup freemcan_device_select Device Handling for select(2) based main loop
+ * \ingroup hostware_tui
+ * @{
+ */
+
+
 int dev_select_set_in(fd_set *in_fdset, int maxfd)
 {
   assert(device_fd > 0);
@@ -136,32 +172,6 @@ void dev_select_do_io(fd_set *in_fdset)
       fmlog_data(buf, read_bytes);
     }
     frame_parse_bytes(buf, read_bytes);
-  }
-}
-
-
-void dev_command(const frame_cmd_t cmd, const uint16_t param)
-{
-  fmlog("Sending %c command to device (param=%d=0x%04x)",
-	cmd, param, param);
-  switch (cmd) {
-  case FRAME_CMD_MEASURE:
-    if (1) {
-      checksum_reset();
-      const uint8_t cmd8 = cmd;
-      write(device_fd, &cmd8, 1);
-      checksum_update(cmd8);
-      const uint8_t byte0 = (param & 0xff);
-      checksum_update(byte0);
-      const uint8_t byte1 = ((param>>8) & 0xff);
-      checksum_update(byte1);
-      write(device_fd, &param, sizeof(param));
-      checksum_write(device_fd);
-    }
-    break;
-  default:
-    write(device_fd, &cmd, 1);
-    break;
   }
 }
 

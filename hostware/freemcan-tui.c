@@ -18,6 +18,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup hostware_tui Hostware Text User Interface
+ * \ingroup hostware
  *
  * The text user interface is an interactive frontend to the MCA
  * hardware for the text console.
@@ -210,7 +211,15 @@ void tui_init()
 }
 
 
-/** Set up select() data structure with (ncurses based) text UI */
+/**
+ * \defgroup freemcan_tui_select TUI handling for select(2) based main loop
+ * \ingroup hostware_tui
+ */
+
+
+/** Set up select() data structure with (ncurses based) text UI
+ * \ingroup freemcan_tui_select
+ */
 int tui_select_set_in(fd_set *in_fdset, int maxfd)
 {
   FD_SET(STDIN_FILENO, in_fdset);
@@ -219,7 +228,9 @@ int tui_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
-/** Do TUI's IO stuff if necessary (from select loop) */
+/** Do TUI's IO stuff if necessary (from select loop)
+ * \ingroup freemcan_tui_select
+ */
 void tui_select_do_io(fd_set *in_fdset)
 {
   /* user interface do_io */

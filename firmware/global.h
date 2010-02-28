@@ -21,6 +21,7 @@
  *
  * \defgroup global_constants Global Constants
  * \ingroup firmware
+ * @{
  */
 
 #ifndef GLOBAL_H
@@ -82,5 +83,7 @@
  *  The data measurement is carried out in multiples of time_elapsed.
  */
 #define TIMER_COMPARE_MATCH_VAL 15624
+
+/** @} */
 
 #endif /* !GLOBAL_H */

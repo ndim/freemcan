@@ -18,7 +18,7 @@ CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include
 
-ERL_SOURCES = freemcan_emulator.erl
+ERL_SOURCES = freemcan_emulator.erl histogram_emulator.erl
 BEAMS = $(ERL_SOURCES:.erl=.beam)
 CLEANFILES += $(BEAMS)
 

@@ -31,12 +31,6 @@
 -record(state, {port, state=boot, timeout=100}).
 
 
-dummy_histogram() ->
-    ElementCount = 256,
-    [ (((301*N*N*N)+(37*N*N)) rem (1 bsl 32))
-      || N <- lists:seq(1, ElementCount) ].
-
-
 checksum(Bin) when is_binary(Bin) ->
     State =lists:foldl(fun(C, Acc) ->
 			       N = C,
@@ -105,19 +99,19 @@ fsm(boot, {timeout, _}) ->
     {ready, status_packet("READY"), none};
 
 fsm(ready, {measure, Seconds}) ->
-    {{measuring, Seconds}, status_packet("Measuring"), 1000};
+    {{measuring, 0, Seconds}, status_packet("Measuring"), 1000};
 fsm(ready, reset) ->
     {reset, none, 100};
 
-fsm({measuring, _}, abort) ->
-    {reset, histogram_packet(aborted, dummy_histogram()), 10};
-fsm({measuring, _}=State, intermediate) ->
+fsm({measuring, SecondsDone, _SecondsTotal}, abort) ->
+    {reset, histogram_packet(aborted, histogram_emulator:histogram(SecondsDone)), 10};
+fsm({measuring, SecondsDone, _SecondsTotal}=State, intermediate) ->
     %% FIXME: Use the proper timeout here :-/
-    {State, histogram_packet(intermediate, dummy_histogram()), 1000};
-fsm({measuring, 0}, {timeout, _}) ->
-    {reset, histogram_packet(done, dummy_histogram()), 0};
-fsm({measuring, N}, {timeout, Period}) ->
-    {{measuring, N-1}, text_packet("STILL MEASURING"), Period};
+    {State, histogram_packet(intermediate, histogram_emulator:histogram(SecondsDone)), 1000};
+fsm({measuring, SecondsDone=SecondsTotal, SecondsTotal}, {timeout, _}) ->
+    {reset, histogram_packet(done, histogram_emulator:histogram(SecondsDone)), 0};
+fsm({measuring, SecondsDone, SecondsTotal}, {timeout, Period}) ->
+    {{measuring, SecondsDone+1, SecondsTotal}, text_packet("STILL MEASURING"), Period};
 
 fsm(reset, {timeout, _}) ->
     {boot, status_packet("Resetting"), 100}.

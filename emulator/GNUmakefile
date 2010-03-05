@@ -1,3 +1,6 @@
+# Example command line:
+# $ killall erl_unix_port freemcan-text; make && rm -f testdev && erl -noshell -s freemcan_emulator start testdev -s init stop
+
 bin_PROGRAMS ?=
 
 ERLC = erlc

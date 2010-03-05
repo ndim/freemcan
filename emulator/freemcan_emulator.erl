@@ -123,6 +123,8 @@ fsm(reset, {timeout, _}) ->
     {boot, status_packet("Resetting"), 100}.
 
 
+send_reply(_Port, none) ->
+    none;
 send_reply(Port, Reply) when is_binary(Reply) ->
     Size = size(Reply),
     send_reply(Port, Size, Reply).
@@ -167,11 +169,7 @@ loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
 		    io:format("Timeout:          ~p~n", [TimeOut]),
 		    {NextState, Reply, NextTimeOut} = fsm(CurState, {timeout, TimeOut}),
 		    io:format("Sending message:  ~P~n", [Reply,30]),
-		    case Reply of
-			none -> ok;
-			Reply ->
-			    send_reply(Port, Reply)
-		    end,
+		    send_reply(Port, Reply),
 		    io:format("Next state:       ~p~n", [NextState]),
 		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
 	    end

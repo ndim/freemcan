@@ -365,10 +365,12 @@ void io_init(void)
 static
 void send_histogram(const packet_histogram_type_t type)
 {
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(table)+1+1);
-  const uint8_t element_size = sizeof(table[0]);
-  uart_putc((const char)(element_size));
-  uart_putc((const char)(type));
+  packet_histogram_header_t header = {
+    sizeof(table[0]),
+    type
+  };
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
+  uart_putb((const void *)&header, sizeof(header));
   uart_putb((const void *)table, sizeof(table));
   frame_end();
 }

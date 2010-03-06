@@ -68,6 +68,17 @@ typedef enum {
 
 } packet_histogram_type_t;
 
+
+/** Histogram packet header
+ * \todo Verify the compiler does not do strange alignment things.
+ */
+typedef struct {
+  uint8_t  element_size;
+  uint8_t  type;
+  /* uint16_t seconds; */
+} packet_histogram_header_t;
+
+
 /** @} */
 
 #endif /* !PACKET_DEFS_H */

@@ -107,14 +107,15 @@ void frame_handler(const frame_t *frame)
     return;
   case FRAME_TYPE_HISTOGRAM:
     if (packet_handler_histogram) {
-      const size_t hist_size = frame->size - 1 - 1;
-      const uint8_t element_size = frame->payload[0];
-      const size_t element_count = hist_size/element_size;
-      packet_histogram_t *hist = packet_histogram_new(frame->payload[1],
+      const packet_histogram_header_t *header =
+	(const packet_histogram_header_t *)&(frame->payload[0]);
+      const size_t hist_size = frame->size - sizeof(*header);
+      const size_t element_count = hist_size/header->element_size;
+      packet_histogram_t *hist = packet_histogram_new(header->type,
 						      time(NULL),
-						      element_size,
+						      header->element_size,
 						      element_count,
-						      &(frame->payload[2]));
+						      &(frame->payload[sizeof(*header)]));
       packet_handler_histogram(hist, packet_handler_data);
       packet_histogram_unref(hist);
     }

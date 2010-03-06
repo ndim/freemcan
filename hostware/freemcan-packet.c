@@ -39,6 +39,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const time_t receive_time,
 					 const uint8_t element_size,
 					 const size_t element_count,
+					 const uint16_t duration,
 					 const void *elements)
 {
   packet_histogram_t *result = calloc(1, sizeof(packet_histogram_t));
@@ -55,6 +56,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
   result->receive_time  = receive_time;
   result->element_size  = element_size;
   result->element_count = element_count;
+  result->duration      = duration;
 
   return result;
 }
@@ -110,11 +112,13 @@ void frame_handler(const frame_t *frame)
       const packet_histogram_header_t *header =
 	(const packet_histogram_header_t *)&(frame->payload[0]);
       const size_t hist_size = frame->size - sizeof(*header);
+      assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
       packet_histogram_t *hist = packet_histogram_new(header->type,
 						      time(NULL),
 						      header->element_size,
 						      element_count,
+						      header->duration,
 						      &(frame->payload[sizeof(*header)]));
       packet_handler_histogram(hist, packet_handler_data);
       packet_histogram_unref(hist);

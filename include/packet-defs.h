@@ -75,7 +75,7 @@ typedef enum {
 typedef struct {
   uint8_t  element_size;
   uint8_t  type;
-  /* uint16_t seconds; */
+  uint16_t duration;
 } packet_histogram_header_t;
 
 

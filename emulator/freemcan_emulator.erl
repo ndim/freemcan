@@ -67,14 +67,15 @@ text_packet(StatusMessage) ->
     frame(status, StatusMessage).
 
 
-histogram_packet(done, Histogram) ->
-    histogram_packet($D, Histogram);
-histogram_packet(intermediate, Histogram) ->
-    histogram_packet($I, Histogram);
-histogram_packet(aborted, Histogram) ->
-    histogram_packet($A, Histogram);
-histogram_packet(Type, Histogram) when is_integer(Type) ->
-    Payload = [<<4>>, Type,
+histogram_packet(done, Seconds) when is_integer(Seconds) ->
+    histogram_packet($D, Seconds, histogram_emulator:histogram(Seconds));
+histogram_packet(intermediate, Seconds) when is_integer(Seconds) ->
+    histogram_packet($I, Seconds, histogram_emulator:histogram(Seconds));
+histogram_packet(aborted, Seconds) when is_integer(Seconds) ->
+    histogram_packet($A, Seconds, histogram_emulator:histogram(Seconds)).
+
+histogram_packet(Type, Seconds, Histogram) when is_integer(Type) ->
+    Payload = [<<4>>, Type, <<Seconds:16/little-integer>>,
 	       [ <<Val:32/little-integer>> || Val <- Histogram ]],
     frame(histogram, Payload).
 
@@ -108,12 +109,12 @@ fsm(ready, intermediate) ->
     {ready, status_packet("READY"), none};
 
 fsm({measuring, SecondsDone, _SecondsTotal}, abort) ->
-    {reset, histogram_packet(aborted, histogram_emulator:histogram(SecondsDone)), 10};
+    {reset, histogram_packet(aborted, SecondsDone), 10};
 fsm({measuring, SecondsDone, _SecondsTotal}=State, intermediate) ->
     %% FIXME: Use the proper timeout here :-/
-    {State, histogram_packet(intermediate, histogram_emulator:histogram(SecondsDone)), 1000};
+    {State, histogram_packet(intermediate, SecondsDone), 1000};
 fsm({measuring, SecondsDone=SecondsTotal, SecondsTotal}, {timeout, _}) ->
-    {reset, histogram_packet(done, histogram_emulator:histogram(SecondsDone)), 0};
+    {reset, histogram_packet(done, SecondsDone), 0};
 fsm({measuring, SecondsDone, SecondsTotal}, {timeout, Period}) ->
     {{measuring, SecondsDone+1, SecondsTotal}, text_packet("STILL MEASURING"), Period};
 

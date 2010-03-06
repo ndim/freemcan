@@ -47,6 +47,9 @@ typedef struct {
   /** Number of elements in histogram array */
   size_t element_count;
 
+  /** Duration of measurement which lead to the histogram data */
+  unsigned int duration;
+
   /** Histogram element table.
    *
    * This is a single pointer to the actual memory area with the
@@ -67,6 +70,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const time_t receive_time,
 					 const uint8_t element_size,
 					 const size_t element_count,
+					 const uint16_t duration,
 					 const void *elements)
   __attribute__((malloc));
 

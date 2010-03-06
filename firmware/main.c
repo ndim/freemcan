@@ -119,6 +119,8 @@ volatile uint8_t measurement_count;
  * timer_count to decrement, once the timer ISR has been enabled.
  */
 volatile uint16_t timer_count = 0;
+volatile uint16_t last_timer_count = 1;
+volatile uint16_t orig_timer_count;
 
 
 /** Timer counter has reached zero.
@@ -200,10 +202,11 @@ ISR(TIMER1_COMPA_vect)
 
   if (!timer_flag) {
     /* We do not touch the timer_flag ever again after setting it */
+    last_timer_count = timer_count;
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
-       timer_flag = 1;
+      timer_flag = 1;
     }
   }
 }
@@ -365,9 +368,19 @@ void io_init(void)
 static
 void send_histogram(const packet_histogram_type_t type)
 {
+  /* pseudo synchronised reading of multi-byte variable being written
+   * to by ISR */
+  uint16_t a, b;
+  do {
+    a = timer_count;
+    b = last_timer_count;
+  } while ((b-a) != 1);
+  /* Now 'a' contains a valid value */
+
   packet_histogram_header_t header = {
     sizeof(table[0]),
-    type
+    type,
+    orig_timer_count - a
   };
   frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
   uart_putb((const void *)&header, sizeof(header));
@@ -495,7 +508,7 @@ int main(void)
     /* STATE: MEASURING */
 
     /* set up timer with the value we just got */
-    timer_count = timer_value;
+    timer_count = orig_timer_count = timer_value;
 
     /* begin measurement */
     timer_init();

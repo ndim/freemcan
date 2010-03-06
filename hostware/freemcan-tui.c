@@ -347,8 +347,20 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
 
   const size_t element_count = histogram_packet->element_count;
   const size_t element_size = histogram_packet->element_size;
-  fmlog("Received '%c' type histogram data of %d elements of %d bytes each:",
-	histogram_packet->type, element_count, element_size);
+  const packet_histogram_type_t type = histogram_packet->type;
+  char buf[128];
+  if ((type>=32)&&(type<127)) {
+    snprintf(buf, sizeof(buf),
+	     "Received '%c' type histogram: %%d elements of %%d bytes each, %%d seconds:",
+	     type);
+  } else {
+    snprintf(buf, sizeof(buf),
+	     "Received 0x%02x=%d type histogram: %%d elements of %%d bytes each, %%d seconds:",
+	     type, type);
+  }
+  fmlog(buf,
+	element_count, element_size,
+	histogram_packet->duration);
   const size_t total_size = element_count * element_size;
   if (element_size == 4) {
     fmlog_data32(histogram_packet->elements.ev, total_size);

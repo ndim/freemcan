@@ -3,5 +3,6 @@
 /.depend.mk
 /freemcan-tui
 /freemcan-tui.log
+/hist.*.dat
 /querySerial
 /test-log

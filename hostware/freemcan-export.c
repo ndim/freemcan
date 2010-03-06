@@ -23,53 +23,66 @@
  * @{
  */
 
+#include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include <time.h>
 
 #include "freemcan-export.h"
+#include "freemcan-log.h"
 
-/** Dump the last histogram into freemcan-export.dat
+
+/** Write the given histogram to a newly created file
+ *
+ * The name of the newly created file is created based on the current
+ * local time of day. Given the rate at which we can receive new
+ * histograms is much less than one per second, this should avoid file
+ * name collisions.
+ *
+ * If a file of the same name happens to already exist, it will be
+ * overwritten.
  *
  * Use this with the helper utility "plot-freemcan.plt":
+ * \todo Fix Gnuplot stuff.
  * type
  * gnuplot load 'plot_freemcan.plt'
  * on the shell
  */
-
-void export_histogram(const packet_histogram_t *histogram_packet){
-
+void export_histogram(const packet_histogram_t *histogram_packet)
+{
   const size_t element_count = histogram_packet->element_count;
   const size_t element_size = histogram_packet->element_size;
-
-  FILE *fdexport = fopen("freemcan-export.dat", "w");
-
-  /* fprintf(fdexport, "ChannelNo\tCounts\n"); */
-
-  if (element_size == 4){
-    uint32_t count;
-    for (uint16_t i = 0; i < element_count; i++){
-        count = histogram_packet->elements.e32[i];
-        fprintf(fdexport, "%d\t%d\n", i, count);
-    };
+  const time_t t = time(NULL);
+  const struct tm *tm_ = localtime(&t);
+  assert(tm_);
+  char type = 'X';
+  switch (histogram_packet->type) {
+  case PACKET_HISTOGRAM_DONE:
+  case PACKET_HISTOGRAM_ABORTED:
+  case PACKET_HISTOGRAM_INTERMEDIATE:
+    type = histogram_packet->type;
+    break;
   }
-  else
-  if (element_size == 2){
-    uint16_t count;
-    for (uint16_t i = 0; i < element_count; i++){
-        count = histogram_packet->elements.e16[i];
-        fprintf(fdexport, "%d\t%d\n", i, count);
-    };
+  char date[128];
+  strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
+  char fname[256];
+  snprintf(fname, sizeof(fname), "hist.%s.%c.dat", date, type);
+  FILE *histfile = fopen(fname, "w");
+  assert(histfile);
+  fmlog("Writing histogram to file %s", fname);
+  for (size_t i=0; i<element_count; i++) {
+    uint32_t value;
+    switch (element_size) {
+    case 1: value = histogram_packet->elements.e8[i]; break;
+    case 2: value = histogram_packet->elements.e16[i]; break;
+    case 4: value = histogram_packet->elements.e32[i]; break;
+    default: abort();
+    }
+    fprintf(histfile, "%d\t%u\n", i, value);
   }
-  else
-  {
-    uint8_t count;
-    for (uint16_t i = 0; i < element_count; i++){
-        count = histogram_packet->elements.e8[i];
-        fprintf(fdexport, "%d\t%d\n", i, count);
-    };
-  }
-
-  fclose (fdexport);
+  fclose(histfile);
 }
 
 

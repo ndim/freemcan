@@ -30,7 +30,6 @@
 #include <stdbool.h>
 
 #include <unistd.h>
-#include <time.h>
 
 #include <signal.h>
 
@@ -357,6 +356,7 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 }
 
 /** @} */
+
 
 /************************************************************************/
 /** \section tui_main Main Program With Main Loop

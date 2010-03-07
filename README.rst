@@ -92,8 +92,7 @@ and run the local make targets to write the firmware to your hardware.
 The License
 -----------
 
-(FIXME) Add copyright and license headers to source files.
-(FIXME) Add license text as separate file.
+LGPLv2.1+
 
 
 

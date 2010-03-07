@@ -21,7 +21,6 @@ CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buf
 bin_PROGRAMS += querySerial
 CLEANFILES   += querySerial
 
-
 bin_PROGRAMS += freemcan-tui-poll
 CLEANFILES   += freemcan-tui-poll
 

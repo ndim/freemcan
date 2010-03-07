@@ -1,5 +1,3 @@
-# FIXME: Add proper dependencies for all those *.c and *.h files.
-
 bin_PROGRAMS ?=
 
 # Add call possible -I flags to ALL_CFLAGS later for include file

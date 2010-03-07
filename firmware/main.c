@@ -94,7 +94,11 @@ FUSES = {
  */
 
 
-/** histogram table */
+/** histogram table
+ *
+ * ATmega644P has 4Kbyte RAM
+ * Choose uint16_t if ADC_RESOLUTION is set to 10
+ **/
 volatile uint32_t table[MAX_COUNTER];
 
 
@@ -156,10 +160,16 @@ void wdt_init(void)
 /** AD conversion complete interrupt entry point
  *
  * This function is called when an A/D conversion has completed.
+ * Update histogram
+ * Discharge peak hold capacitor
  */
 ISR(ADC_vect) {
 
   uint16_t result;
+
+  /* pull pin 19 to discharge peak hold capacitor */
+  /** \todo worst case calculation: runtime & R7010 */
+  PORTD |= BIT(PD5);
 
   /* Read analog value */
   result = ADCW;
@@ -168,6 +178,9 @@ ISR(ADC_vect) {
   /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
   /* Update histogram: this can be a 8 or a 9 bit index! */
   table[result>>(10-ADC_RESOLUTION)]++;
+
+  /* set pin 19 to GND and release peak hold capacitor   */
+  PORTD &=~ BIT(PD5);
 
   /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
    * Since int0 is only configured but not enabled ISR(INT0_vect){} is
@@ -185,7 +198,8 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign: PORTD ^= BIT(PD5);                          */
+  /* toggle a sign (measurement still in progress LED): */
+  PORTD ^= BIT(PD6);
 
   if (!timer_flag) {
     /* We do not touch the timer_flag ever again after setting it */
@@ -200,8 +214,8 @@ ISR(TIMER1_COMPA_vect)
 
 /** Setup of INT0
  *
- * INT0 Pin 16 is configured but not enabled
- * On rising edge
+ * INT0 via pin 16 is configured but not enabled
+ * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
 inline static
@@ -214,24 +228,27 @@ void trigger_src_conf(void)
     /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
     PORTD |= BIT(PD2);
 
-    /* Disable interrupt pin "INT0" (clear interrupt enable bit in
+    /* Disable interrupt "INT0" (clear interrupt enable bit in
      * external interrupt mask register) otherwise an interrupt may
-     * occur if EICRA is changed */
+     * occur during level and edge configuration (EICRA)  */
     EIMSK &= ~(BIT(INT0));
-    /* Int on rising or falling edge or level triggered (external
-     * interrupt control register A) */
+    /* Level and edges on the external pin that activates INT0
+     * is configured now (interrupt sense control bits in external
+     * interrupt control register A). Disable everything.  */
     EICRA &= ~(BIT(ISC01) | BIT(ISC00));
-    /* 11 = interrupt on rising edge (setze bit 0 und 1 auf 1) */
-    EICRA |=  (BIT(ISC01) | BIT(ISC00));
+    /* Now enable interrupt on falling edge.
+     * [ 10 = interrupt on rising edge
+     *   11 = interrupt on falling edge ] */
+    EICRA |=  BIT(ISC01);
     /* Clear interrupt flag by writing a locical one to INTFn in the
      * external interrupt flag register.  The flag is set when a
      * interrupt occurs. if the I-flag in the sreg is set and the
      * corresponding flag in the EIFR the program counter jumps to the
-     * vector table*/
+     * vector table  */
     EIFR |= BIT(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
      * register). we do not want to jump to the ISR in case of an interrupt
-     * so we do not set this bit                               */
+     * so we do not set this bit  */
     // EIMSK |= (BIT(INT0));
 
 }
@@ -310,6 +327,29 @@ void timer_init(void){
 
   /* output compare match A interrupt enable                      */
   TIMSK1 |= BIT(OCIE1A);
+}
+
+
+/** Initialize peripherals
+ *
+ * Configure peak hold capacitor reset pin
+ * Configure "measurement in progress LED"
+ * Configure unused pins
+ */
+inline static
+void io_init(void)
+{
+    /* configure pin 20 as an output (measurement in progress LED) */
+    DDRD |= (BIT(DDD6));
+    /* set pin 20 to ground                                        */
+    PORTD &= ~ BIT(PD6);
+
+    /* configure pin 19 as an output (measurement in progress LED) */
+    DDRD |= (BIT(DDD5));
+    /* set pin 19 to ground                                        */
+    PORTD &=~ BIT(PD5);
+
+    /** \todo configure unused pins */
 }
 
 
@@ -392,13 +432,15 @@ int main(void)
 #endif
 
     /* STATE: BOOT */
-    /** \todo configure unused pins */
 
     /* configure USART0 for 8N1 */
     uart_init();
     send_text("Booting");
 
-    /* configure INT0 pin 16 on rising edge */
+    /* initialize peripherals */
+    io_init();
+
+    /* configure INT0 pin 16 */
     trigger_src_conf();
 
     /* configure AREF at pin 32 and single shot auto trigger over int0

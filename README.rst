@@ -76,6 +76,7 @@ such as e.g.
 
     AVRDUDE_PROGRAMMER = ponyser
     AVRDUDE_PORT = /dev/ttyS0
+    MCU = atmega644
 
 You can also use all GNU make syntax in that file to set those
 variables, e.g. if you need to determine AVRDUDE_PORT via running a

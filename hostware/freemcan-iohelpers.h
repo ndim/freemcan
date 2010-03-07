@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-select.h
- * \brief select(2) helpers (interface)
+/** \file freemcan-iohelpers.h
+ * \brief IO helper functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,9 +18,9 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_select select(2) related definitions/documentation
- * \ingroup mainloop_select
+ * \addtogroup freemcan_iohelpers
  *
+ * @{
  */
 
 
@@ -35,10 +35,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/** \addtogroup freemcan_select
- * @{
- */
-
 /** Setup function main loop needs to call in every iteration
  *
  * \param in_fdset Run FD_SET on this
@@ -49,6 +45,9 @@ typedef int (*select_set_in_t)(fd_set *in_fdset, int maxfd);
 
 /** IO function main loop needs to call in every iteration */
 typedef void (*select_do_io_t)(fd_set *in_fdset);
+
+/** Data size you can read from file descriptor without blocking */
+int read_size(const int in_fd);
 
 /** @} */
 

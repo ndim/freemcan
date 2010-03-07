@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-select.h
- * \brief select(2) helpers (interface)
+/** \file freemcan-iohelpers.c
+ * \brief select(2) helper functions (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,38 +18,28 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_select select(2) related definitions/documentation
- * \ingroup mainloop_select
+ * \defgroup freemcan_iohelpers Generic IO helper functions
+ * \ingroup hostware_generic
  *
- */
-
-
-#ifndef FREEMCAN_SELECT_H
-#define FREEMCAN_SELECT_H
-
-/* According to POSIX.1-2001 */
-#include <sys/select.h>
-
-/* According to earlier standards */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-/** \addtogroup freemcan_select
  * @{
  */
 
-/** Setup function main loop needs to call in every iteration
- *
- * \param in_fdset Run FD_SET on this
- * \param maxfd    The old maxfd value
- * \return New maxfd, i.e. MAX(maxfd, our_highest_fd_we_set)
- */
-typedef int (*select_set_in_t)(fd_set *in_fdset, int maxfd);
 
-/** IO function main loop needs to call in every iteration */
-typedef void (*select_do_io_t)(fd_set *in_fdset);
+#include <sys/ioctl.h>
+
+#include "freemcan-log.h"
+#include "freemcan-iohelpers.h"
+
+
+int read_size(const int in_fd)
+{
+  int bytes_to_read;
+  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
+  if (r < 0) {
+    fmlog_error("cannot determine number of characters to read from stdin");
+    abort();
+  }
+  return bytes_to_read;
+}
 
 /** @} */
-
-#endif /* !FREEMCAN_SELECT_H */

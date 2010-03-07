@@ -22,6 +22,12 @@ bin_PROGRAMS += querySerial
 CLEANFILES   += querySerial
 
 
+bin_PROGRAMS += freemcan-tui-poll
+CLEANFILES   += freemcan-tui-poll
+
+bin_PROGRAMS += freemcan-tui-select
+CLEANFILES   += freemcan-tui-select
+
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
 
@@ -51,14 +57,23 @@ querySerial : querySerial.o serial-setup.o
 freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE
 freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
+freemcan-tui-main-poll.o : CFLAGS += -D_GNU_SOURCE
+freemcan-tui-main-select.o : CFLAGS += -D_GNU_SOURCE
 
 -include $(DEPEND_MK)
 
-HOST_SRC = checksum device frame log packet select signals
+HOST_SRC = checksum device export frame iohelpers log packet signals tui
 HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
 
-freemcan-tui : freemcan-tui.o serial-setup.o freemcan-export.o $(HOST_OBJ)
+freemcan-tui-poll : freemcan-tui-main-poll.o serial-setup.o $(HOST_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
+
+freemcan-tui-select : freemcan-tui-main-select.o serial-setup.o $(HOST_OBJ)
+	$(LINK.c) $^ $(LDLIBS) -o $@
+
+freemcan-tui : freemcan-tui-select
+	rm -f "$@"
+	ln "$<" "$@"
 
 test-log : test-log.o freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@

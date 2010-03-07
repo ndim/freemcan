@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_export Export Histogram Files
- * \ingroup hostware_tui
+ * \ingroup hostware_generic
  * @{
  */
 
@@ -34,19 +34,7 @@
 #include "freemcan-log.h"
 
 
-/** Write the given histogram to a newly created file
- *
- * The name of the newly created file is created based on the current
- * local time of day. Given the rate at which we can receive new
- * histograms is much less than one per second, this should avoid file
- * name collisions.
- *
- * If a file of the same name happens to already exist, it will be
- * overwritten.
- *
- * You can process the most recent histogram file with the helper utility
- * "pltHist.pl" within the directory.
- */
+/* documented in freemcan-export.h */
 void export_histogram(const packet_histogram_t *histogram_packet)
 {
   const size_t element_count = histogram_packet->element_count;

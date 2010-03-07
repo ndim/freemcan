@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-select.c
- * \brief select(2) helper functions (implementation)
+/** \file hostware/freemcan-poll.h
+ * \brief poll(2) helpers (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,28 +18,27 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_select Helper functions for select(2) based main loop
- * \ingroup hostware_tui
+ * \defgroup freemcan_poll poll(2) related definitions/documentation
+ * \ingroup mainloop_poll
  *
+ */
+
+#ifndef FREEMCAN_POLL_H
+#define FREEMCAN_POLL_H
+
+#include <poll.h>
+
+/** \addtogroup freemcan_poll
  * @{
  */
 
+/** Event handler function called from main loop */
+typedef void (*poll_handler_t)(struct pollfd *pfd);
 
-#include <sys/ioctl.h>
+/** The common function everyone needs to implement, and main() needs to call */
+typedef void (*poll_setup_t)(struct pollfd *pollfds, poll_handler_t *pollhandlers,
+			     nfds_t *index, const nfds_t limit);
 
-#include "freemcan-log.h"
-#include "freemcan-select.h"
-
-
-int read_size(const int in_fd)
-{
-  int bytes_to_read;
-  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
-  if (r < 0) {
-    fmlog_error("cannot determine number of characters to read from stdin");
-    abort();
-  }
-  return bytes_to_read;
-}
+#endif /* !FREEMCAN_POLL_H */
 
 /** @} */

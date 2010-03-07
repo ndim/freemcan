@@ -1,6 +1,5 @@
-/** \file hostware/freemcan-select.h
- * \brief select(2) helpers (interface)
- *
+/** \file hostware/freemcan-tui.h
+ * \brief Freemcan interactive text user interface (non-ncurses)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -18,38 +17,20 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_select select(2) related definitions/documentation
- * \ingroup mainloop_select
+ * \addtogroup hostware_tui
  *
- */
-
-
-#ifndef FREEMCAN_SELECT_H
-#define FREEMCAN_SELECT_H
-
-/* According to POSIX.1-2001 */
-#include <sys/select.h>
-
-/* According to earlier standards */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-/** \addtogroup freemcan_select
  * @{
  */
 
-/** Setup function main loop needs to call in every iteration
- *
- * \param in_fdset Run FD_SET on this
- * \param maxfd    The old maxfd value
- * \return New maxfd, i.e. MAX(maxfd, our_highest_fd_we_set)
- */
-typedef int (*select_set_in_t)(fd_set *in_fdset, int maxfd);
+#ifndef FREEMCAN_TUI_H
+#define FREEMCAN_TUI_H
 
-/** IO function main loop needs to call in every iteration */
-typedef void (*select_do_io_t)(fd_set *in_fdset);
+bool quit_flag;
+
+void tui_init();
+void tui_do_io(void);
+const char *main_init(int argc, char *argv[]);
+
+#endif /* !FREEMCAN_TUI_H */
 
 /** @} */
-
-#endif /* !FREEMCAN_SELECT_H */

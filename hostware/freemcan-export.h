@@ -28,7 +28,20 @@
 
 #include "freemcan-packet.h"
 
-/** external prototype for gnuplot-export function call */
+/** \brief Write the given histogram to a newly created file
+ * \ingroup freemcan_export
+ *
+ * The name of the newly created file is created based on the current
+ * local time of day. Given the rate at which we can receive new
+ * histograms is much less than one per second, this should avoid file
+ * name collisions.
+ *
+ * If a file of the same name happens to already exist, it will be
+ * overwritten.
+ *
+ * You can plot the most recent histogram with the helper utility
+ * "pltHist.pl" from this very directory.
+ */
 void export_histogram(const packet_histogram_t *histogram_packet);
 
 /** @} */

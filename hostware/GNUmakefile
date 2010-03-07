@@ -59,13 +59,22 @@ freemcan-tui-main-select.o : CFLAGS += -D_GNU_SOURCE
 
 -include $(DEPEND_MK)
 
-HOST_SRC = checksum device export frame iohelpers log packet signals tui
-HOST_OBJ = $(HOST_SRC:%=freemcan-%.o)
+TUI_COMMON_OBJ =
+TUI_COMMON_OBJ += freemcan-checksum.o
+TUI_COMMON_OBJ += freemcan-device.o
+TUI_COMMON_OBJ += freemcan-export.o
+TUI_COMMON_OBJ += freemcan-frame.o
+TUI_COMMON_OBJ += freemcan-iohelpers.o
+TUI_COMMON_OBJ += freemcan-log.o
+TUI_COMMON_OBJ += freemcan-packet.o
+TUI_COMMON_OBJ += freemcan-signals.o
+TUI_COMMON_OBJ += freemcan-tui.o
+TUI_COMMON_OBJ += serial-setup.o
 
-freemcan-tui-poll : freemcan-tui-main-poll.o serial-setup.o $(HOST_OBJ)
+freemcan-tui-poll : freemcan-tui-main-poll.o $(TUI_COMMON_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
-freemcan-tui-select : freemcan-tui-main-select.o serial-setup.o $(HOST_OBJ)
+freemcan-tui-select : freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 freemcan-tui : freemcan-tui-select

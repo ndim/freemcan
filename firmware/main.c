@@ -165,22 +165,20 @@ void wdt_init(void)
  */
 ISR(ADC_vect) {
 
-  uint16_t result;
-
-  /* pull pin 19 to discharge peak hold capacitor */
+  /* pull pin to discharge peak hold capacitor                    */
   /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= BIT(PD5);
+  PORTD |= BIT(PD6);
 
   /* Read analog value */
-  result = ADCW;
+  uint16_t result = ADCW;
 
   /** \todo Can the ADC return values exceeding 9bit? */
   /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
   /* Update histogram: this can be a 8 or a 9 bit index! */
   table[result>>(10-ADC_RESOLUTION)]++;
 
-  /* set pin 19 to GND and release peak hold capacitor   */
-  PORTD &=~ BIT(PD5);
+  /* set pin to GND and release peak hold capacitor   */
+  PORTD &=~ BIT(PD6);
 
   /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
    * Since int0 is only configured but not enabled ISR(INT0_vect){} is
@@ -198,11 +196,10 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign (measurement still in progress LED): */
-  PORTD ^= BIT(PD6);
+  /* toggle a sign PORTD ^= BIT(PD5); (done automatically)         */
 
   if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
+    /* We do not touch the timer_flag ever again after setting it  */
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
@@ -307,15 +304,23 @@ void adc_init(void)
 }
 
 
-/** Configure 16 bit timer to trigger a ISR each 1 second         */
+/** Configure 16 bit timer to trigger an ISR every second         
+ *
+ * Configure "measurement in progress toggle LED-signal"
+ */
 inline static
 void timer_init(void){
 
-  /* Prepare timer 0 control register A for
+  /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;
-
   TCCR1B =  BIT(WGM12);
+
+  /* Configure "measurement in progress LED"                      */
+  /* configure pin 19 as an output */
+  DDRD |= (BIT(DDD5));
+  /* toggle LED pin 19 on compare match automatically             */
+  TCCR1A |= BIT(COM1A0);
 
   /* Prescaler settings on timer conrtrol reg. B                  */
   TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS12)) |
@@ -333,21 +338,15 @@ void timer_init(void){
 /** Initialize peripherals
  *
  * Configure peak hold capacitor reset pin
- * Configure "measurement in progress LED"
  * Configure unused pins
  */
 inline static
 void io_init(void)
 {
-    /* configure pin 20 as an output (measurement in progress LED) */
+    /* configure pin 20 as an output                               */
     DDRD |= (BIT(DDD6));
     /* set pin 20 to ground                                        */
     PORTD &= ~ BIT(PD6);
-
-    /* configure pin 19 as an output (measurement in progress LED) */
-    DDRD |= (BIT(DDD5));
-    /* set pin 19 to ground                                        */
-    PORTD &=~ BIT(PD5);
 
     /** \todo configure unused pins */
 }

@@ -1,4 +1,4 @@
-/** \file freemcan-export.h
+/** \file hostware/freemcan-export.h
  * \brief histogram export functions
  *
  * \author Copyright (C) 2010 samplemaker

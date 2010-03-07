@@ -1,4 +1,4 @@
-/** \file freemcan-packet.h
+/** \file hostware/freemcan-packet.h
  * \brief Data packet parser (layer 3) (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -1,4 +1,4 @@
-/** \file main.c
+/** \file firmware/main.c
  * \brief The firmware for ATmega devices
  *
  * \author Copyright (C) 2009 samplemaker

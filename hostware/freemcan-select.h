@@ -1,4 +1,4 @@
-/** \file freemcan-select.h
+/** \file hostware/freemcan-select.h
  * \brief select(2) helper functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -1,4 +1,4 @@
-/** \file erl_unix_port.c
+/** \file emulator/erl_unix_port.c
  * \brief Specialized Erlang port to interface to AF_UNIX sockets
  *
  * \bug Should perhaps be replaced by kernel-2.13.4/examples/uds_dist

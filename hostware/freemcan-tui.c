@@ -1,4 +1,4 @@
-/** \file freemcan-tui.c
+/** \file hostware/freemcan-tui.c
  * \brief Freemcan interactive text user interface (non-ncurses)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *

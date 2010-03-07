@@ -1,4 +1,4 @@
-/** \file serial-setup.c
+/** \file hostware/serial-setup.c
  * \brief Serial port access code
  *
  * \author Copyright (C) 2001 by Craig Hollabaugh

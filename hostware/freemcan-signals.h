@@ -1,4 +1,4 @@
-/** \file freemcan-signals.h
+/** \file hostware/freemcan-signals.h
  * \brief Common text user interface related signal functions (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

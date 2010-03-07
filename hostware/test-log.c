@@ -1,4 +1,4 @@
-/** \file test-log.c
+/** \file hostware/test-log.c
  * \brief Test the code from freemcan-log.c
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

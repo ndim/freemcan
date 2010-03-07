@@ -1,4 +1,4 @@
-/** \file freemcan-device.h
+/** \file hostware/freemcan-device.h
  * \brief FreeMCAn device (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

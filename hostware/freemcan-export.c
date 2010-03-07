@@ -44,11 +44,8 @@
  * If a file of the same name happens to already exist, it will be
  * overwritten.
  *
- * Use this with the helper utility "plot-freemcan.plt":
- * \todo Fix Gnuplot stuff.
- * type
- * gnuplot load 'plot_freemcan.plt'
- * on the shell
+ * You can process the most recent histogram file with the helper utility
+ * "pltHist.pl" within the directory.
  */
 void export_histogram(const packet_histogram_t *histogram_packet)
 {

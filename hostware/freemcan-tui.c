@@ -271,8 +271,8 @@ void tui_select_do_io(fd_set *in_fdset)
 	fmlog("Key                     Action");
         fmlog("C-c, esc, q, Q, x, X    quit program");
         fmlog("h, H, ?                 show this help message");
-        fmlog("1                       toggle hexdumping of all received layer 1 data (byte stream)");
-        fmlog("2                       toggle hexdumping of all received layer 2 data (frames)");
+        fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
+        fmlog("2                       toggle hexdump of received layer 2 data (frames)");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");

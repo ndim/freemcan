@@ -96,6 +96,10 @@
  * }
  * \enddot
  *
+ * \bug Insert state between measuring and reset to resend histogram
+ *      data and wait for ACK package from host before discarding
+ *      measurement results.
+ *
  */
 
 #ifndef FRAME_DEFS_H

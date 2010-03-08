@@ -20,6 +20,9 @@
  *
  * \defgroup freemcan_device Device Interface
  * \ingroup hostware_generic
+ *
+ * \todo Use libftdi to interface to the USB->RS232 adapter?
+ *
  * @{
  */
 

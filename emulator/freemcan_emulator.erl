@@ -102,6 +102,10 @@ fsm(ready, {measure, Seconds}) ->
     {{measuring, 0, Seconds}, status_packet("Measuring"), 1000};
 fsm(ready, reset) ->
     {reset, none, 100};
+fsm(ready, abort) ->
+    {ready, status_packet("READY"), none};
+fsm(ready, intermediate) ->
+    {ready, status_packet("READY"), none};
 
 fsm({measuring, SecondsDone, _SecondsTotal}, abort) ->
     {reset, histogram_packet(aborted, histogram_emulator:histogram(SecondsDone)), 10};

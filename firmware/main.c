@@ -196,10 +196,10 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign PORTD ^= BIT(PD5); (done automatically)         */
+  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
 
   if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it  */
+    /* We do not touch the timer_flag ever again after setting it */
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */

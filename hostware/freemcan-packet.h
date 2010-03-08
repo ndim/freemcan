@@ -25,6 +25,8 @@
 #ifndef FREEMCAN_PACKET_H
 #define FREEMCAN_PACKET_H
 
+#include <time.h>
+
 #include "packet-defs.h"
 
 
@@ -36,6 +38,9 @@ typedef struct {
 
   /** Size of a single histogram element in bytes (1,2,4,8) */
   uint8_t element_size;
+
+  /** Timestamp when package was received */
+  time_t receive_time;
 
   /** Number of elements in histogram array */
   size_t element_count;

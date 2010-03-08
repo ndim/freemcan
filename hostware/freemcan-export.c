@@ -39,8 +39,7 @@ void export_histogram(const packet_histogram_t *histogram_packet)
 {
   const size_t element_count = histogram_packet->element_count;
   const size_t element_size = histogram_packet->element_size;
-  const time_t t = time(NULL);
-  const struct tm *tm_ = localtime(&t);
+  const struct tm *tm_ = localtime(&histogram_packet->receive_time);
   assert(tm_);
   char type = 'X';
   switch (histogram_packet->type) {

@@ -58,6 +58,7 @@ void frame_handler(const frame_t *frame)
       const size_t element_count = hist_size/element_size;
       packet_histogram_t hist;
       hist.type = frame->payload[1];
+      hist.receive_time = time(NULL);
       hist.element_size = element_size;
       hist.element_count = element_count;
       hist.elements.e8 = &(frame->payload[2]);

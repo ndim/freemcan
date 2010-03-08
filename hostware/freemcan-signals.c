@@ -1,4 +1,4 @@
-/** \file freemcan-signals.c
+/** \file hostware/freemcan-signals.c
  * \brief Common text user interface related signal functions (implementation)
  * \ingroup hostware_tui
  *

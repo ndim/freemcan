@@ -1,4 +1,4 @@
-%%% \file freemcan_emulator.erl
+%%% \file emulator/freemcan_emulator.erl
 %%% \brief Emulate freemcan hardware as it talks via the serial interface
 %%%
 %%% \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

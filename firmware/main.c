@@ -1,4 +1,4 @@
-/** \file main.c
+/** \file firmware/main.c
  * \brief The firmware for ATmega devices
  *
  * \author Copyright (C) 2009 samplemaker
@@ -196,10 +196,10 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign PORTD ^= BIT(PD5); (done automatically)         */
+  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
 
   if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it  */
+    /* We do not touch the timer_flag ever again after setting it */
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
@@ -358,6 +358,9 @@ void io_init(void)
  *             (#packet_histogram_type_t).  You may also a dummy value
  *             like '?' or -1 or 0xff or 0 until you make use of that
  *             value on the receiver side.
+ *
+ * \bug Disable timer counting while we are busy sending data and thus
+ *      not measuring.
  */
 static
 void send_histogram(const packet_histogram_type_t type)
@@ -515,6 +518,7 @@ int main(void)
 	case FRAME_CMD_INTERMEDIATE:
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
+	  /** \bug reset peak-hold capacitor before resuming proper measuring */
 	  sei();
 	  /* NEXT_STATE: MEASURING */
 	  break;

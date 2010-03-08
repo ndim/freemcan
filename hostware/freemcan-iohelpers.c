@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-checksum.h
- * \brief Checksum for layer 2 frames (interface)
+/** \file freemcan-iohelpers.c
+ * \brief select(2) helper functions (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,33 +18,28 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup freemcan_frame_checksum
+ * \defgroup freemcan_iohelpers Generic IO helper functions
+ * \ingroup hostware_generic
+ *
  * @{
  */
 
 
-#ifndef FREEMCAN_CHECKSUM_H
-#define FREEMCAN_CHECKSUM_H
+#include <sys/ioctl.h>
 
-#include <stdbool.h>
-#include <stdlib.h>
-
-#include "frame-defs.h"
+#include "freemcan-log.h"
+#include "freemcan-iohelpers.h"
 
 
-/** Reset checksum state machine */
-void checksum_reset(void);
-
-/** Update checksum state machine with value */
-void checksum_update(const uint8_t value);
-
-/** Write checksum to file descriptor */
-void checksum_write(const int fd);
-
-/** Match value against internal checksum state */
-bool checksum_match(const uint8_t value);
-
+int read_size(const int in_fd)
+{
+  int bytes_to_read;
+  int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
+  if (r < 0) {
+    fmlog_error("cannot determine number of characters to read from stdin");
+    abort();
+  }
+  return bytes_to_read;
+}
 
 /** @} */
-
-#endif /* !FREEMCAN_CHECKSUM_H */

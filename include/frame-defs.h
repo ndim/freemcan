@@ -1,4 +1,4 @@
-/** \file frame-defs.h
+/** \file include/frame-defs.h
  * \brief Data frame definitions (layer 2)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -95,6 +95,10 @@
  *   measuring -> reset [ label="done\nhistogram 'done'" ];
  * }
  * \enddot
+ *
+ * \bug Insert state between measuring and reset to resend histogram
+ *      data and wait for ACK package from host before discarding
+ *      measurement results.
  *
  */
 

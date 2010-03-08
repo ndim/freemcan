@@ -1,4 +1,4 @@
-/** \file freemcan-tui.c
+/** \file hostware/freemcan-tui.c
  * \brief Freemcan interactive text user interface (non-ncurses)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -17,7 +17,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup hostware_tui Text User Interface
+ * \defgroup hostware_tui Text User Interface (TUI)
  * \ingroup hostware
  *
  * The text user interface is an interactive frontend to the MCA
@@ -54,9 +54,9 @@
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
 #include "freemcan-export.h"
+#include "freemcan-iohelpers.h"
 #include "freemcan-log.h"
-#include "freemcan-select.h"
-#include "freemcan-signals.h"
+#include "freemcan-tui.h"
 
 
 /* Forward declaration */
@@ -66,7 +66,7 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 
 
 /** Quit flag for the main loop. */
-static bool quit_flag = false;
+bool quit_flag = false;
 
 
 /************************************************************************/
@@ -165,7 +165,8 @@ static void sigabrt_handler(int i __attribute__((unused)))
 
 
 /** Initialize ABRT signal handling */
-static void sigabrt_init()
+static void sigabrt_init(void) __attribute__((constructor));
+static void sigabrt_init(void)
 {
   sighandler_t abrt_handler __attribute__((unused))
     = signal(SIGABRT, sigabrt_handler);
@@ -211,29 +212,15 @@ void tui_init()
 
 
 /**
- * \defgroup freemcan_tui_select TUI handling for select(2) based main loop
+ * \defgroup freemcan_tui_io TUI IO handling
  * \ingroup hostware_tui
+ * @{
  */
 
-
-/** Set up select() data structure with (ncurses based) text UI
- * \ingroup freemcan_tui_select
+/** Do TUI's IO stuff if necessary (from select or poll loop)
  */
-int tui_select_set_in(fd_set *in_fdset, int maxfd)
+void tui_do_io(void)
 {
-  FD_SET(STDIN_FILENO, in_fdset);
-  if (STDIN_FILENO > maxfd) return STDIN_FILENO;
-  else return maxfd;
-}
-
-
-/** Do TUI's IO stuff if necessary (from select loop)
- * \ingroup freemcan_tui_select
- */
-void tui_select_do_io(fd_set *in_fdset)
-{
-  /* user interface do_io */
-  if (FD_ISSET(STDIN_FILENO, in_fdset)) {
     const int bytes_to_read = read_size(STDIN_FILENO);
     if (bytes_to_read == 0) {
       fmlog("EOF from stdin, exiting.\n");
@@ -271,8 +258,8 @@ void tui_select_do_io(fd_set *in_fdset)
 	fmlog("Key                     Action");
         fmlog("C-c, esc, q, Q, x, X    quit program");
         fmlog("h, H, ?                 show this help message");
-        fmlog("1                       toggle hexdumping of all received layer 1 data (byte stream)");
-        fmlog("2                       toggle hexdumping of all received layer 2 data (frames)");
+        fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
+        fmlog("2                       toggle hexdump of received layer 2 data (frames)");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");
@@ -295,8 +282,9 @@ void tui_select_do_io(fd_set *in_fdset)
       /* No "default:" case as we ignore all other characters. */
       }
     }
-  }
 }
+
+/** @} */
 
 
 /** TUI specific cleanup function
@@ -315,7 +303,8 @@ void atexit_func(void)
 
 
 /************************************************************************/
-/** \section tui_data_handling Data Handling (Layer 4)
+/** \defgroup tui_data_handling Data Handling (Layer 4)
+ * \ingroup freemcan_tui
  * @{
  */
 /************************************************************************/
@@ -358,15 +347,11 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
 /** @} */
 
 
-/************************************************************************/
-/** \section tui_main Main Program With Main Loop
- * @{
+/** Init TUI main loop (select/poll independent)
+ *
+ * Parse command line parameters, etc.
  */
-/************************************************************************/
-
-
-/** TUI's main program with select(2) based main loop */
-int main(int argc, char *argv[])
+const char *main_init(int argc, char *argv[])
 {
   assert(argv[0]);
   if (argc != 2) {
@@ -382,61 +367,13 @@ int main(int argc, char *argv[])
   assert(isatty(STDIN_FILENO));
   assert(isatty(STDOUT_FILENO));
 
-  const char *device_name = argv[1];
-
   if (0 != atexit(atexit_func)) {
     fmlog_error("atexit() failed");
     abort();
   }
 
-  /** device init */
-  dev_init(device_name);
-
-  /** initialize output module */
-  tui_init();
-
-  /** initialize signal stuff */
-  sigabrt_init();
-
-  /** main loop */
-  int counter = 0;
-  fmlog("Entering main loop... (%d)", counter++);
-
-  while (1) {
-    fd_set in_fdset;
-    FD_ZERO(&in_fdset);
-
-    int max_fd = -1;
-    max_fd = tui_select_set_in(&in_fdset, max_fd);
-    max_fd = dev_select_set_in(&in_fdset, max_fd);
-    assert(max_fd >= 0);
-
-    const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
-    if (n<0) { /* error */
-      if (errno != EINTR) {
-	fmlog_error("select");
-	abort();
-      }
-    } else if (0 == n) { /* timeout */
-      fmlog("select(2) timeout\n");
-      abort();
-    } else { /* n>0 */
-      dev_select_do_io(&in_fdset);
-      tui_select_do_io(&in_fdset);
-    }
-
-    if (sigint || sigterm || quit_flag) {
-      break;
-    }
-
-  } /* main loop */
-
-  /* clean up */
-  dev_fini();
-
-  /* implicitly call atexit_func */
-  exit(EXIT_SUCCESS);
+  return argv[1];
 }
 
-/** @} */
+
 /** @} */

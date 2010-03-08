@@ -1,4 +1,4 @@
-/** \file freemcan-device.c
+/** \file hostware/freemcan-device.c
  * \brief FreeMCAn device (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -20,6 +20,9 @@
  *
  * \defgroup freemcan_device Device Interface
  * \ingroup hostware_generic
+ *
+ * \todo Use libftdi to interface to the USB->RS232 adapter?
+ *
  * @{
  */
 
@@ -44,13 +47,15 @@
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
 #include "freemcan-log.h"
-#include "freemcan-select.h"
+#include "freemcan-iohelpers.h"
 #include "serial-setup.h"
 
 
+/** File descriptor of device special file */
 static int device_fd = -1;
 
 
+/** Open character special device file with proper setup (to hardware device) */
 static
 void open_char_device(const char *device_name)
 {
@@ -60,6 +65,7 @@ void open_char_device(const char *device_name)
 }
 
 
+/** Open AF_UNIX domain socket (to device emulator) */
 static
 void open_unix_socket(const char *socket_name)
 {
@@ -134,29 +140,14 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
 }
 
 
-/** @} */
-
-
-/**
- * \defgroup freemcan_device_select Device Handling for select(2) based main loop (Layer 1)
- * \ingroup hostware_tui
- * @{
+/** Do the actual IO
+ *
+ * Can be called from either the select(2) or poll(2) based main loop
+ * hook functions (#dev_select_do_io, #dev_poll_handler).
  */
-
-
-int dev_select_set_in(fd_set *in_fdset, int maxfd)
+static
+void dev_do_io(void)
 {
-  assert(device_fd > 0);
-  FD_SET(device_fd, in_fdset);
-  if (device_fd > maxfd) return device_fd;
-  else return maxfd;
-}
-
-
-void dev_select_do_io(fd_set *in_fdset)
-{
-  assert(device_fd > 0);
-  if (FD_ISSET(device_fd, in_fdset)) {
     const int bytes_to_read = read_size(device_fd);
     if (bytes_to_read == 0) {
       fmlog("EOF via device fd %d", device_fd);
@@ -175,6 +166,73 @@ void dev_select_do_io(fd_set *in_fdset)
       fmlog_data(buf, read_bytes);
     }
     frame_parse_bytes(buf, read_bytes);
+}
+
+
+/** @} */
+
+
+/**
+ * \defgroup freemcan_device_poll Device Handling for poll(2) based main loop (Layer 1)
+ * \ingroup mainloop_poll
+ * \ingroup freemcan_device
+ * @{
+ */
+
+
+/** Handle available input detected by poll */
+static
+void dev_poll_handler(struct pollfd *pfd)
+{
+  assert(device_fd > 0);
+  if (pfd->revents & POLLIN) {
+    dev_do_io();
+  }
+}
+
+
+/* documented in dfreemcan-device.h */
+void dev_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
+		    nfds_t *index, const nfds_t limit)
+{
+  assert(device_fd > 0);
+  assert(index);
+  assert(*index < limit);
+  pollfds[*index].fd = device_fd;
+  pollfds[*index].events = POLLIN;
+  pollfds[*index].revents = 0;
+  pollhandlers[*index] = dev_poll_handler;
+  (*index)++;
+}
+
+
+/** @} */
+
+
+/**
+ * \defgroup freemcan_device_select Device Handling for select(2) based main loop (Layer 1)
+ * \ingroup mainloop_select
+ * \ingroup freemcan_device
+ * @{
+ */
+
+
+/* documented in dfreemcan-device.h */
+int dev_select_set_in(fd_set *in_fdset, int maxfd)
+{
+  assert(device_fd > 0);
+  FD_SET(device_fd, in_fdset);
+  if (device_fd > maxfd) return device_fd;
+  else return maxfd;
+}
+
+
+/* documented in dfreemcan-device.h */
+void dev_select_do_io(fd_set *in_fdset)
+{
+  assert(device_fd > 0);
+  if (FD_ISSET(device_fd, in_fdset)) {
+    dev_do_io();
   }
 }
 

@@ -1,4 +1,4 @@
-/** \file global.h
+/** \file firmware/global.h
  * \brief Global adjustments for freemcan firmware
  *
  * \author Copyright (C) 2010 samplemaker

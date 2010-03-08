@@ -1,4 +1,4 @@
-/** \file histogram.c
+/** \file code-comparison/histogram.c
  * \brief Generic histogram code for comparing the generated machine code
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

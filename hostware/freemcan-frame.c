@@ -1,4 +1,4 @@
-/** \file freemcan-frame.c
+/** \file hostware/freemcan-frame.c
  * \brief Data frame parser (layer 2) (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

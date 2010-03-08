@@ -1,6 +1,5 @@
-/** \file hostware/freemcan-checksum.h
- * \brief Checksum for layer 2 frames (interface)
- *
+/** \file hostware/freemcan-tui.h
+ * \brief Freemcan interactive text user interface (non-ncurses)
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -18,33 +17,20 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup freemcan_frame_checksum
+ * \addtogroup hostware_tui
+ *
  * @{
  */
 
+#ifndef FREEMCAN_TUI_H
+#define FREEMCAN_TUI_H
 
-#ifndef FREEMCAN_CHECKSUM_H
-#define FREEMCAN_CHECKSUM_H
+bool quit_flag;
 
-#include <stdbool.h>
-#include <stdlib.h>
+void tui_init();
+void tui_do_io(void);
+const char *main_init(int argc, char *argv[]);
 
-#include "frame-defs.h"
-
-
-/** Reset checksum state machine */
-void checksum_reset(void);
-
-/** Update checksum state machine with value */
-void checksum_update(const uint8_t value);
-
-/** Write checksum to file descriptor */
-void checksum_write(const int fd);
-
-/** Match value against internal checksum state */
-bool checksum_match(const uint8_t value);
-
+#endif /* !FREEMCAN_TUI_H */
 
 /** @} */
-
-#endif /* !FREEMCAN_CHECKSUM_H */

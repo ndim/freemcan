@@ -1,4 +1,4 @@
-/** \file uart-printf.h
+/** \file firmware/uart-printf.h
  * \brief Interface to printf via UART
  *
  * \author Copyright (C) 2010 samplemaker

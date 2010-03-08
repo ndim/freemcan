@@ -1,4 +1,4 @@
-/** \file freemcan-log.h
+/** \file hostware/freemcan-log.h
  * \brief Logging mechanism interface
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

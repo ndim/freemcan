@@ -1,4 +1,4 @@
-/** \file serial-setup.h
+/** \file hostware/serial-setup.h
  * \brief Serial port access code interface
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -1,4 +1,4 @@
-/** \file freemcan-device.h
+/** \file hostware/freemcan-device.h
  * \brief FreeMCAn device (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -35,18 +35,13 @@
 #include <unistd.h>
 
 #include "frame-defs.h"
+#include "freemcan-poll.h"
 
 /** Open device */
 void dev_init(const char *device_name);
 
 /** Close device */
 void dev_fini(void);
-
-/** Set up select() data structure with device data */
-int  dev_select_set_in(fd_set *in_fdset, int maxfd);
-
-/** Do device's IO stuff if necessary (from select loop) */
-void dev_select_do_io(fd_set *in_fdset);
 
 /** Write a command to the device.
  *
@@ -57,5 +52,24 @@ void dev_select_do_io(fd_set *in_fdset);
 void dev_command(const frame_cmd_t cmd, const uint16_t param);
 
 /** @} */
+
+/** \fn dev_poll_setup
+ * \brief Set up device's IO stuff (from poll(2) loop)
+ *\ingroup freemcan_device_poll
+ */
+void dev_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
+		    nfds_t *index, const nfds_t limit);
+
+/** \fn dev_select_set_in
+ * \brief Set up select() data structure with device data
+ * \ingroup freemcan_device_select
+ */
+int  dev_select_set_in(fd_set *in_fdset, int maxfd);
+
+/** \fn dev_select_do_io
+ * \brief Do device's IO stuff if necessary (from select loop)
+ * \ingroup freemcan_device_select
+ */
+void dev_select_do_io(fd_set *in_fdset);
 
 #endif /* !FREEMCAN_DEVICE_H */

@@ -1,4 +1,4 @@
-/** \file freemcan-export.c
+/** \file hostware/freemcan-export.c
  * \brief histogram export functions
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup freemcan_export Export Histogram Files
- * \ingroup hostware_tui
+ * \ingroup hostware_generic
  * @{
  */
 
@@ -34,25 +34,11 @@
 #include "freemcan-log.h"
 
 
-/** Write the given histogram to a newly created file
- *
- * The name of the newly created file is created based on the current
- * local time of day. Given the rate at which we can receive new
- * histograms is much less than one per second, this should avoid file
- * name collisions.
- *
- * If a file of the same name happens to already exist, it will be
- * overwritten.
- *
- * You can process the most recent histogram file with the helper utility
- * "pltHist.pl" within the directory.
- */
-void export_histogram(const packet_histogram_t *histogram_packet)
+/* documented in freemcan-export.h */
+char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
+				    const char *extension)
 {
-  const size_t element_count = histogram_packet->element_count;
-  const size_t element_size = histogram_packet->element_size;
-  const time_t t = time(NULL);
-  const struct tm *tm_ = localtime(&t);
+  const struct tm *tm_ = localtime(&histogram_packet->receive_time);
   assert(tm_);
   char type = 'X';
   switch (histogram_packet->type) {
@@ -64,8 +50,18 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   }
   char date[128];
   strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
-  char fname[256];
-  snprintf(fname, sizeof(fname), "hist.%s.%c.dat", date, type);
+  static char fname[256];
+  snprintf(fname, sizeof(fname), "hist.%s.%c.%s", date, type, extension);
+  return fname;
+}
+
+
+/* documented in freemcan-export.h */
+void export_histogram(const packet_histogram_t *histogram_packet)
+{
+  const size_t element_count = histogram_packet->element_count;
+  const size_t element_size = histogram_packet->element_size;
+  const char *fname = export_histogram_get_filename(histogram_packet, "dat");
   FILE *histfile = fopen(fname, "w");
   assert(histfile);
   fmlog("Writing histogram to file %s", fname);

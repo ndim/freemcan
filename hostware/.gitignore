@@ -2,6 +2,8 @@
 /*.strace
 /.depend.mk
 /freemcan-tui
+/freemcan-tui-poll
+/freemcan-tui-select
 /freemcan-tui.log
 /hist.*.dat
 /querySerial

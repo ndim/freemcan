@@ -1,4 +1,4 @@
-/** \file uart-comm.c
+/** \file firmware/uart-comm.c
  * \brief ATmega UART communication implementation (layer 1)
  *
  * \author Copyright (C) 2010 samplemaker

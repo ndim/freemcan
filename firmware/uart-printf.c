@@ -1,4 +1,4 @@
-/** \file uart-printf.c
+/** \file firmware/uart-printf.c
  * \brief Implement printf via UART
  *
  * \author Copyright (C) 2010 samplemaker

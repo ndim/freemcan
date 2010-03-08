@@ -1,4 +1,4 @@
-/** \file freemcan-checksum.c
+/** \file hostware/freemcan-checksum.c
  * \brief Checksum for layer 2 frames (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -1,4 +1,4 @@
-/** \file packet-defs.h
+/** \file include/packet-defs.h
  * \brief Data packet definitions (layer 3)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

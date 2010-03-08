@@ -1,4 +1,4 @@
-/** \file querySerial.c
+/** \file hostware/querySerial.c
  * \brief Serial port access code template for further use in freemcan.
  *
  * \author Copyright (C) 2001 by Craig Hollabaugh

@@ -10,8 +10,9 @@ gauss(Sigma, X) ->
 
 histogram(Seconds) ->
     ElementCount = 512,
-    Sigma = 25,
-    Peaks = [60, 150],
-    [ round(Seconds*170*lists:sum([ gauss(Sigma, (N-P)) || P <- Peaks ]))
+    Peaks = [{60, 1, 25}, {150,1.5,30}, {220, 0.6, 20}],
+    [ round(Seconds*100.0*lists:sum([ F*gauss(S, (N-P))
+				    || {P,F,S} <- Peaks ]) +
+	    2.0*random:uniform())
       || N <- lists:seq(1,ElementCount)].
 

@@ -35,10 +35,9 @@
 
 
 /* documented in freemcan-export.h */
-void export_histogram(const packet_histogram_t *histogram_packet)
+char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
+				    const char *extension)
 {
-  const size_t element_count = histogram_packet->element_count;
-  const size_t element_size = histogram_packet->element_size;
   const struct tm *tm_ = localtime(&histogram_packet->receive_time);
   assert(tm_);
   char type = 'X';
@@ -51,8 +50,18 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   }
   char date[128];
   strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
-  char fname[256];
-  snprintf(fname, sizeof(fname), "hist.%s.%c.dat", date, type);
+  static char fname[256];
+  snprintf(fname, sizeof(fname), "hist.%s.%c.%s", date, type, extension);
+  return fname;
+}
+
+
+/* documented in freemcan-export.h */
+void export_histogram(const packet_histogram_t *histogram_packet)
+{
+  const size_t element_count = histogram_packet->element_count;
+  const size_t element_size = histogram_packet->element_size;
+  const char *fname = export_histogram_get_filename(histogram_packet, "dat");
   FILE *histfile = fopen(fname, "w");
   assert(histfile);
   fmlog("Writing histogram to file %s", fname);

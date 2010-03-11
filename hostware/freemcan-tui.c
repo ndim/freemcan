@@ -50,6 +50,8 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
+#include "compiler.h"
+
 #include "freemcan-device.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
@@ -60,9 +62,9 @@
 
 
 /* Forward declaration */
-static void packet_handler_status(const char *status);
-static void packet_handler_text(const char *text);
-static void packet_handler_histogram(const packet_histogram_t *histogram_packet);
+static void packet_handler_status(const char *status, void *data);
+static void packet_handler_text(const char *text, void *data);
+static void packet_handler_histogram(const packet_histogram_t *histogram_packet, void *data);
 
 
 /** Quit flag for the main loop. */
@@ -205,7 +207,8 @@ void tui_init()
 
   packet_set_handlers(packet_handler_histogram,
 		      packet_handler_status,
-		      packet_handler_text);
+		      packet_handler_text,
+		      NULL);
 
   fmlog("Text user interface (TUI) set up");
 }
@@ -311,21 +314,22 @@ void atexit_func(void)
 
 
 /** Status data packet handler (TUI specific) */
-static void packet_handler_status(const char *status)
+static void packet_handler_status(const char *status, void *UP(data))
 {
   fmlog("STATUS: %s", status);
 }
 
 
 /** Text data packet handler (TUI specific) */
-static void packet_handler_text(const char *text)
+static void packet_handler_text(const char *text, void *UP(data))
 {
   fmlog("TEXT: %s", text);
 }
 
 
 /** Histogram data packet handler (TUI specific) */
-static void packet_handler_histogram(const packet_histogram_t *histogram_packet)
+static void packet_handler_histogram(const packet_histogram_t *histogram_packet,
+				     void *UP(data))
 {
   const size_t element_count = histogram_packet->element_count;
   const size_t element_size = histogram_packet->element_size;

@@ -35,6 +35,7 @@
 static packet_handler_histogram_t packet_handler_histogram = NULL;
 static packet_handler_status_t    packet_handler_status = NULL;
 static packet_handler_text_t      packet_handler_text = NULL;
+static void *                     packet_handler_data = NULL;
 
 
 static
@@ -43,12 +44,12 @@ void frame_handler(const frame_t *frame)
   switch (frame->type) {
   case FRAME_TYPE_STATUS:
     if (packet_handler_status) {
-      packet_handler_status((const char *)frame->payload);
+      packet_handler_status((const char *)frame->payload, packet_handler_data);
     }
     return;
   case FRAME_TYPE_TEXT:
     if (packet_handler_text) {
-      packet_handler_text((const char *)frame->payload);
+      packet_handler_text((const char *)frame->payload, packet_handler_data);
     }
     return;
   case FRAME_TYPE_HISTOGRAM:
@@ -62,7 +63,7 @@ void frame_handler(const frame_t *frame)
       hist.element_size = element_size;
       hist.element_count = element_count;
       hist.elements.e8 = &(frame->payload[2]);
-      packet_handler_histogram(&hist);
+      packet_handler_histogram(&hist, packet_handler_data);
     }
     return;
   /* No "default:" case on purpose: Let compiler complain about
@@ -81,17 +82,20 @@ void packet_reset_handlers()
   packet_handler_histogram = NULL;
   packet_handler_status = NULL;
   packet_handler_text = NULL;
+  packet_handler_data = NULL;
   frame_reset_handler();
 }
 
 
 void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
 			 packet_handler_status_t status_packet_handler,
-			 packet_handler_text_t text_packet_handler)
+			 packet_handler_text_t text_packet_handler,
+			 void *data)
 {
   packet_handler_histogram = histogram_packet_handler;
   packet_handler_status = status_packet_handler;
   packet_handler_text = text_packet_handler;
+  packet_handler_data = data;
   frame_set_handler(frame_handler);
 }
 

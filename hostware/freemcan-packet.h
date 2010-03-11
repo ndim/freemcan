@@ -62,13 +62,14 @@ typedef struct {
 
 
 /** Callback function type called when histogram packet arrives */
-typedef void (*packet_handler_histogram_t)(const packet_histogram_t *packet_histogram);
+typedef void (*packet_handler_histogram_t)(const packet_histogram_t *packet_histogram,
+					   void *data);
 
 /** Callback function type called when status packet arrives */
-typedef void (*packet_handler_status_t)(const char *status);
+typedef void (*packet_handler_status_t)(const char *status, void *data);
 
 /** Callback function type called when text packet arrives */
-typedef void (*packet_handler_text_t)(const char *status);
+typedef void (*packet_handler_text_t)(const char *status, void *data);
 
 
 /** Reset packet handler callbacks.
@@ -86,7 +87,8 @@ void packet_reset_handlers();
  */
 void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
 			 packet_handler_status_t status_packet_handler,
-			 packet_handler_text_t text_packet_handler);
+			 packet_handler_text_t text_packet_handler,
+			 void *data);
 
 /** @} */
 

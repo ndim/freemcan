@@ -5,6 +5,7 @@
 #include <poll.h>
 
 #include "freemcan-device.h"
+#include "freemcan-device-poll.h"
 #include "freemcan-log.h"
 #include "freemcan-signals.h"
 #include "freemcan-tui.h"
@@ -47,6 +48,7 @@ void tui_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
  */
 /************************************************************************/
 
+
 /** TUI's main program with poll(2) based main loop
  *
  * \todo To be implemented.
@@ -54,8 +56,9 @@ void tui_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
 int main(int argc, char *argv[])
 {
   const char *device_name = main_init(argc, argv);
+
   /** device init */
-  dev_init(device_name);
+  device_poll_init(device_name);
 
   /** initialize output module */
   tui_init();
@@ -64,7 +67,7 @@ int main(int argc, char *argv[])
   struct pollfd pollfds[MAX_POLLFDS];
   poll_handler_t pollhandlers[MAX_POLLFDS];
   nfds_t index = 0;
-  dev_poll_setup(pollfds, pollhandlers, &index, MAX_POLLFDS);
+  device_poll_setup(pollfds, pollhandlers, &index, MAX_POLLFDS);
   tui_poll_setup(pollfds, pollhandlers, &index, MAX_POLLFDS);
   assert(index > 0);
 
@@ -94,7 +97,7 @@ int main(int argc, char *argv[])
   } /* main loop */
 
   /* clean up */
-  dev_fini();
+  device_poll_fini();
   tui_fini();
 
   /* implicitly call atexit_func */

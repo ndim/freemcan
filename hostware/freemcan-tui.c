@@ -285,15 +285,15 @@ void tui_do_io(void)
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
-	dev_command(buf[i], 0);
+	tui_device_send_command(buf[i], 0);
 	break;
       case FRAME_CMD_MEASURE: /* 'm' */
 	/* "SHORT" measurement */
-	dev_command(FRAME_CMD_MEASURE, 10);
+	tui_device_send_command(FRAME_CMD_MEASURE, 10);
 	break;
       case 'M': /* 'm' */
 	/* "LONG" measurement */
-	dev_command(FRAME_CMD_MEASURE, 30);
+	tui_device_send_command(FRAME_CMD_MEASURE, 30);
 	break;
       /* No "default:" case as we ignore all other characters. */
       }

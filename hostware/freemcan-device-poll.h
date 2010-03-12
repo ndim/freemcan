@@ -1,5 +1,6 @@
-/** \file hostware/freemcan-tui.h
- * \brief Freemcan interactive text user interface (non-ncurses)
+/** \file hostware/freemcan-device-poll.h
+ * \brief FreeMCAn device poll(2) support (interface)
+ *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -17,28 +18,36 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup hostware_tui
- *
+ */
+
+
+#ifndef FREEMCAN_DEVICE_POLL_H
+#define FREEMCAN_DEVICE_POLL_H
+
+
+#include <poll.h>
+#include "freemcan-poll.h"
+
+
+/**
+ * \addtogroup freemcan_device_poll
  * @{
  */
 
-#ifndef FREEMCAN_TUI_H
-#define FREEMCAN_TUI_H
 
-#include <stdbool.h>
-
-bool quit_flag;
-
-void tui_init();
-void tui_fini();
-void tui_do_io(void);
-const char *main_init(int argc, char *argv[]);
+/** \fn device_poll_setup
+ * \brief Set up device's IO stuff (from poll(2) loop)
+ *\ingroup freemcan_device_poll
+ */
+void device_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
+		       nfds_t *index, const nfds_t limit);
 
 
-typedef void (*send_command_f)(const frame_cmd_t cmd, const uint16_t param);
-extern send_command_f tui_device_send_command;
+void device_poll_init(const char *device_name);
+void device_poll_fini(void);
 
-
-#endif /* !FREEMCAN_TUI_H */
 
 /** @} */
+
+
+#endif /* !FREEMCAN_DEVICE_POLL_H */

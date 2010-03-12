@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "freemcan-device.h"
+#include "freemcan-device-select.h"
 #include "freemcan-log.h"
 #include "freemcan-signals.h"
 #include "freemcan-tui.h"
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
   const char *device_name = main_init(argc, argv);
 
   /** device init */
-  dev_init(device_name);
+  device_select_init(device_name);
 
   /** initialize output module */
   tui_init();
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
 
     int max_fd = -1;
     max_fd = tui_select_set_in(&in_fdset, max_fd);
-    max_fd = dev_select_set_in(&in_fdset, max_fd);
+    max_fd = device_select_set_in(&in_fdset, max_fd);
     assert(max_fd >= 0);
 
     const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
       fmlog("select(2) timeout");
       abort();
     } else { /* n>0 */
-      dev_select_do_io(&in_fdset);
+      device_select_do_io(&in_fdset);
       tui_select_do_io(&in_fdset);
     }
 
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
   } /* main loop */
 
   /* clean up */
-  dev_fini();
+  device_select_fini();
   tui_fini();
 
   /* implicitly call atexit_func */

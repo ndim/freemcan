@@ -48,43 +48,54 @@
 #include "freemcan-frame.h"
 #include "freemcan-log.h"
 #include "freemcan-iohelpers.h"
+#include "freemcan-tui.h"
 #include "serial-setup.h"
 
 
-/** File descriptor of device special file */
-static int device_fd = -1;
+send_command_f tui_device_send_command;
 
 
 /** Open character special device file with proper setup (to hardware device) */
 static
-void open_char_device(const char *device_name)
+int open_char_device(const char *device_name)
 {
   fmlog("%s: opening character device %s", __PRETTY_FUNCTION__, device_name);
-  device_fd = serial_open(device_name);
-  serial_setup(device_fd, serial_string_to_baud("9600"));
+  int fd = serial_open(device_name);
+  if (fd < 0) {
+    return -1;
+  }
+  serial_setup(fd, serial_string_to_baud("9600"));
+  return fd;
 }
 
 
 /** Open AF_UNIX domain socket (to device emulator) */
 static
-void open_unix_socket(const char *socket_name)
+int open_unix_socket(const char *socket_name)
 {
   fmlog("%s: opening AF_UNIX socket %s", __PRETTY_FUNCTION__, socket_name);
   const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock < 0) {
+    fmlog_error("socket(2)");
+    return -1;
+  }
+
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
   assert(strlen(socket_name) < sizeof(addr.sun_path));
   strcpy(addr.sun_path, socket_name);
   const int connect_ret = connect(sock, (const struct sockaddr *)&addr, sizeof(addr));
   if (connect_ret < 0) {
-    fmlog_error("connect");
-    abort();
+    fmlog_error("connect(2)");
+    close(sock);
+    return -1;
   }
-  device_fd = sock;
+
+  return sock;
 }
 
 
-void dev_init(const char *device_name)
+int device_open(const char *device_name)
 {
   struct stat sb;
   const int stat_ret = stat(device_name, &sb);
@@ -93,26 +104,25 @@ void dev_init(const char *device_name)
     abort();
   }
   if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
-    open_char_device(device_name);
+    return open_char_device(device_name);
   } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
-    open_unix_socket(device_name);
+    return open_unix_socket(device_name);
   } else {
     fmlog("device of unknown type: %s", device_name);
-    abort();
+    return -1;
   }
-  assert(device_fd > 0);
-  fmlog("device_fd = %d", device_fd);
 }
 
 
-void dev_fini(void)
+void device_close(const int device_fd)
 {
   assert(device_fd > 0);
   close(device_fd);
 }
 
 
-void dev_command(const frame_cmd_t cmd, const uint16_t param)
+void device_send_command(const int fd,
+			 const frame_cmd_t cmd, const uint16_t param)
 {
   fmlog("Sending %c command to device (param=%d=0x%04x)",
 	cmd, param, param);
@@ -122,118 +132,45 @@ void dev_command(const frame_cmd_t cmd, const uint16_t param)
     if (1) {
       checksum_reset();
       const uint8_t cmd8 = cmd;
-      write(device_fd, &cmd8, 1);
+      write(fd, &cmd8, 1);
       checksum_update(cmd8);
       const uint8_t byte0 = (param & 0xff);
       checksum_update(byte0);
       const uint8_t byte1 = ((param>>8) & 0xff);
       checksum_update(byte1);
-      write(device_fd, &param, sizeof(param));
-      checksum_write(device_fd);
+      write(fd, &param, sizeof(param));
+      checksum_write(fd);
     }
     break;
   default:
     /* all other commands are without parameters */
-    write(device_fd, &cmd, 1);
+    write(fd, &cmd, 1);
     break;
   }
 }
 
 
-/** Do the actual IO
- *
- * Can be called from either the select(2) or poll(2) based main loop
- * hook functions (#dev_select_do_io, #dev_poll_handler).
- */
-static
-void dev_do_io(void)
+/* documented in freemcan-device.h */
+void device_do_io(const int fd)
 {
-    const int bytes_to_read = read_size(device_fd);
+    const int bytes_to_read = read_size(fd);
     if (bytes_to_read == 0) {
-      fmlog("EOF via device fd %d", device_fd);
+      fmlog("EOF via device fd %d", fd);
       abort();
     }
     assert(bytes_to_read > 0);
     char buf[bytes_to_read+1];
-    const ssize_t read_bytes = read(device_fd, buf, bytes_to_read);
+    const ssize_t read_bytes = read(fd, buf, bytes_to_read);
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
     if (false) {
       /* Logging this by default becomes tedious quickly with larger
        * amounts of data, so we comment this out for now.
        */
-      fmlog("Received %d bytes from device at fd %d", read_bytes, device_fd);
+      fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data(buf, read_bytes);
     }
     frame_parse_bytes(buf, read_bytes);
-}
-
-
-/** @} */
-
-
-/**
- * \defgroup freemcan_device_poll Device Handling for poll(2) based main loop (Layer 1)
- * \ingroup mainloop_poll
- * \ingroup freemcan_device
- * @{
- */
-
-
-/** Handle available input detected by poll */
-static
-void dev_poll_handler(struct pollfd *pfd)
-{
-  assert(device_fd > 0);
-  if (pfd->revents & POLLIN) {
-    dev_do_io();
-  }
-}
-
-
-/* documented in dfreemcan-device.h */
-void dev_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
-		    nfds_t *index, const nfds_t limit)
-{
-  assert(device_fd > 0);
-  assert(index);
-  assert(*index < limit);
-  pollfds[*index].fd = device_fd;
-  pollfds[*index].events = POLLIN;
-  pollfds[*index].revents = 0;
-  pollhandlers[*index] = dev_poll_handler;
-  (*index)++;
-}
-
-
-/** @} */
-
-
-/**
- * \defgroup freemcan_device_select Device Handling for select(2) based main loop (Layer 1)
- * \ingroup mainloop_select
- * \ingroup freemcan_device
- * @{
- */
-
-
-/* documented in dfreemcan-device.h */
-int dev_select_set_in(fd_set *in_fdset, int maxfd)
-{
-  assert(device_fd > 0);
-  FD_SET(device_fd, in_fdset);
-  if (device_fd > maxfd) return device_fd;
-  else return maxfd;
-}
-
-
-/* documented in dfreemcan-device.h */
-void dev_select_do_io(fd_set *in_fdset)
-{
-  assert(device_fd > 0);
-  if (FD_ISSET(device_fd, in_fdset)) {
-    dev_do_io();
-  }
 }
 
 

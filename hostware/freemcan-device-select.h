@@ -1,5 +1,6 @@
-/** \file hostware/freemcan-tui.h
- * \brief Freemcan interactive text user interface (non-ncurses)
+/** \file hostware/freemcan-device-select.h
+ * \brief FreeMCAn device select(2) support (interface)
+ *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -17,28 +18,36 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup hostware_tui
- *
+ */
+
+
+/* According to POSIX.1-2001 */
+#include <sys/select.h>
+
+/* According to earlier standards */
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+
+/** \addtogroup freemcan_device_select
  * @{
  */
 
-#ifndef FREEMCAN_TUI_H
-#define FREEMCAN_TUI_H
+/** \fn dev_select_set_in
+ * \brief Set up select() data structure with device data
+ * \ingroup freemcan_device_select
+ */
+int  device_select_set_in(fd_set *in_fdset, int maxfd);
 
-#include <stdbool.h>
-
-bool quit_flag;
-
-void tui_init();
-void tui_fini();
-void tui_do_io(void);
-const char *main_init(int argc, char *argv[]);
-
-
-typedef void (*send_command_f)(const frame_cmd_t cmd, const uint16_t param);
-extern send_command_f tui_device_send_command;
+/** \fn dev_select_do_io
+ * \brief Do device's IO stuff if necessary (from select loop)
+ * \ingroup freemcan_device_select
+ */
+void device_select_do_io(fd_set *in_fdset);
 
 
-#endif /* !FREEMCAN_TUI_H */
+void device_select_init(const char *device_name);
+void device_select_fini();
 
 /** @} */

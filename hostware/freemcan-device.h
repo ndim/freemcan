@@ -38,10 +38,11 @@
 #include "freemcan-poll.h"
 
 /** Open device */
-void dev_init(const char *device_name);
+int device_open(const char *device_name)
+  __attribute__((warn_unused_result));
 
 /** Close device */
-void dev_fini(void);
+void device_close(const int device_fd);
 
 /** Write a command to the device.
  *
@@ -49,27 +50,18 @@ void dev_fini(void);
  * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
  *              Otherwise, it is ignored.
  */
-void dev_command(const frame_cmd_t cmd, const uint16_t param);
+void device_send_command(const int fd,
+			 const frame_cmd_t cmd, const uint16_t param);
+
+
+/** Do the actual IO
+ *
+ * Can be called from either the select(2) or poll(2) based main loop
+ * hook functions (#dev_select_do_io, #dev_poll_handler).
+ */
+void device_do_io(const int fd);
+
 
 /** @} */
-
-/** \fn dev_poll_setup
- * \brief Set up device's IO stuff (from poll(2) loop)
- *\ingroup freemcan_device_poll
- */
-void dev_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
-		    nfds_t *index, const nfds_t limit);
-
-/** \fn dev_select_set_in
- * \brief Set up select() data structure with device data
- * \ingroup freemcan_device_select
- */
-int  dev_select_set_in(fd_set *in_fdset, int maxfd);
-
-/** \fn dev_select_do_io
- * \brief Do device's IO stuff if necessary (from select loop)
- * \ingroup freemcan_device_select
- */
-void dev_select_do_io(fd_set *in_fdset);
 
 #endif /* !FREEMCAN_DEVICE_H */

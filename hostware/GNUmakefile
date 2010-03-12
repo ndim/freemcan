@@ -71,10 +71,10 @@ TUI_COMMON_OBJ += freemcan-signals.o
 TUI_COMMON_OBJ += freemcan-tui.o
 TUI_COMMON_OBJ += serial-setup.o
 
-freemcan-tui-poll : freemcan-tui-main-poll.o $(TUI_COMMON_OBJ)
+freemcan-tui-poll : freemcan-tui-main-poll.o $(TUI_COMMON_OBJ) freemcan-device-poll.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
-freemcan-tui-select : freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
+freemcan-tui-select : freemcan-tui-main-select.o $(TUI_COMMON_OBJ) freemcan-device-select.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 freemcan-tui : freemcan-tui-select

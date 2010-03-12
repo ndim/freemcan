@@ -58,12 +58,23 @@ need
 
   * sloccount_
 
+For building the GUI, you need a few more software packages installed:
+
+  * cairo_ (cairo-devel)
+  * glib_ (glib2-devel)
+  * gtk_ (gtk2-devel)
+  * xsltproc_ (libxslt)
+
 .. _avr-gcc:   http://gcc.gnu.org/
+.. _cairo:     http://www.cairographics.org/
 .. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
 .. _gcc:       http://gcc.gnu.org/
+.. _glib:      http://www.gtk.org/documentation.html
 .. _graphviz:  http://www.graphviz.org/
+.. _gtk:       http://www.gtk.org/documentation.html
 .. _make:      http://www.gnu.org/software/make/
 .. _sloccount: http://www.dwheeler.com/sloccount
+.. _xsltproc:  http://xmlsoft.org/XSLT/
 
 
 

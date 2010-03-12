@@ -48,8 +48,11 @@ typedef struct {
   uint8_t payload[];
 } frame_t;
 
-void frame_ref(frame_t *frame);
-void frame_unref(frame_t *frame);
+void frame_ref(frame_t *frame)
+  __attribute__((nonnull(1)));
+
+void frame_unref(frame_t *frame)
+  __attribute__((nonnull(1)));
 
 
 /** Handler function for newly parsed frames

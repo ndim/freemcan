@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<glade-interface>
+  <!-- interface-requires gtk+ 2.16 -->
+  <!-- interface-naming-policy project-wide -->
+  <widget class="GtkWindow" id="freemcan_mainwindow">
+    <property name="visible">True</property>
+    <property name="title" translatable="yes">freemcan GUI</property>
+    <property name="default_width">1024</property>
+    <property name="default_height">600</property>
+    <child>
+      <widget class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <widget class="GtkHPaned" id="hpaned1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <widget class="GtkVBox" id="vbox2">
+                <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <widget class="GtkVButtonBox" id="vbuttonbox1">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkSpinButton" id="seconds_spinbutton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">Measurement duration in seconds</property>
+                        <property name="has_frame">False</property>
+                        <property name="invisible_char">&#x25CF;</property>
+                        <property name="adjustment">180 0 65520 60 600 3600</property>
+                        <property name="climb_rate">0.10000000000000001</property>
+                        <property name="numeric">True</property>
+                        <signal name="value_changed" handler="on_seconds_spinbutton_value_changed"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="measure_button">
+                        <property name="label" translatable="yes">gtk-media-record</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Start measurement of n seconds</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_measure_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="abort_button">
+                        <property name="label" translatable="yes">gtk-media-stop</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Abort measurement</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_abort_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="intermediate_button">
+                        <property name="label" translatable="yes">gtk-info</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Ask for intermediate result and continue measuring</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_intermediate_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="reset_button">
+                        <property name="label" translatable="yes">gtk-goto-first</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Reset the device</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_reset_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="device_status_label">
+                    <property name="visible">True</property>
+                    <property name="tooltip" translatable="yes">Device status</property>
+                    <property name="label" translatable="yes">disconnected</property>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkVButtonBox" id="vbuttonbox2">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkButton" id="about_button">
+                        <property name="label" translatable="yes">gtk-about</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Show "About" dialog</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_about_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="quit_button">
+                        <property name="label" translatable="yes">gtk-quit</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Quit the program</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="gtk_main_quit"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkButton" id="open_button">
+                        <property name="label" translatable="yes">gtk-open</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip" translatable="yes">Open another device file</property>
+                        <property name="use_stock">True</property>
+                        <signal name="clicked" handler="on_open_button_clicked"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="device_label">
+                        <property name="visible">True</property>
+                        <property name="tooltip" translatable="yes">Device file name</property>
+                        <property name="label" translatable="yes">&lt;no device&gt;</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="resize">False</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkDrawingArea" id="histogram_chart">
+                <property name="width_request">512</property>
+                <property name="height_request">300</property>
+                <property name="visible">True</property>
+                <signal name="expose_event" handler="on_histogram_chart_expose_event"/>
+              </widget>
+              <packing>
+                <property name="resize">True</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="spacing">2</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkAboutDialog" id="about_dialog">
+    <property name="border_width">5</property>
+    <property name="type_hint">normal</property>
+    <property name="has_separator">False</property>
+    <property name="program_name">FreeMCAn</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2010 Hans Ulrich Niedermann
+Copyright (C) 2010 samplemaker</property>
+    <property name="website">http://github.com/ndim/freemcan</property>
+    <property name="website_label" translatable="yes">http://github.com/ndim/freemcan</property>
+    <property name="license" translatable="yes">@LICENSE@</property>
+    <property name="authors">Hans Ulrich Niedermann
+samplemaker</property>
+    <child internal-child="vbox">
+      <widget class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <widget class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>

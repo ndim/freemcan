@@ -47,7 +47,8 @@
 
 
 static
-frame_t *frame_new()
+frame_t *frame_new(const size_t payload_size)
+  __attribute__((warn_unused_result))
   __attribute__((malloc));
 
 static

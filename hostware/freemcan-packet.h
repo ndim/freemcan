@@ -77,15 +77,18 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const size_t element_count,
 					 const uint16_t duration,
 					 const void *elements)
+  __attribute__((warn_unused_result))
   __attribute__((malloc));
 
 
 /** Call this when you want to use hist and store a pointer to it. */
-void packet_histogram_ref(packet_histogram_t *hist);
+void packet_histogram_ref(packet_histogram_t *hist)
+  __attribute__((nonnull(1)));
 
 
 /** Call this when you have finished using your pointer to hist. */
-void packet_histogram_unref(packet_histogram_t *hist);
+void packet_histogram_unref(packet_histogram_t *hist)
+  __attribute__((nonnull(1)));
 
 
 /** Callback function type called when histogram packet arrives

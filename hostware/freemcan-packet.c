@@ -24,12 +24,65 @@
  * @{
  */
 
+#include <assert.h>
+#include <string.h>
+
 #include "frame-defs.h"
 #include "packet-defs.h"
 
 #include "freemcan-log.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
+
+
+packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
+					 const time_t receive_time,
+					 const uint8_t element_size,
+					 const size_t element_count,
+					 const void *elements)
+{
+  packet_histogram_t *result = calloc(1, sizeof(packet_histogram_t));
+  assert(result != NULL);
+  result->refs = 1;
+
+  const size_t sz = element_size*element_count;
+  void *element_copy = malloc(sz);
+  assert(element_copy);
+  memcpy(element_copy, elements, sz);
+  result->elements.ev   = element_copy;
+
+  result->type          = type;
+  result->receive_time  = receive_time;
+  result->element_size  = element_size;
+  result->element_count = element_count;
+
+  return result;
+}
+
+
+void packet_histogram_ref(packet_histogram_t *hist_pack)
+{
+  assert(hist_pack->refs > 0);
+  hist_pack->refs++;
+}
+
+
+static
+void packet_histogram_free(packet_histogram_t *hist_pack)
+{
+  free(hist_pack->elements.ev);
+  free(hist_pack);
+}
+
+
+void packet_histogram_unref(packet_histogram_t *hist_pack)
+{
+  assert(hist_pack->refs > 0);
+  hist_pack->refs--;
+  if (hist_pack->refs == 0) {
+    packet_histogram_free(hist_pack);
+  }
+}
 
 
 static packet_handler_histogram_t packet_handler_histogram = NULL;
@@ -57,13 +110,13 @@ void frame_handler(const frame_t *frame)
       const size_t hist_size = frame->size - 1 - 1;
       const uint8_t element_size = frame->payload[0];
       const size_t element_count = hist_size/element_size;
-      packet_histogram_t hist;
-      hist.type = frame->payload[1];
-      hist.receive_time = time(NULL);
-      hist.element_size = element_size;
-      hist.element_count = element_count;
-      hist.elements.e8 = &(frame->payload[2]);
-      packet_handler_histogram(&hist, packet_handler_data);
+      packet_histogram_t *hist = packet_histogram_new(frame->payload[1],
+						      time(NULL),
+						      element_size,
+						      element_count,
+						      &(frame->payload[2]));
+      packet_handler_histogram(hist, packet_handler_data);
+      packet_histogram_unref(hist);
     }
     return;
   /* No "default:" case on purpose: Let compiler complain about

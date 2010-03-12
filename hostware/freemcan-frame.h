@@ -38,6 +38,8 @@
  * have already been verified to be correct and thus thrown aside.
  */
 typedef struct {
+  /** Reference counter */
+  int refs;
   /** Frame type */
   frame_type_t type;
   /** Payload size in bytes */
@@ -46,10 +48,18 @@ typedef struct {
   uint8_t payload[];
 } frame_t;
 
+void frame_ref(frame_t *frame);
+void frame_unref(frame_t *frame);
+
 
 /** Handler function for newly parsed frames
+ *
  * \param frame The frame to handle
  * \param data Private data for the handler function
+ *
+ * Note that for your convenience, the next byte after the frame
+ * payload will be a NUL byte, effectively making the payload a NUL
+ * terminated string if the payload content is a string.
  */
 typedef void (*frame_handler_t)(const frame_t *frame);
 

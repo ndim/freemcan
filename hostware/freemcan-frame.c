@@ -37,6 +37,43 @@
 
 
 /************************************************************************
+ * Frame reference counting/memory management
+ ************************************************************************/
+
+
+static
+frame_t *frame_new()
+  __attribute__((malloc));
+
+static
+frame_t *frame_new(const size_t payload_size)
+{
+  frame_t *frame = malloc(sizeof(frame_t) + payload_size);
+  assert(frame);
+  frame->refs = 1;
+  return frame;
+}
+
+
+void frame_ref(frame_t *frame)
+{
+  assert(frame->refs > 0);
+  frame->refs++;
+}
+
+
+void frame_unref(frame_t *frame)
+{
+  assert(frame->refs > 0);
+  frame->refs--;
+  if (frame->refs == 0) {
+    free(frame);
+  }
+}
+
+
+
+/************************************************************************
  * Frame Handler (next layer)
  ************************************************************************/
 
@@ -50,7 +87,8 @@ void frame_set_handler(frame_handler_t handler)
 }
 
 
-void frame_reset_handler(void){
+void frame_reset_handler(void)
+{
   frame_handler = NULL;
 }
 
@@ -160,7 +198,7 @@ void step_fsm(const char ch)
      *  - dynamic payload size
      *  - terminating convenience nul byte
      */
-    frame_wip = malloc(sizeof(frame_t)+frame_size+1);
+    frame_wip = frame_new(frame_size+1);
     assert(frame_wip);
     state = STATE_PAYLOAD;
     return;
@@ -198,7 +236,7 @@ void step_fsm(const char ch)
 	}
 	frame_handler(frame_wip);
       }
-      free(frame_wip);
+      frame_unref(frame_wip);
       offset = 0;
       state = STATE_MAGIC;
       return;

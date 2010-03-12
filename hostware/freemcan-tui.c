@@ -64,7 +64,7 @@
 /* Forward declaration */
 static void packet_handler_status(const char *status, void *data);
 static void packet_handler_text(const char *text, void *data);
-static void packet_handler_histogram(const packet_histogram_t *histogram_packet, void *data);
+static void packet_handler_histogram(packet_histogram_t *histogram_packet, void *data);
 
 
 /** Quit flag for the main loop. */
@@ -340,9 +340,11 @@ static void packet_handler_text(const char *text, void *UP(data))
 
 
 /** Histogram data packet handler (TUI specific) */
-static void packet_handler_histogram(const packet_histogram_t *histogram_packet,
+static void packet_handler_histogram(packet_histogram_t *histogram_packet,
 				     void *UP(data))
 {
+  packet_histogram_ref(histogram_packet);
+
   const size_t element_count = histogram_packet->element_count;
   const size_t element_size = histogram_packet->element_size;
   fmlog("Received '%c' type histogram data of %d elements of %d bytes each:",
@@ -358,6 +360,8 @@ static void packet_handler_histogram(const packet_histogram_t *histogram_packet,
 
   /* export current histogram to freemcan-export.dat */
   export_histogram(histogram_packet);
+
+  packet_histogram_unref(histogram_packet);
 }
 
 /** @} */

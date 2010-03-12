@@ -32,6 +32,8 @@
 
 /** Parsed histogram packet. */
 typedef struct {
+  /** Reference counter */
+  int refs;
 
   /** The reason for sending the histogram */
   packet_histogram_type_t type;
@@ -52,17 +54,38 @@ typedef struct {
    * convenience.
    */
   union {
-    const uint8_t  *e8;
-    const uint16_t *e16;
-    const uint32_t *e32;
-    const uint64_t *e64;
-    const void     *ev;
+    uint8_t  *e8;
+    uint16_t *e16;
+    uint32_t *e32;
+    uint64_t *e64;
+    void     *ev;
   } elements;
 } packet_histogram_t;
 
 
-/** Callback function type called when histogram packet arrives */
-typedef void (*packet_handler_histogram_t)(const packet_histogram_t *packet_histogram,
+packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
+					 const time_t receive_time,
+					 const uint8_t element_size,
+					 const size_t element_count,
+					 const void *elements)
+  __attribute__((malloc));
+
+
+/** Call this when you want to use hist */
+void packet_histogram_ref(packet_histogram_t *hist);
+
+
+/** Call this when you have finished using hist */
+void packet_histogram_unref(packet_histogram_t *hist);
+
+
+/** Callback function type called when histogram packet arrives
+ *
+ * The callback function must call #packet_histogram_ref if it wants
+ * to use the packet after returning, and then is responsible for
+ * calling #packet_histogram_unref when it has finished accessing it.
+ */
+typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
 					   void *data);
 
 /** Callback function type called when status packet arrives */

@@ -28,6 +28,7 @@
 bool quit_flag;
 
 void tui_init();
+void tui_fini();
 void tui_do_io(void);
 const char *main_init(int argc, char *argv[]);
 

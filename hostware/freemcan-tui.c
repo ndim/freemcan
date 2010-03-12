@@ -214,6 +214,19 @@ void tui_init()
 }
 
 
+void tui_fini()
+{
+  packet_reset_handlers();
+  tty_reset();
+  fmlog_reset_handler();
+  if (stdlog) {
+    fclose(stdlog);
+    stdlog = NULL;
+  }
+}
+
+
+
 /**
  * \defgroup freemcan_tui_io TUI IO handling
  * \ingroup hostware_tui
@@ -298,8 +311,7 @@ void tui_do_io(void)
 static
 void atexit_func(void)
 {
-  fmlog_reset_handler();
-  tty_reset();
+  tui_fini();
 }
 
 /** @} */

@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 
   /* clean up */
   dev_fini();
+  tui_fini();
 
   /* implicitly call atexit_func */
   exit(EXIT_SUCCESS);

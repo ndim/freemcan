@@ -362,12 +362,11 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
 	element_count, element_size,
 	histogram_packet->duration);
   const size_t total_size = element_count * element_size;
-  if (element_size == 4) {
-    fmlog_data32(histogram_packet->elements.ev, total_size);
-  } else if (element_size == 2) {
-    fmlog_data16(histogram_packet->elements.ev, total_size);
-  } else {
-    fmlog_data(histogram_packet->elements.ev, total_size);
+  switch (element_size) {
+  case 4:  fmlog_data32(histogram_packet->elements.ev, total_size); break;
+  case 3:  fmlog_data24(histogram_packet->elements.ev, total_size); break;
+  case 2:  fmlog_data16(histogram_packet->elements.ev, total_size); break;
+  default: fmlog_data  (histogram_packet->elements.ev, total_size); break;
   }
 
   /* export current histogram to freemcan-export.dat */

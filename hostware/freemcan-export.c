@@ -70,6 +70,11 @@ void export_histogram(const packet_histogram_t *histogram_packet)
     switch (element_size) {
     case 1: value = histogram_packet->elements.e8[i]; break;
     case 2: value = histogram_packet->elements.e16[i]; break;
+    case 3: value =
+	(((uint32_t)histogram_packet->elements.e8[3*i+0]) << 0) +
+	(((uint32_t)histogram_packet->elements.e8[3*i+1]) << 8) +
+	(((uint32_t)histogram_packet->elements.e8[3*i+2]) << 16);
+      break;
     case 4: value = histogram_packet->elements.e32[i]; break;
     default: abort();
     }

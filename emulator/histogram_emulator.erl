@@ -9,7 +9,7 @@ gauss(Sigma, X) ->
     Scale * math:exp(-0.5*F2).
 
 histogram(Seconds) ->
-    ElementCount = 512,
+    ElementCount = 1024,
     Peaks = [{60, 1, 25}, {150,1.5,30}, {220, 0.6, 20}],
     [ round(Seconds*100.0*lists:sum([ F*gauss(S, (N-P))
 				    || {P,F,S} <- Peaks ]) +

@@ -61,6 +61,9 @@ void fmlog_data(const void *data, const size_t size);
 /** Log a block of data as 16 bit integers */
 void fmlog_data16(const void *data, const size_t size);
 
+/** Log a block of data as 16 bit integers */
+void fmlog_data24(const void *data, const size_t size);
+
 /** Log a block of data as 32 bit integers */
 void fmlog_data32(const void *data, const size_t size);
 

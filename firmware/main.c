@@ -176,8 +176,11 @@ ISR(ADC_vect) {
 
   /** \todo Can the ADC return values exceeding 9bit? */
   /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
-  /* Update histogram: this can be a 8 or a 9 bit index! */
-  table[result>>(10-ADC_RESOLUTION)]++;
+  /* Update histogram: this can be a 8 or a 9 or a 10 bit index! */
+
+  /* cut off 2, 1 or 0 LSB */
+  const uint16_t index = result >> (10-ADC_RESOLUTION);
+  table[index]++;
 
   /* set pin to GND and release peak hold capacitor   */
   PORTD &=~ BIT(PD6);

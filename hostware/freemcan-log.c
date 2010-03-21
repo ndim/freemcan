@@ -208,7 +208,7 @@ void fmlog_data16(const void *data, const size_t size)
 	const uint16_t value = *((const uint16_t *)&b[i]);
 	idx += sprintf(&(buf[idx]), " %04x", value);
       } else {
-	idx += sprintf(&(buf[idx]), " " "    " "    ");
+	idx += sprintf(&(buf[idx]), " " "    ");
       }
     }
     fmlog("%s", buf);

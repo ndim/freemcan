@@ -27,6 +27,10 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+
+#include <stdint.h>
+
+
 /** XTAL frequency */
 #ifndef F_CPU
 /* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
@@ -83,6 +87,68 @@
  *  The data measurement is carried out in multiples of time_elapsed.
  */
 #define TIMER_COMPARE_MATCH_VAL 15624
+
+
+/** Histogram element size in bytes
+ *
+ * The code should support values of 2, 3, and 4, but we are focussing
+ * on 3 from now on.
+ */
+#define ELEMENT_SIZE_IN_BYTES 3
+
+
+#if (ELEMENT_SIZE_IN_BYTES == 2)
+
+typedef uint16_t histogram_element_t;
+
+#elif (ELEMENT_SIZE_IN_BYTES == 3)
+
+/* This could be called a uint24_t... but we do not want to intrude on
+ * that namespace. */
+typedef uint8_t freemcan_uint24_t[3];
+typedef freemcan_uint24_t histogram_element_t;
+
+#elif (ELEMENT_SIZE_IN_BYTES == 4)
+
+typedef uint32_t histogram_element_t;
+
+#else
+# error Unsupported ELEMENT_SIZE_IN_BYTES
+#endif
+
+
+#if (ELEMENT_SIZE_IN_BYTES == 3)
+inline static
+void histogram_element_inc(volatile freemcan_uint24_t *element)
+{
+  asm("\n\t"
+      /* load 24 bit value */
+      "ld  r24, Z\n\t"                      /* 2 cycles */
+      "ldd r25, Z+1\n\t"                    /* 2 cycles */
+      "ldd __tmp_reg__, Z+2\n\t"            /* 2 cycles */
+
+      /* increase 24 bit value by one */
+      "adiw r24, 1\n\t"                     /* 2 cycles for word (r25:r24) */
+      "adc  __tmp_reg__, __zero_reg__\n\t"  /* 1 cycle */
+
+      /* store 24 bit value */
+      "std Z+2, __tmp_reg__\n\t"            /* 2 cycles */
+      "std Z+1, r25\n\t"                    /* 2 cycles */
+      "st  Z, r24\n\t"                      /* 2 cycles */
+      : /* output operands */
+      : /* input operands */
+	"z" (element)
+      : "r24", "r25"
+      );
+}
+#else
+inline static
+void histogram_element_inc(volatile histogram_element_t *element)
+{
+  (*element)++;
+}
+#endif
+
 
 /** @} */
 

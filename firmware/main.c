@@ -94,12 +94,14 @@ FUSES = {
  */
 
 
-/** histogram table
+/** \var table
+ * \brief histogram table
  *
- * ATmega644P has 4Kbyte RAM
- * Choose uint16_t if ADC_RESOLUTION is set to 10
+ * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
+ * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
  **/
-volatile uint32_t table[MAX_COUNTER];
+
+volatile histogram_element_t table[MAX_COUNTER];
 
 
 /** count number of measurements
@@ -174,13 +176,18 @@ ISR(ADC_vect) {
   /* Read analog value */
   uint16_t result = ADCW;
 
-  /** \todo Can the ADC return values exceeding 9bit? */
+  /** \todo Can the ADC return values exceeding 8, 9, 10bit? Probably not. */
   /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
   /* Update histogram: this can be a 8 or a 9 or a 10 bit index! */
 
   /* cut off 2, 1 or 0 LSB */
   const uint16_t index = result >> (10-ADC_RESOLUTION);
-  table[index]++;
+
+  /* For 24bit values, this looks a little more complicated than just
+   * table[index]++, so we have moved the increment into the _inc function.
+   */
+  volatile histogram_element_t *element = &(table[index]);
+  histogram_element_inc(element);
 
   /* set pin to GND and release peak hold capacitor   */
   PORTD &=~ BIT(PD6);
@@ -381,7 +388,7 @@ void send_histogram(const packet_histogram_type_t type)
   /* Now 'a' contains a valid value */
 
   packet_histogram_header_t header = {
-    sizeof(table[0]),
+    ELEMENT_SIZE_IN_BYTES,
     type,
     orig_timer_count - a
   };

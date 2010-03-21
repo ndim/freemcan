@@ -23,4 +23,6 @@
  * \defgroup hostware_generic Generic Hostware Components
  * \ingroup hostware
  *
+ * \bug Add proper endianness handling layer for received/sent data:
+ *      The embedded device uses little endian like Intel PCs.
  */

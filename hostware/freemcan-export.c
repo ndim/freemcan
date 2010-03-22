@@ -76,7 +76,7 @@ void export_histogram(const packet_histogram_t *histogram_packet)
 	(((uint32_t)histogram_packet->elements.e8[3*i+2]) << 16);
       break;
     case 4: value = histogram_packet->elements.e32[i]; break;
-    default: abort();
+    default: abort(); /* invalid element size */ break;
     }
     fprintf(histfile, "%d\t%u\n", i, value);
   }

@@ -65,7 +65,7 @@
  *  E.g. 8 bit resolution at 500 kHz.
  *  (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V)
  */
-#define ADC_RESOLUTION (9)
+#define ADC_RESOLUTION (10)
 
 /** Timer prescaler selection (16Bit timer)
  *

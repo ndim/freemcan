@@ -36,16 +36,33 @@
 #define BIT(NO) (1<<(NO))
 
 
+/* We want to avoid switching to double speed mode as long as
+ * possible, as in normal speed mode the receiver will sample more
+ * often than in double speed mode.
+ */
+
+
+#if (UART_BAUDRATE >= 1000000UL)
+# define UART_DIVISOR 8UL
+# define UART_RATE_2X 1UL
+#elif (UART_BAUDRATE >= 1000UL)
+# define UART_DIVISOR 16UL
+# define UART_RATE_2X 0UL
+#else
+# error UART_BAUDRATE value problem
+#endif
+
+
 /** USART0 initialisation to 8 databits no parity
  *
  */
 void uart_init(void)
 {
-  /* These baud setting are valid only for asynchrounous normal mode */
-  const uint16_t baud_value=(F_CPU / (16L * UART_BAUDRATE)) - 1;
+  /* These baud setting are valid only for asynchrounous normal/double mode */
+  const uint16_t baud_value=(F_CPU / (UART_DIVISOR * UART_BAUDRATE)) - 1;
 
   UBRR0H=(uint8_t)(baud_value >> 8);
-  UBRR0L=(uint8_t)baud_value;
+  UBRR0L=(uint8_t)(baud_value);
 
   /* Asynchronous (no clock is used); 8 databit with no parity bit (8N1
    * frame format) */
@@ -53,6 +70,11 @@ void uart_init(void)
 
   /* Enable transmit and receive */
   UCSR0B = (BIT(TXEN0) | BIT(RXEN0));
+
+  /* Clear or set U2X0 baudrate doubling bit, depending on
+   * UART_BAUDRATE. Also disable multi device mode, and do not clear
+   * the TXC0 bit (you would *clear* TXC0 bit by writing a 1). */
+  UCSR0A = (UART_RATE_2X<<U2X0);
 }
 
 

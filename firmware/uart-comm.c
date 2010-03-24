@@ -45,7 +45,8 @@ void uart_init(void)
   UBRR0H=(uint8_t)(baud_value >> 8);
   UBRR0L=(uint8_t)baud_value;
 
-  /* Asynchron (no clk is used); 8 databit with no parity bit (8N1 frame format) */
+  /* Asynchronous (no clock is used); 8 databit with no parity bit (8N1
+   * frame format) */
   UCSR0C = (BIT(UCSZ01) | BIT(UCSZ00));
 
   /* Enable transmit and receive */
@@ -135,6 +136,7 @@ void uart_putb(const void *buf, size_t len)
 	len--;
     }
 }
+
 
 /** Read a character from the UART */
 char uart_getc()

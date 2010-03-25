@@ -28,25 +28,87 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <termios.h>
+
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-/** Configure serial port
+#include "serial-setup.h"
+
+
+/** Element type for list auf baud rates and constants #baud_table. */
+typedef struct {
+  const long baudrate;
+  const long baudconst;
+} baud_t;
+
+
+/** Shortcut macro for defining #baud_table */
+#define B(N) {N, B##N}
+
+
+/** Table of baud rates and corresponding constants.
  *
- *  No parity 8 characters (8N1)
- *  Read from device via blocking mode
- *  Arguments: file descriptor for device and baudrate
+ * Might be extended by accessor functions to e.g. expose the values
+ * in a GUI.
+ *
+ * In case you happen upon a system where Bnnnn is undefined, please
+ * wrap that line in a #ifdef Bnnnn and #endif pair.
  */
+baud_t baud_table[] = {
+  B(50),
+  B(75),
+  B(110),
+  B(134),
+  B(150),
+  B(200),
+  B(300),
+  B(600),
+  B(1200),
+  B(2400),
+  B(4800),
+  B(9600),
+  B(19200),
+  B(38400),
+  B(57600),
+  B(115200),
+  B(230400),
+  B(460800),
+  B(500000),
+  B(576000),
+  B(921600),
+  B(1000000),
+  B(1152000),
+  B(1500000),
+  B(2000000),
+  B(2500000),
+  B(3000000),
+  B(3500000),
+  B(4000000),
+  {0, 0}
+};
 
-void serial_setup(const int fd, const long TERM_SPEED)
+
+/* documented in serial-setup.h */
+void serial_setup(const int fd,
+		  const long baudrate,
+		  const int bits_per_byte,
+		  const serial_parity_t parity,
+		  const int stop_bits)
 {
   struct termios tio;
+  memset(&tio, '\0', sizeof(tio));
+  const long baudconst = serial_get_baudconst(baudrate);
 
-  /* CS8:         8 data bits
-   * CREAD:       allow input to be received / enable receiver
+  /* CREAD:       allow input to be received / enable receiver
    * CLOCAL:      modem control signal to open port (ignore CD setting)
    */
-  tio.c_cflag = TERM_SPEED | CS8 | CREAD | CLOCAL;
+  tio.c_cflag = CREAD | CLOCAL;
+
+  /* set baud rate */
+  cfsetispeed(&tio, baudconst);
+  cfsetospeed(&tio, baudconst);
 
   /* PARENB:      no parity bit
    * CSTOPB:      use two stop bits after each transmitted character
@@ -54,10 +116,60 @@ void serial_setup(const int fd, const long TERM_SPEED)
    * HUPCL:       if defice is closed reset DTR and RTS (hang up modem)
    * CRTSCTS:     hardware flow control (request to send RTS and clear to send CTS)
    */
-  tio.c_cflag &= ~PARENB;
-  tio.c_cflag &= ~CSTOPB;
-  tio.c_cflag &= ~CSIZE;
   tio.c_cflag &= ~HUPCL;
+
+  /* Set parity (N,E,O) */
+  bool parity_set = false;
+  switch (parity) {
+  case PARITY_NONE:
+    tio.c_cflag &= ~PARENB;
+    parity_set = true;
+    break;
+#ifdef PARITY_SUPPORT_NOT_IMPLEMENTED_YET
+  We do not have proper parity support yet. Need a decision on whether we will ignore
+  bytes with wrong parity or forward them while marked or whatever.
+  case PARITY_EVEN:
+    tio.c_cflag |=  PARENB;
+    tio.c_cflag &= ~PARODD;
+    parity_set = true;
+    break;
+  case PARITY_ODD:
+    tio.c_cflag |=  PARENB;
+    tio.c_cflag |=  PARODD;
+    parity_set = true;
+    break;
+#endif
+  }
+  if (!parity_set) {
+    fprintf(stderr, "Invalid parity value %d\n", parity);
+    abort();
+  }
+
+  /* set stop bits */
+  switch (stop_bits) {
+  case 1: tio.c_cflag &= ~CSTOPB; break;
+  case 2: tio.c_cflag &= ~CSTOPB; break;
+  default:
+    fprintf(stderr, "Invalid stop_bits value: %d\n", stop_bits);
+    abort();
+    break;
+  }
+
+  /* set bits per byte */
+  switch (bits_per_byte) {
+  case 8:
+    tio.c_cflag &= ~CSIZE; /* Mask the character size bits */
+    tio.c_cflag |= CS8;    /* Select 8 data bits */
+    break;
+  case 7:
+    tio.c_cflag &= ~CSIZE; /* Mask the character size bits */
+    tio.c_cflag |= CS7;    /* Select 7 data bits */
+    break;
+  default:
+    fprintf(stderr, "Invalid bits_per_byte value %d\n", bits_per_byte);
+    abort();
+    break;
+  }
 
   /* set input flag noncanonical, no processing */
   tio.c_lflag = 0;
@@ -70,13 +182,21 @@ void serial_setup(const int fd, const long TERM_SPEED)
 
   /* no time delay */
   tio.c_cc[VTIME] = 0;
+
   /* no char delay */
   tio.c_cc[VMIN]  = 0;
 
   /* flush the buffer */
-  tcflush(fd, TCIFLUSH);
+  const int ret_tcflush = tcflush(fd, TCIFLUSH);
+  if (ret_tcflush < 0) {
+    perror("tcflush");
+  }
+
   /* set the attributes */
-  tcsetattr(fd, TCSANOW, &tio);
+  const int ret_tcsetattr = tcsetattr(fd, TCSANOW, &tio);
+  if (ret_tcsetattr < 0) {
+    perror("tcsetattr");
+  }
 
   /* If the port operates in raw data mode, each read(2) system call will
    * return the number of characters that are actually available in the serial
@@ -86,55 +206,36 @@ void serial_setup(const int fd, const long TERM_SPEED)
    * by doing fcntl(fd, F_SETFL, FNDELAY); The FNDELAY option causes the read
    * function to return 0 if no characters are available on the port.
    * To restore normal (blocking) behavior, call fcntl() without the
-   * FNDELAY option.
+   * FNDELAY option. Blocking behaviour is fine if you do IO multiplexing
+   * on the file descriptor with select(2), poll(2) or epoll(2).
    */
   fcntl(fd, F_SETFL, 0);
 }
 
-/** Returns appropriate baud definition from termios.h
-*/
 
-
-long serial_get_baud(const long whichBaud)
+/* documented in serial-setup.h */
+long serial_get_baudconst(const long baudrate)
 {
-  switch (whichBaud) {
-    case  50:      return  B50;
-    case  75:      return  B75;
-    case  110:     return  B110;
-    case  134:     return  B134;
-    case  150:     return  B150;
-    case  200:     return  B200;
-    case  300:     return  B300;
-    case  600:     return  B600;
-    case  1200:    return  B1200;
-    case  1800:    return  B1800;
-    case  2400:    return  B2400;
-    case  4800:    return  B4800;
-    case  9600:    return  B9600;
-    case  19200:   return  B19200;
-    case  38400:   return  B38400;
-    case  57600:   return  B57600;
-    case  115200:  return  B115200;
-    case  230400:  return  B230400;
-    case  460800:  return  B460800;
-    case  500000:  return  B500000;
-    case  576000:  return  B576000;
-    case  921600:  return  B921600;
-    case  1000000: return  B1000000;
-    case  1152000: return  B1152000;
-    case  1500000: return  B1500000;
-    case  2000000: return  B2000000;
-    case  2500000: return  B2500000;
-    case  3000000: return  B3000000;
-    case  3500000: return  B3500000;
-    case  4000000: return  B4000000;
-    /* No "default:" label to force the compiler to complain about
-     * unhandled cases. We still handle other cases, but after the
-     * switch() statement. */
+  for (unsigned int i=0; baud_table[i].baudrate != 0; i++) {
+    if (baud_table[i].baudrate == baudrate) {
+      return baud_table[i].baudconst;
+    }
   }
-  fprintf(stderr,
-	  "Baud rate %d is not supported"
-	  "\n", whichBaud);
+  fprintf(stderr, "Baud rate %ld is not supported\n", baudrate);
+  exit(1);
+}
+
+
+/* documented in serial-setup.h */
+long serial_get_baudrate(const long baudconst)
+{
+  for (unsigned int i=0; baud_table[i].baudrate != 0; i++) {
+    if (baud_table[i].baudconst == baudconst) {
+      return baud_table[i].baudconst;
+    }
+  }
+  fprintf(stderr, "Baud const %ld=0%lo is not supported\n",
+	  baudconst, baudconst);
   exit(1);
 }
 

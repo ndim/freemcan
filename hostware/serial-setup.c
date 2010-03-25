@@ -153,7 +153,7 @@ void serial_setup(const int fd,
   /* set stop bits */
   switch (stop_bits) {
   case 1: tio.c_cflag &= ~CSTOPB; break;
-  case 2: tio.c_cflag &= ~CSTOPB; break;
+  case 2: tio.c_cflag |=  CSTOPB; break;
   default:
     fprintf(stderr, "Invalid stop_bits value: %d\n", stop_bits);
     abort();

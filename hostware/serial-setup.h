@@ -35,7 +35,7 @@ void serial_setup(const int fd, const long baud);
  *
  * Uses a simple adding hash function.
  */
-long serial_string_to_baud(const char *arg);
+long serial_get_baud(const long baud);
 
 /** @} */
 

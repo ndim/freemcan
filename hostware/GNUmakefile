@@ -16,9 +16,6 @@ CFLAGS += -g
 CFLAGS += -I../include
 CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
 
-bin_PROGRAMS += querySerial
-CLEANFILES   += querySerial
-
 bin_PROGRAMS += freemcan-tui-poll
 CLEANFILES   += freemcan-tui-poll
 
@@ -48,8 +45,6 @@ clean:
 	rm -f $(DEPEND_MK)
 	rm -f *.o
 
-querySerial : querySerial.o serial-setup.o
-	$(LINK.c) $^ $(LDLIBS) -o $@
 
 freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE

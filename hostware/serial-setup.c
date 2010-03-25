@@ -31,151 +31,110 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/** Configure serial port
+ *
+ *  No parity 8 characters (8N1)
+ *  Read from device via blocking mode
+ *  Arguments: file descriptor for device and baudrate
+ */
 
-void serial_setup(const int fd, const long baud)
+void serial_setup(const int fd, const long TERM_SPEED)
 {
   struct termios tio;
 
- /* Like the character size you must manually set the parity enable
-  * and parity type bits.  UNIX serial drivers support even, odd, and
-  * no parity bit generation. Space parity can be simulated with
-  * clever coding.
-
-    * No parity (8N1):
-      options.c_cflag &= ~PARENB
-      options.c_cflag &= ~CSTOPB
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS8;
-
-    * Even parity (7E1):
-      options.c_cflag |= PARENB
-      options.c_cflag &= ~PARODD
-      options.c_cflag &= ~CSTOPB
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS7;
-
-    * Odd parity (7O1):
-      options.c_cflag |= PARENB
-      options.c_cflag |= PARODD
-      options.c_cflag &= ~CSTOPB
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS7;
-
-    * Space parity is setup the same as no parity (7S1):
-      options.c_cflag &= ~PARENB
-      options.c_cflag &= ~CSTOPB
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS8;
- */
-
-  /* we are not concerned about preserving the old serial port configuration
-   * CS8, 8 data bits
-   * CREAD, receiver enabled
-   * CLOCAL, don't change the port's owner
+  /* CS8:         8 data bits
+   * CREAD:       allow input to be received / enable receiver
+   * CLOCAL:      modem control signal to open port (ignore CD setting)
    */
+  tio.c_cflag = TERM_SPEED | CS8 | CREAD | CLOCAL;
 
-  tio.c_cflag = baud | CS8 | CREAD | CLOCAL;
-
-  /* No parity (8N1): */
+  /* PARENB:      no parity bit
+   * CSTOPB:      use two stop bits after each transmitted character
+   * CSIZE:
+   * HUPCL:       if defice is closed reset DTR and RTS (hang up modem)
+   * CRTSCTS:     hardware flow control (request to send RTS and clear to send CTS)
+   */
   tio.c_cflag &= ~PARENB;
   tio.c_cflag &= ~CSTOPB;
   tio.c_cflag &= ~CSIZE;
+  tio.c_cflag &= ~HUPCL;
 
+  /* set input flag noncanonical, no processing */
+  tio.c_lflag = 0;
 
-  /* Some versions of UNIX support hardware flow control using the CTS
-   * (Clear To Send) and RTS (Request To Send) signal lines. If the
-   * CNEW_RTSCTS or CRTSCTS constants are defined on your system then
-   * hardware flow control is probably supported. Do the following to
-   * enable hardware flow control:
-   *
-   * options.c_cflag |= CNEW_RTSCTS;    // Also called CRTSCTS
-   *
-   * Similarly, to disable hardware flow control:
-   *
-   * options.c_cflag &= ~CNEW_RTSCTS;
-   */
+  /* ignore parity errors */
+  tio.c_iflag = IGNPAR;
 
-  tio.c_cflag &= ~HUPCL; /* clear the HUPCL bit, close doesn't change DTR */
+  /* set output flag noncanonical, no processing */
+  tio.c_oflag = 0;
 
-  /* Choosing Raw Input */
-  /* Canonical input is line-oriented. Input characters are put into a
-   * buffer which can be edited interactively by the user until a CR
-   * (carriage return) or LF (line feed) character is received.  Raw
-   * input is unprocessed. Input characters are passed through exactly as
-   * they are received, when they are received. Generally you'll deselect
-   * the ICANON, ECHO, ECHOE, and ISIG options when using raw input:
-   *
-   * options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-   */
+  /* no time delay */
+  tio.c_cc[VTIME] = 0;
+  /* no char delay */
+  tio.c_cc[VMIN]  = 0;
 
-  tio.c_lflag = 0;       /* set input flag noncanonical, no processing */
+  /* flush the buffer */
+  tcflush(fd, TCIFLUSH);
+  /* set the attributes */
+  tcsetattr(fd, TCSANOW, &tio);
 
-  tio.c_iflag = IGNPAR;  /* ignore parity errors */
-
-  tio.c_oflag = 0;       /* set output flag noncanonical, no processing */
-
-  tio.c_cc[VTIME] = 0;   /* no time delay */
-  tio.c_cc[VMIN]  = 0;   /* no char delay */
-
-  tcflush(fd, TCIFLUSH); /* flush the buffer */
-  tcsetattr(fd, TCSANOW, &tio); /* set the attributes */
-
-  /* Set up for no delay, ie nonblocking reads will occur.
-     When we read, we'll get what's in the input buffer or nothing */
-
-  /* Reading data from a port is a little trickier. When you operate the
-   * port in raw data mode, each read(2) system call will return the
-   * number of characters that are actually available in the serial
+  /* If the port operates in raw data mode, each read(2) system call will
+   * return the number of characters that are actually available in the serial
    * input buffers. If no characters are available, the call will block
    * (wait) until characters come in, an interval timer expires, or an
    * error occurs. The read function can be made to return immediately
-   * by doing the following:
-   *
-   *  fcntl(fd, F_SETFL, FNDELAY);
-   *
-   * The FNDELAY option causes the read function to return 0 if no
-   * characters are available on the port. To restore normal (blocking)
-   * behavior, call fcntl() without the FNDELAY option:
-   *
-   *  fcntl(fd, F_SETFL, 0);
+   * by doing fcntl(fd, F_SETFL, FNDELAY); The FNDELAY option causes the read
+   * function to return 0 if no characters are available on the port.
+   * To restore normal (blocking) behavior, call fcntl() without the
+   * FNDELAY option.
    */
-
-
-  /* fcntl(fd, F_SETFL, FNDELAY); */
   fcntl(fd, F_SETFL, 0);
 }
 
-
-/** Baud rate hash definitions.
- *
- * We use an enum instead of just defining a few macros as that allows
- * the compiler to catch missing case statements in switch() blocks.
- */
-typedef enum {
-  USERBAUD1200 = '1'+'2',
-  USERBAUD2400 = '2'+'4',
-  USERBAUD9600 = '9'+'6',
-  USERBAUD1920 = '1'+'9',
-  USERBAUD3840 = '3'+'8'
-} userbaud_t;
+/** Returns appropriate baud definition from termios.h
+*/
 
 
-long serial_string_to_baud(const char *arg)
+long serial_get_baud(const long whichBaud)
 {
-  const userbaud_t whichBaud = (arg[0] + arg[1]);
   switch (whichBaud) {
-    case USERBAUD1200: return B1200;
-    case USERBAUD2400: return B2400;
-    case USERBAUD9600: return B9600;
-    case USERBAUD1920: return B19200;
-    case USERBAUD3840: return B38400;
-      /* No "default:" label to force the compiler to complain about
-       * unhandled cases. We still handle other cases, but after the
-       * switch() statement. */
+    case  50:      return  B50;
+    case  75:      return  B75;
+    case  110:     return  B110;
+    case  134:     return  B134;
+    case  150:     return  B150;
+    case  200:     return  B200;
+    case  300:     return  B300;
+    case  600:     return  B600;
+    case  1200:    return  B1200;
+    case  1800:    return  B1800;
+    case  2400:    return  B2400;
+    case  4800:    return  B4800;
+    case  9600:    return  B9600;
+    case  19200:   return  B19200;
+    case  38400:   return  B38400;
+    case  57600:   return  B57600;
+    case  115200:  return  B115200;
+    case  230400:  return  B230400;
+    case  460800:  return  B460800;
+    case  500000:  return  B500000;
+    case  576000:  return  B576000;
+    case  921600:  return  B921600;
+    case  1000000: return  B1000000;
+    case  1152000: return  B1152000;
+    case  1500000: return  B1500000;
+    case  2000000: return  B2000000;
+    case  2500000: return  B2500000;
+    case  3000000: return  B3000000;
+    case  3500000: return  B3500000;
+    case  4000000: return  B4000000;
+    /* No "default:" label to force the compiler to complain about
+     * unhandled cases. We still handle other cases, but after the
+     * switch() statement. */
   }
   fprintf(stderr,
-	  "Baud rate %s is not supported, "
-	  "use 1200, 2400, 9600, 19200 or 38400.\n", arg);
+	  "Baud rate %d is not supported"
+	  "\n", whichBaud);
   exit(1);
 }
 

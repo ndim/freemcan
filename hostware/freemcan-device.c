@@ -64,7 +64,7 @@ int open_char_device(const char *device_name)
   if (fd < 0) {
     return -1;
   }
-  serial_setup(fd, serial_string_to_baud("9600"));
+  serial_setup(fd, serial_get_baud(9600));
   return fd;
 }
 

@@ -98,7 +98,12 @@ void serial_setup(const int fd,
 		  const int stop_bits)
 {
   struct termios tio;
+  /* Initialize memory to zero, as tcgetattr(2) does not write all
+   * bytes in tio, and we need to do byte-by-byte comparison later and
+   * need something reproducible for that. */
   memset(&tio, '\0', sizeof(tio));
+  tcgetattr(fd, &tio);
+
   const long baudconst = serial_get_baudconst(baudrate);
 
   /* CREAD:       allow input to be received / enable receiver
@@ -190,12 +195,25 @@ void serial_setup(const int fd,
   const int ret_tcflush = tcflush(fd, TCIFLUSH);
   if (ret_tcflush < 0) {
     perror("tcflush");
+    abort();
   }
 
-  /* set the attributes */
-  const int ret_tcsetattr = tcsetattr(fd, TCSANOW, &tio);
-  if (ret_tcsetattr < 0) {
-    perror("tcsetattr");
+  /* Set the attributes. The tcsetattr(2) return value has no
+   * meaningful information, so we need to first set the new
+   * attributes (tio), then get the current attributes (tio2) and
+   * finally we can check whether tio and tio2 match. */
+  tcsetattr(fd, TCSANOW, &tio);
+  if (1) {
+    struct termios tio2;
+    /* Initialize to zero like tio above to give us reproducible results. */
+    memset(&tio2, '\0', sizeof(tio2));
+    tcgetattr(fd, &tio2);
+    if (0 != memcmp(&tio, &tio2, sizeof(tio))) {
+      fprintf(stderr, "Error setting struct termios (tcsetattr)\n");
+      /* fmlog_data(&tio, sizeof(tio));
+       * fmlog_data(&tio2, sizeof(tio2)); */
+      abort();
+    }
   }
 
   /* If the port operates in raw data mode, each read(2) system call will

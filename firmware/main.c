@@ -104,13 +104,6 @@ FUSES = {
 volatile histogram_element_t table[MAX_COUNTER];
 
 
-/** count number of measurements
- *
- * Use 8 bit value to ensure atomic read/write operations.
- */
-volatile uint8_t measurement_count;
-
-
 /** timer counter
  *
  * Initialized once by main() with value received from host
@@ -452,7 +445,6 @@ int main(void)
     /* Initialize global variables */
     max_timer_count = 0;
     max_timer_flag  = 0;
-    measurement_count = 0;
     for (int i=0; i<MAX_COUNTER; i++) {
       table[i]=0;
     }

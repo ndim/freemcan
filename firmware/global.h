@@ -37,9 +37,6 @@
 #define F_CPU 16000000UL		               //!< Pollin AVR Eval board
 #endif
 
-/** UART baud rate */
-#define UART_BAUDRATE 9600UL
-
 /** ADC prescaler selection for ADC clock source frequency
  *
  *  0: ADC clock divider=2

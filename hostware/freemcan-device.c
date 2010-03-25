@@ -51,6 +51,8 @@
 #include "freemcan-tui.h"
 #include "serial-setup.h"
 
+#include "uart-defs.h"
+
 
 send_command_f tui_device_send_command;
 
@@ -64,7 +66,7 @@ int open_char_device(const char *device_name)
   if (fd < 0) {
     return -1;
   }
-  serial_setup(fd, 9600, 8, PARITY_NONE, 1);
+  serial_setup(fd, UART_BAUDRATE, 8, PARITY_NONE, 1);
   return fd;
 }
 

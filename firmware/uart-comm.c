@@ -30,6 +30,8 @@
 #include "uart-comm.h"
 #include "global.h"
 
+#include "uart-defs.h"
+
 
 #define BIT(NO) (1<<(NO))
 

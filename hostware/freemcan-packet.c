@@ -33,6 +33,7 @@
 #include "freemcan-log.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
+#include "endian-conversion.h"
 
 
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
@@ -111,6 +112,8 @@ void frame_handler(const frame_t *frame)
     if (packet_handler_histogram) {
       const packet_histogram_header_t *header =
 	(const packet_histogram_header_t *)&(frame->payload[0]);
+      /* We need to do endianness conversion on all multi-byte values
+       * in header, i.e. on header->duration. */
       const size_t hist_size = frame->size - sizeof(*header);
       assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
@@ -118,7 +121,7 @@ void frame_handler(const frame_t *frame)
 						      time(NULL),
 						      header->element_size,
 						      element_count,
-						      header->duration,
+						      letoh16(header->duration),
 						      &(frame->payload[sizeof(*header)]));
       packet_handler_histogram(hist, packet_handler_data);
       packet_histogram_unref(hist);

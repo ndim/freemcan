@@ -218,15 +218,16 @@ ISR(ADC_vect) {
   /* Read analog value */
   uint16_t result = ADCW;
 
-  /** \todo Can the ADC return values exceeding 8, 9, 10bit? Probably not. */
-  /** \todo Reconcile ADC_RESOLUTION, MAX_COUNTER, table index, etc. */
-  /* Update histogram: this can be a 8 or a 9 or a 10 bit index! */
+  /* We are confident that the range of values the ADC gives us
+   * is within the specced 10bit range of 0..1023. */
 
   /* cut off 2, 1 or 0 LSB */
   const uint16_t index = result >> (10-ADC_RESOLUTION);
 
-  /* For 24bit values, this looks a little more complicated than just
-   * table[index]++, so we have moved the increment into the _inc function.
+  /* For 24bit values, the source code looks a little more complicated
+   * than just table[index]++ (even though the generated machine
+   * instructions are not).  Anyway, we needed to move the increment
+   * into a properly defined _inc function.
    */
   volatile histogram_element_t *element = &(table[index]);
   histogram_element_inc(element);

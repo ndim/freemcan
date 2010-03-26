@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup uart_defs UART Communication Definition
- * \ingroup common
+ * \ingroup communication_protocol
  * @{
  */
 

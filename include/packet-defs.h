@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup packet_defs Packet Format Definitions
- * \ingroup common
+ * \ingroup communication_protocol
  * @{
  *
  * \section packet_protocol Packet Communication Protocol (Layer 3)

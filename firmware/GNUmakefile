@@ -23,7 +23,7 @@ MCU ?= atmega644p
 FORMAT = ihex
 TARGET = firmware
 SRC = main.c uart-comm.c frame-comm.c
-ASRC = 
+ASRC = # ISR-ADC_vect.S
 OPT = s
 
 # Comment out the following two files to remove the printf implementation

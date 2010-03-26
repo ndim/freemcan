@@ -153,9 +153,9 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 # Default target.
 all: build
 
-build: elf hex eep
+build: elf hex eep checks
 
-ALL: elf hex eep lss sym fuses
+ALL: elf hex eep lss sym fuses checks
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
@@ -247,6 +247,18 @@ extcoff: $(TARGET).elf
 $(TARGET).elf: $(OBJ)
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
 
+# Check that the SRAM usage fits into the ATmega644's 4K SRAM
+# size: __bss_end must be <= 0x00801100.
+#
+# The 0x00800000 is avr-gcc's Harvard architecture trick, and the
+# first 0x100 bytes in the addr space are CPU and IO registers, after
+# which the 4K of SRAM start, up to and including address 0x10ff.
+checks : check-bss-end
+check-bss-end: $(TARGET).elf
+	@MAX_BSS_END="$$(printf "%d\n" 0x801100)"; \
+	BSS_END="$$(nm $< | awk '/__bss_end/ { print strtonum("0x"$$1); }')"; \
+	printf "CHECK: MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END"; \
+	test "$$MAX_BSS_END" -ge "$$BSS_END"
 
 # Compile: create object files from C source files.
 .c.o:

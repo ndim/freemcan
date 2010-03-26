@@ -18,8 +18,17 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup frame_defs Frame Format Definition
+ * \defgroup communication_protocol Communication Protocol Definitions
  * \ingroup common
+ *
+ * In the communication between firmware and hostware, all values
+ * larger than a single byte are defined to be little endian. The
+ * reason is that we want to avoid all unnecessary work in the
+ * firmware (like endianness conversion) and avr-gcc provides us a
+ * with little endian system.
+ *
+ * \defgroup frame_defs Frame Format Definition
+ * \ingroup communication_protocol
  * @{
  *
  * \section frame_protocol Frame Communication Protocol (Layer 2)
@@ -109,11 +118,11 @@
 #include <stdint.h>
 
 
-/** Header marker for data frames to host
+/** Header magic marker value for data frames to host, AVR uint32_t version.
  *
- * \todo Is this the proper endianness?
+ * This is good for the little endian AVR controller.
  */
-#define FRAME_MAGIC  \
+#define FRAME_MAGIC_LE_U32  \
   ( \
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
@@ -121,6 +130,11 @@
    (((uint32_t)'K')<<24)			\
     )
 
+/** Header magic marker value for data frames to host, string version.
+ *
+ * This is good for endianness independent char-by-char receivers.
+ */
+#define FRAME_MAGIC_STR "FMPK"
 
 /** Data frame types (data frame to host)
  *

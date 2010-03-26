@@ -35,11 +35,16 @@ void frame_start(const frame_type_t frame_type,
   /* reset the checksum state */
   uart_checksum_reset();
 
-  /* send frame header */
-  const uint32_t header = FRAME_MAGIC;
+  /* Send frame header magic value.  The uint32_t type avoids the
+   * global .data space use a char array would cause. */
+  const uint32_t header = FRAME_MAGIC_LE_U32;
   uart_putb(&header, sizeof(header));
-  const uint16_t size = payload_size; /** \todo What about endianness? */
+
+  /* send payload size */
+  const uint16_t size = payload_size;
   uart_putb(&size, sizeof(size));
+
+  /* send frame type */
   const uint8_t type = frame_type;
   uart_putc((const char)type);
 }

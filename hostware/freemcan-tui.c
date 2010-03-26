@@ -339,6 +339,48 @@ static void packet_handler_text(const char *text, void *UP(data))
 }
 
 
+/** Log the histogram data */
+static void fmlog_hist(const uint32_t *elements, const size_t count)
+{
+  /* Find largest element in array */
+  uint32_t max = 0;
+  for (size_t i=0; i<count; i++) {
+    if (elements[i] > max) {
+      max = elements[i];
+    }
+  }
+
+  /* Lookup table for places per number, and numbers per line */
+  int places, perline;
+  if      (max >= 1000000000) { places = 10; perline =  4; }
+  else if (max >=  100000000) { places =  9; perline =  4; }
+  else if (max >=   10000000) { places =  8; perline =  8; }
+  else if (max >=    1000000) { places =  7; perline =  8; }
+  else if (max >=     100000) { places =  6; perline =  8; }
+  else if (max >=      10000) { places =  5; perline =  8; }
+  else if (max >=       1000) { places =  4; perline =  8; }
+  else if (max >=        100) { places =  3; perline = 16; }
+  else if (max >=         10) { places =  2; perline = 16; }
+  else                        { places =  1; perline = 32; }
+
+  /* prepare format string for numbers */
+  char fmt[10] = "";
+  sprintf(fmt, " %%%dd", places);
+
+  for (size_t y=0; y<count; y+=perline) {
+    char line[80] = "";
+    ssize_t idx = sprintf(&(line[0]), "%4d:", y);
+    for (int x=0; x<perline; x++) {
+      if ((x&7) == 0) {
+	idx += sprintf(&(line[idx]), " ");
+      }
+      idx += sprintf(&(line[idx]), fmt, elements[y+x]);
+    }
+    fmlog("%s", line);
+  }
+}
+
+
 /** Histogram data packet handler (TUI specific) */
 static void packet_handler_histogram(packet_histogram_t *histogram_packet,
 				     void *UP(data))
@@ -346,30 +388,21 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
   packet_histogram_ref(histogram_packet);
 
   const size_t element_count = histogram_packet->element_count;
-  const size_t element_size = histogram_packet->element_size;
   const packet_histogram_type_t type = histogram_packet->type;
   char buf[128];
   if ((type>=32)&&(type<127)) {
     snprintf(buf, sizeof(buf),
-	     "Received '%c' type histogram: %%d elements of %%d bytes each, %%d seconds:",
+	     "Received '%c' type histogram: %%d elements, %%d seconds:",
 	     type);
   } else {
     snprintf(buf, sizeof(buf),
-	     "Received 0x%02x=%d type histogram: %%d elements of %%d bytes each, %%d seconds:",
+	     "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
 	     type, type);
   }
-  fmlog(buf,
-	element_count, element_size,
-	histogram_packet->duration);
-  const size_t total_size = element_count * element_size;
-  switch (element_size) {
-  case 4:  fmlog_data32(histogram_packet->elements.ev, total_size); break;
-  case 3:  fmlog_data24(histogram_packet->elements.ev, total_size); break;
-  case 2:  fmlog_data16(histogram_packet->elements.ev, total_size); break;
-  default: fmlog_data  (histogram_packet->elements.ev, total_size); break;
-  }
+  fmlog(buf, element_count, histogram_packet->duration);
+  fmlog_hist(histogram_packet->elements, element_count);
 
-  /* export current histogram to freemcan-export.dat */
+  /* export current histogram to files */
   export_histogram(histogram_packet);
 
   packet_histogram_unref(histogram_packet);

@@ -20,6 +20,11 @@
  *
  * \defgroup freemcan_frame Data Frame Parser (Layer 2)
  * \ingroup hostware_generic
+ *
+ * The only potential endianness issue in freemcan-frame.c is the
+ * frame payload size in #frame_size which is read byte by byte in an
+ * endianness independent fashion.
+ *
  * @{
  */
 
@@ -120,7 +125,7 @@ static state_t state = STATE_MAGIC;
 static size_t offset = 0;
 
 /** Static magic constant for comparision */
-static const char *magic = "FMPK";
+static const char *magic = FRAME_MAGIC_STR;
 
 /** The frame size for frame in progress */
 static uint16_t frame_size;

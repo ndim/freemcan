@@ -60,25 +60,12 @@ char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
 void export_histogram(const packet_histogram_t *histogram_packet)
 {
   const size_t element_count = histogram_packet->element_count;
-  const size_t element_size = histogram_packet->element_size;
   const char *fname = export_histogram_get_filename(histogram_packet, "dat");
   FILE *histfile = fopen(fname, "w");
   assert(histfile);
   fmlog("Writing histogram to file %s", fname);
   for (size_t i=0; i<element_count; i++) {
-    uint32_t value;
-    switch (element_size) {
-    case 1: value = histogram_packet->elements.e8[i]; break;
-    case 2: value = histogram_packet->elements.e16[i]; break;
-    case 3: value =
-	(((uint32_t)histogram_packet->elements.e8[3*i+0]) << 0) +
-	(((uint32_t)histogram_packet->elements.e8[3*i+1]) << 8) +
-	(((uint32_t)histogram_packet->elements.e8[3*i+2]) << 16);
-      break;
-    case 4: value = histogram_packet->elements.e32[i]; break;
-    default: abort(); /* invalid element size */ break;
-    }
-    fprintf(histfile, "%d\t%u\n", i, value);
+    fprintf(histfile, "%d\t%u\n", i, histogram_packet->elements[i]);
   }
   fclose(histfile);
 }

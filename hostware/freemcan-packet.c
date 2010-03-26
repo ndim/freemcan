@@ -33,6 +33,7 @@
 #include "freemcan-log.h"
 #include "freemcan-frame.h"
 #include "freemcan-packet.h"
+#include "endian-conversion.h"
 
 
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
@@ -42,21 +43,48 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const uint16_t duration,
 					 const void *elements)
 {
-  packet_histogram_t *result = calloc(1, sizeof(packet_histogram_t));
+  packet_histogram_t *result =
+    malloc(sizeof(packet_histogram_t)+element_count*sizeof(uint32_t));
   assert(result != NULL);
-  result->refs = 1;
 
-  const size_t sz = element_size*element_count;
-  void *element_copy = malloc(sz);
-  assert(element_copy);
-  memcpy(element_copy, elements, sz);
-  result->elements.ev   = element_copy;
-
+  result->refs          = 1;
   result->type          = type;
   result->receive_time  = receive_time;
-  result->element_size  = element_size;
   result->element_count = element_count;
   result->duration      = duration;
+
+  const uint8_t  *e8  = elements;
+  const uint16_t *e16 = elements;
+  const uint32_t *e32 = elements;
+
+  switch (element_size) {
+  case 1:
+    for (size_t i=0; i<element_count; i++) {
+      result->elements[i] = e8[i];
+    }
+    break;
+  case 2:
+    for (size_t i=0; i<element_count; i++) {
+      result->elements[i] = letoh16(e16[i]);
+    }
+    break;
+  case 3:
+    for (size_t i=0; i<element_count; i++) {
+      result->elements[i] =
+	(((uint32_t)e8[3*i+0]) << 0) +
+	(((uint32_t)e8[3*i+1]) << 8) +
+	(((uint32_t)e8[3*i+2]) << 16);
+    }
+    break;
+  case 4:
+    for (size_t i=0; i<element_count; i++) {
+      result->elements[i] = letoh32(e32[i]);
+    }
+    break;
+  default:
+    abort(); /* invalid histogram element size */
+    break;
+  }
 
   return result;
 }
@@ -72,7 +100,6 @@ void packet_histogram_ref(packet_histogram_t *hist_pack)
 static
 void packet_histogram_free(packet_histogram_t *hist_pack)
 {
-  free(hist_pack->elements.ev);
   free(hist_pack);
 }
 
@@ -111,6 +138,8 @@ void frame_handler(const frame_t *frame)
     if (packet_handler_histogram) {
       const packet_histogram_header_t *header =
 	(const packet_histogram_header_t *)&(frame->payload[0]);
+      /* We need to do endianness conversion on all multi-byte values
+       * in header, i.e. on header->duration. */
       const size_t hist_size = frame->size - sizeof(*header);
       assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
@@ -118,7 +147,7 @@ void frame_handler(const frame_t *frame)
 						      time(NULL),
 						      header->element_size,
 						      element_count,
-						      header->duration,
+						      letoh16(header->duration),
 						      &(frame->payload[sizeof(*header)]));
       packet_handler_histogram(hist, packet_handler_data);
       packet_histogram_unref(hist);

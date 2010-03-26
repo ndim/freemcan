@@ -23,6 +23,7 @@
  * \defgroup firmware Firmware
  *
  * \defgroup firmware_memories Memory types and layout
+ * \ingroup firmware
  *
  * There can be a number of kinds of variables.
  *
@@ -406,6 +407,17 @@ void io_init(void)
 }
 
 
+/** \defgroup firmware_comm Firmware Communication With Host (Sending and Receiving)
+ * \ingroup firmware
+ *
+ * As all multi-byte values sent or received are little-endian, we can
+ * just send and receive native values on the AVR and forget about
+ * endianness altogether.
+ *
+ * @{
+ */
+
+
 /** Send histogram packet to controller via serial port (layer 3).
  *
  * \param type The type of histogram we are sending
@@ -467,6 +479,9 @@ void send_text(const char *msg)
   const size_t len = strlen(msg);
   frame_send(FRAME_TYPE_TEXT, msg, len);
 }
+
+
+/** @} */
 
 
 /** AVR firmware's main "loop" function

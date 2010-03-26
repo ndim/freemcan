@@ -38,9 +38,6 @@ typedef struct {
   /** The reason for sending the histogram */
   packet_histogram_type_t type;
 
-  /** Size of a single histogram element in bytes (1,2,4,8) */
-  uint8_t element_size;
-
   /** Timestamp when package was received */
   time_t receive_time;
 
@@ -50,19 +47,8 @@ typedef struct {
   /** Duration of measurement which lead to the histogram data */
   unsigned int duration;
 
-  /** Histogram element table.
-   *
-   * This is a single pointer to the actual memory area with the
-   * histogram data, accessible as multiple types via a union for your
-   * convenience.
-   */
-  union {
-    uint8_t  *e8;
-    uint16_t *e16;
-    uint32_t *e32;
-    uint64_t *e64;
-    void     *ev;
-  } elements;
+  /** Histogram element table (native endian uint32_t) */
+  uint32_t elements[];
 } packet_histogram_t;
 
 

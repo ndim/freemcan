@@ -260,6 +260,11 @@ check-bss-end: $(TARGET).elf
 	printf "CHECK: MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END"; \
 	test "$$MAX_BSS_END" -ge "$$BSS_END"
 
+# The numbers avr-size prints need some explanation, expecially the data part.
+checks : check-avr-size
+check-avr-size: $(TARGET).elf
+	avr-size $<
+
 # Compile: create object files from C source files.
 .c.o:
 	$(CC) -c $(ALL_CFLAGS) $< -o $@

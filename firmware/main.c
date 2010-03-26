@@ -413,8 +413,13 @@ void io_init(void)
  *             like '?' or -1 or 0xff or 0 until you make use of that
  *             value on the receiver side.
  *
- * \bug Disable timer counting while we are busy sending data and thus
- *      not measuring.
+ * Note that send_histogram() might take a significant amount of time.
+ * For example, at 9600bps, transmitting a good 3KByte will take a
+ * good 3 seconds.  If you disable interrupts for that time and want
+ * to continue the measurement later, you will want to properly pause
+ * the timer.  We are currently keeping interrupts enabled if we
+ * continue measuring, which avoids this issue.
+ *
  */
 static
 void send_histogram(const packet_histogram_type_t type)
@@ -569,10 +574,25 @@ int main(void)
 	  soft_reset();
 	break;
 	case FRAME_CMD_INTERMEDIATE:
-	  cli();
+	  /** The ISR(ADC_vect) will be called when the analog circuit
+	   * detects an event.  This will cause glitches in the
+	   * intermediate histogram values as the histogram values are
+	   * larger than 8 bits.  However, we have decided that for
+	   * *intermediate* results, those glitches are acceptable.
+	   *
+	   * Keeping interrupts enabled has the additional advantage
+	   * that the measurement continues during send_histogram(),
+	   * so we need not concern ourselves with pausing the
+	   * measurement timer or anything similar.
+	   *
+	   * If you decide to bracket the send_histogram() call with a
+	   * cli()/sei() pair, be aware that you need to solve the
+	   * issue of resetting the peak hold capacitor on resume if
+	   * an event has been detected by the analog circuit while we
+	   * had interrupts disabled and thus ISR(ADC_vect) could not
+	   * reset the peak hold capacitor.
+	   */
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
-	  /** \bug reset peak-hold capacitor before resuming proper measuring */
-	  sei();
 	  /* NEXT_STATE: MEASURING */
 	  break;
 	default:

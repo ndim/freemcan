@@ -63,6 +63,7 @@ static inline uint32_t htole32(const uint32_t value)
 #endif
 
 #ifdef ENDIANNESS_IS_BE
+/* to be implemented */
 #endif
 
 /** \} */

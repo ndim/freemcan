@@ -360,7 +360,7 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
   fmlog(buf, element_count, histogram_packet->duration);
   fmlog_hist(histogram_packet->elements, element_count);
 
-  /* export current histogram to files */
+  /* export current histogram to file(s) */
   export_histogram(histogram_packet);
 
   packet_histogram_unref(histogram_packet);

@@ -61,11 +61,11 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
   __attribute__((malloc));
 
 
-/** Call this when you want to use hist */
+/** Call this when you want to use hist and store a pointer to it. */
 void packet_histogram_ref(packet_histogram_t *hist);
 
 
-/** Call this when you have finished using hist */
+/** Call this when you have finished using your pointer to hist. */
 void packet_histogram_unref(packet_histogram_t *hist);
 
 

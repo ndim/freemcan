@@ -56,6 +56,11 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
   const uint8_t  *e8  = elements;
   const uint16_t *e16 = elements;
   const uint32_t *e32 = elements;
+  if (!elements) {
+    result->max_value = 0;
+    memset(result->elements, '\0', sizeof(result->elements[0])*element_count);
+    return result;
+  }
 
   switch (element_size) {
   case 1:

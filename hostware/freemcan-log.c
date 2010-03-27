@@ -240,4 +240,46 @@ void fmlog_data24(const void *data, const size_t size)
 }
 
 
+/* documented in freemcan-log.h */
+void fmlog_hist(const uint32_t *elements, const size_t count)
+{
+  /* Find largest element in array */
+  uint32_t max = 0;
+  for (size_t i=0; i<count; i++) {
+    if (elements[i] > max) {
+      max = elements[i];
+    }
+  }
+
+  /* Lookup table for places per number, and numbers per line */
+  int places, perline;
+  if      (max >= 1000000000) { places = 10; perline =  4; }
+  else if (max >=  100000000) { places =  9; perline =  4; }
+  else if (max >=   10000000) { places =  8; perline =  8; }
+  else if (max >=    1000000) { places =  7; perline =  8; }
+  else if (max >=     100000) { places =  6; perline =  8; }
+  else if (max >=      10000) { places =  5; perline =  8; }
+  else if (max >=       1000) { places =  4; perline =  8; }
+  else if (max >=        100) { places =  3; perline = 16; }
+  else if (max >=         10) { places =  2; perline = 16; }
+  else                        { places =  1; perline = 32; }
+
+  /* prepare format string for numbers */
+  char fmt[10] = "";
+  sprintf(fmt, " %%%dd", places);
+
+  for (size_t y=0; y<count; y+=perline) {
+    char line[80] = "";
+    ssize_t idx = sprintf(&(line[0]), "%4d:", y);
+    for (int x=0; x<perline; x++) {
+      if ((x&7) == 0) {
+	idx += sprintf(&(line[idx]), " ");
+      }
+      idx += sprintf(&(line[idx]), fmt, elements[y+x]);
+    }
+    fmlog("%s", line);
+  }
+}
+
+
 /** @} */

@@ -47,11 +47,24 @@ typedef struct {
   /** Duration of measurement which lead to the histogram data */
   unsigned int duration;
 
+  /** Maximum "good" value from elements[] array (ignores clamping value!) */
+  uint32_t max_value;
+
   /** Histogram element table (native endian uint32_t) */
   uint32_t elements[];
 } packet_histogram_t;
 
 
+/** Create (allocate and initialize) a new packet_histogram_t instance.
+ *
+ * \param elements Pointer to the array of data as received from the
+ *                 device.  A NULL pointer is interpreted like an
+ *                 array consisting entirely of zeros.
+ *
+ * Note that the determination of max_value disregards the last value
+ * in the array due to that being the value where ADC clamping is
+ * counted.
+ */
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const time_t receive_time,
 					 const uint8_t element_size,

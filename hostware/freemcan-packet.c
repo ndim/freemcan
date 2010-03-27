@@ -61,11 +61,15 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 
   const uint8_t *e8  = elements;
 
+  uint32_t max_value = 0;
+
   switch (element_size) {
   case 1:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v = e8[i];
       result->elements[i] = v;
+      if ((i+1<element_count) && (v > max_value))
+	max_value = v;
     }
     break;
   case 2:
@@ -74,6 +78,8 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 	(((uint32_t)e8[2*i+0]) << 0) +
 	(((uint32_t)e8[2*i+1]) << 8);
       result->elements[i] = v;
+      if ((i+1<element_count) && (v > max_value))
+	max_value = v;
     }
     break;
   case 3:
@@ -83,6 +89,8 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 	(((uint32_t)e8[3*i+1]) << 8) +
 	(((uint32_t)e8[3*i+2]) << 16);
       result->elements[i] = v;
+      if ((i+1<element_count) && (v > max_value))
+	max_value = v;
     }
     break;
   case 4:
@@ -93,12 +101,16 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 	(((uint32_t)e8[4*i+2]) << 16) +
 	(((uint32_t)e8[4*i+3]) << 24);
       result->elements[i] = v;
+      if ((i+1<element_count) && (v > max_value))
+	max_value = v;
     }
     break;
   default:
     abort(); /* invalid histogram element size */
     break;
   }
+
+  result->max_value = max_value;
 
   return result;
 }

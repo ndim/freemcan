@@ -53,37 +53,46 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
   result->element_count = element_count;
   result->duration      = duration;
 
-  const uint8_t  *e8  = elements;
-  const uint16_t *e16 = elements;
-  const uint32_t *e32 = elements;
   if (!elements) {
     result->max_value = 0;
     memset(result->elements, '\0', sizeof(result->elements[0])*element_count);
     return result;
   }
 
+  const uint8_t *e8  = elements;
+
   switch (element_size) {
   case 1:
     for (size_t i=0; i<element_count; i++) {
-      result->elements[i] = e8[i];
+      const uint32_t v = e8[i];
+      result->elements[i] = v;
     }
     break;
   case 2:
     for (size_t i=0; i<element_count; i++) {
-      result->elements[i] = letoh16(e16[i]);
+      const uint32_t v =
+	(((uint32_t)e8[2*i+0]) << 0) +
+	(((uint32_t)e8[2*i+1]) << 8);
+      result->elements[i] = v;
     }
     break;
   case 3:
     for (size_t i=0; i<element_count; i++) {
-      result->elements[i] =
+      const uint32_t v =
 	(((uint32_t)e8[3*i+0]) << 0) +
 	(((uint32_t)e8[3*i+1]) << 8) +
 	(((uint32_t)e8[3*i+2]) << 16);
+      result->elements[i] = v;
     }
     break;
   case 4:
     for (size_t i=0; i<element_count; i++) {
-      result->elements[i] = letoh32(e32[i]);
+      const uint32_t v =
+	(((uint32_t)e8[4*i+0]) << 0) +
+	(((uint32_t)e8[4*i+1]) << 8) +
+	(((uint32_t)e8[4*i+2]) << 16) +
+	(((uint32_t)e8[4*i+3]) << 24);
+      result->elements[i] = v;
     }
     break;
   default:

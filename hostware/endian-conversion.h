@@ -52,14 +52,6 @@ static inline uint16_t htole16(const uint16_t value)
 {
   return value;
 }
-static inline uint32_t letoh32(const uint32_t value)
-{
-  return value;
-}
-static inline uint32_t htole32(const uint32_t value)
-{
-  return value;
-}
 #endif
 
 #ifdef ENDIANNESS_IS_BE

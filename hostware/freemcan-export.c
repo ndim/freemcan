@@ -43,6 +43,7 @@ char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
   char type = 'X';
   switch (histogram_packet->type) {
   case PACKET_HISTOGRAM_DONE:
+  case PACKET_HISTOGRAM_RESEND:
   case PACKET_HISTOGRAM_ABORTED:
   case PACKET_HISTOGRAM_INTERMEDIATE:
     type = histogram_packet->type;

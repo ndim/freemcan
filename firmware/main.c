@@ -391,6 +391,25 @@ void timer_init(void){
 }
 
 
+/** Configure 16bit timer to trigger an ISR four times as fast ast timer_init() does.
+ *
+ * You MUST have run timer_init() some time before running timer_init_quick().
+ */
+inline static
+void timer_init_quick(void)
+{
+  const uint8_t old_tccr1b = TCCR1B;
+  /* pause the clock */
+  TCCR1B &= ~(BIT(CS12) | BIT(CS11) | BIT(CS10));
+  /* faster blinking */
+  OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
+  /* start counting from 0, needs clock to be paused */
+  TCNT1 = 0;
+  /* unpause the clock */
+  TCCR1B = old_tccr1b;
+}
+
+
 /** Initialize peripherals
  *
  * Configure peak hold capacitor reset pin
@@ -596,7 +615,26 @@ int main(void)
       if (timer_flag) { /* done */
 	cli();
 	send_histogram(PACKET_HISTOGRAM_DONE);
-	goto_reset();
+	timer_init_quick();
+	while (1) {
+	  /* STATE: DONE (wait for RESET command while seinding histograms) */
+	  send_state("DONE");
+	  const char ch = uart_getc();
+	  const frame_cmd_t cmd = ch;
+	  switch (cmd) {
+	  case FRAME_CMD_STATE:
+	    /* remain in current state DONE, just print it */
+	    break;
+	  case FRAME_CMD_RESET:
+	    /* STATE: RESET */
+	    goto_reset();
+	    break;
+	  default:
+	    /* repeat sending histogram */
+	    send_histogram(PACKET_HISTOGRAM_RESEND);
+	    break;
+	  }
+	}
       } else if (bit_is_set(UCSR0A, RXC0)) {
 	/* there is a character in the UART input buffer */
 	const char ch = uart_getc();

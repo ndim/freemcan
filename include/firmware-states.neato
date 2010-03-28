@@ -11,10 +11,7 @@ digraph firmware_fsm {
   timer1    [pos="0,2!"];
   checksum  [pos="0,0!"];
   measuring [pos="4,0!" label="MEASURING"];
-/*
   done      [pos="4,2!" label="DONE"];
-*/
-  done      [pos="4,2!" shape=plaintext label="..."];
 
   null -> booting;
   reset -> booting [ label="done\n-/-" ];
@@ -31,11 +28,7 @@ digraph firmware_fsm {
   measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate', state 'MEASURING'" ];
 
   ready -> reset [ label="cmd 'r'\nstate 'RESET'"];
-  measuring -> done [ label="done\nhistogram 'done', state 'RESET'"];
-/*
   measuring -> done [ label="done\nhistogram 'done', state 'DONE'"];
   done -> reset [ label="cmd 'r'\nstat 'RESET'"];
   done -> done  [ label="any other byte\nhistogram 'resend', state 'DONE'" ];
-*/
-  done -> reset [ label="instantly" ];
 }

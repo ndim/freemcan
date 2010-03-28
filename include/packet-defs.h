@@ -63,6 +63,9 @@ typedef enum {
   /** Measurement has completed ("done"). */
   PACKET_HISTOGRAM_DONE = 'D',
 
+  /** Repeat sending of 'D' type histogram */
+  PACKET_HISTOGRAM_RESEND = 'R',
+
   /** Measurement has been aborted, report results as gathered so far. */
   PACKET_HISTOGRAM_ABORTED = 'A'
 

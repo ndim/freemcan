@@ -460,15 +460,16 @@ void send_histogram(const packet_histogram_type_t type)
 }
 
 
-/** Send status message packet to host (layer 3).
+/** Send state message packet to host (layer 3).
  *
- * Status messages are constant strings.
+ * State messages are constant strings describing the FSM state we are
+ * currently in.
  */
 static
-void send_status(const char *msg)
+void send_state(const char *msg)
 {
   const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_STATUS, msg, len);
+  frame_send(FRAME_TYPE_STATE, msg, len);
 }
 
 
@@ -485,6 +486,15 @@ void send_text(const char *msg)
 
 
 /** @} */
+
+
+/** Go into the RESET state, and reset the machine */
+void goto_reset(void) __attribute__((noreturn));
+void goto_reset(void)
+{
+  send_state("RESET");
+  soft_reset();
+}
 
 
 /** AVR firmware's main "loop" function
@@ -526,7 +536,7 @@ int main(void)
     adc_init();
 
     /* STATE: READY */
-    send_status("READY");
+    send_state("READY");
 
     uint8_t quit_flag = 0;
     uint16_t timer_value;
@@ -536,9 +546,8 @@ int main(void)
       const frame_cmd_t cmd = ch;
       switch (cmd) {
       case FRAME_CMD_RESET:
-	send_status("RESET");
 	/* STATE: RESET */
-	soft_reset();
+	goto_reset();
 	break;
       case FRAME_CMD_MEASURE:
 	if (1) {
@@ -549,13 +558,14 @@ int main(void)
 	  timer_value = (((uint16_t)byte1)<<8) | byte0;
 	  /* STATUS: CHECKSUM */
 	  if (uart_checksum_recv()) { /* checksum successful */
-	    send_status("MEASURING");
 	    /* NEXT_STATE: MEASURING */
 	    quit_flag = 1;
 	  } else { /* checksum fail */
-	    send_status("CHKSUMFAIL");
+	    /** \todo Find a way to report checksum failure without
+	     *        resorting to sending free text. */
+	    send_text("checksum fail");
 	    /* STATE: RESET */
-	    soft_reset();
+	    goto_reset();
 	  }
 	}
 	break;
@@ -564,9 +574,13 @@ int main(void)
 	/* NEXT_STATE: READY */
 	break;
       }
+      if (quit_flag)
+	break;
+      send_state("READY");
     }
 
     /* STATE: MEASURING */
+    send_state("MEASURING");
 
     /* set up timer with the value we just got */
     timer_count = orig_timer_count = timer_value;
@@ -579,7 +593,7 @@ int main(void)
       if (timer_flag) { /* done */
 	cli();
 	send_histogram(PACKET_HISTOGRAM_DONE);
-	soft_reset();
+	goto_reset();
       } else if (bit_is_set(UCSR0A, RXC0)) {
 	/* there is a character in the UART input buffer */
 	const char ch = uart_getc();
@@ -589,7 +603,7 @@ int main(void)
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_ABORTED);
 	  /* STATE: RESET */
-	  soft_reset();
+	  goto_reset();
 	break;
 	case FRAME_CMD_INTERMEDIATE:
 	  /** The ISR(ADC_vect) will be called when the analog circuit
@@ -618,6 +632,7 @@ int main(void)
 	  /* NEXT_STATE: MEASURING */
 	  break;
 	}
+	send_state("MEASURING");
       }
     }
 }

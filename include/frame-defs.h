@@ -139,8 +139,8 @@ typedef enum {
   /** histogram data */
   FRAME_TYPE_HISTOGRAM = 'H',
 
-  /** device status message */
-  FRAME_TYPE_STATUS = 'S'
+  /** device state message */
+  FRAME_TYPE_STATE = 'S'
 
 } frame_type_t;
 
@@ -159,6 +159,9 @@ typedef enum {
 
   /** Abort running measurement and transmit current results */
   FRAME_CMD_ABORT = 'a',
+
+  /** Query current state */
+  FRAME_CMD_STATE = 's',
 
   /** Reset device */
   FRAME_CMD_RESET = 'r'

@@ -97,8 +97,8 @@ void packet_histogram_unref(packet_histogram_t *hist);
 typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
 					   void *data);
 
-/** Callback function type called when status packet arrives */
-typedef void (*packet_handler_status_t)(const char *status, void *data);
+/** Callback function type called when state packet arrives */
+typedef void (*packet_handler_state_t)(const char *state, void *data);
 
 /** Callback function type called when text packet arrives */
 typedef void (*packet_handler_text_t)(const char *status, void *data);
@@ -118,7 +118,7 @@ void packet_reset_handlers();
  * parser.
  */
 void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_status_t status_packet_handler,
+			 packet_handler_state_t state_packet_handler,
 			 packet_handler_text_t text_packet_handler,
 			 void *data);
 

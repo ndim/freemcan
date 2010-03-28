@@ -141,7 +141,7 @@ void packet_histogram_unref(packet_histogram_t *hist_pack)
 
 
 static packet_handler_histogram_t packet_handler_histogram = NULL;
-static packet_handler_status_t    packet_handler_status = NULL;
+static packet_handler_state_t     packet_handler_state = NULL;
 static packet_handler_text_t      packet_handler_text = NULL;
 static void *                     packet_handler_data = NULL;
 
@@ -150,9 +150,9 @@ static
 void frame_handler(const frame_t *frame)
 {
   switch (frame->type) {
-  case FRAME_TYPE_STATUS:
-    if (packet_handler_status) {
-      packet_handler_status((const char *)frame->payload, packet_handler_data);
+  case FRAME_TYPE_STATE:
+    if (packet_handler_state) {
+      packet_handler_state((const char *)frame->payload, packet_handler_data);
     }
     return;
   case FRAME_TYPE_TEXT:
@@ -193,7 +193,7 @@ void frame_handler(const frame_t *frame)
 void packet_reset_handlers()
 {
   packet_handler_histogram = NULL;
-  packet_handler_status = NULL;
+  packet_handler_state = NULL;
   packet_handler_text = NULL;
   packet_handler_data = NULL;
   frame_reset_handler();
@@ -201,12 +201,12 @@ void packet_reset_handlers()
 
 
 void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_status_t status_packet_handler,
+			 packet_handler_state_t state_packet_handler,
 			 packet_handler_text_t text_packet_handler,
 			 void *data)
 {
   packet_handler_histogram = histogram_packet_handler;
-  packet_handler_status = status_packet_handler;
+  packet_handler_state = state_packet_handler;
   packet_handler_text = text_packet_handler;
   packet_handler_data = data;
   frame_set_handler(frame_handler);

@@ -18,7 +18,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup packet_defs Packet Format Definitions
+ * \defgroup packet_defs Packet Format
  * \ingroup communication_protocol
  * @{
  *

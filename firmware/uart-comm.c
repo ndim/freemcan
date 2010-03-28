@@ -19,8 +19,12 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup uart_comm Firmware UART Communications (Layer 1)
+ * \defgroup uart_comm Firmware UART Communications
  * \ingroup firmware
+ *
+ * Implements the byte stream part of the communication protocol
+ * (Layer 1).
+ *
  * @{
  */
 

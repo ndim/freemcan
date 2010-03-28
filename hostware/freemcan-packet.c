@@ -18,7 +18,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_packet Data Packet Parser (Layer 3)
+ * \defgroup freemcan_packet Data Packet Parser
  * \ingroup hostware_generic
  *
  * @{

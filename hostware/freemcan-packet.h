@@ -57,6 +57,12 @@ typedef struct {
 
 /** Create (allocate and initialize) a new packet_histogram_t instance.
  *
+ * \param type Type of histogram packet, i.e. reason why it was sent.
+ * \param receive_time Timestamp at which the packet was received.
+ * \param element_size Size of each element in bytes (1,2,3,4).
+ * \param element_count The number of elements received from device.
+ * \param duration The duration of the measurement which produced
+ *                 the data in elements.
  * \param elements Pointer to the array of data as received from the
  *                 device.  A NULL pointer is interpreted like an
  *                 array consisting entirely of zeros.

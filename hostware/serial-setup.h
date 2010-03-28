@@ -43,10 +43,13 @@ int serial_open(const char *device_name);
 /** Set up serial port parameters
  *
  * \param fd device file descriptor
- * \param baud constant from termios.h, e.g. B9600
+ * \param baudconst A constant from termios.h, e.g. B9600.
+ *                  You can use serial_get_baudconst() below to
+ *                  determine a good value for baudconst.
  * \param bits_per_byte Bits per transferred byte (7 or 8).
  * \param parity The parity to use (N,E,O). See #serial_parity_t.
  * \param stop_bits Number of stop bits (1 or 2).
+ *
  */
 void serial_setup(const int fd,
 		  const long baudconst,

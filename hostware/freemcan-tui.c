@@ -318,8 +318,11 @@ void atexit_func(void)
 
 
 /************************************************************************/
-/** \defgroup tui_data_handling Data Handling (Layer 4)
+/** \defgroup tui_data_handling TUI Data Handling
  * \ingroup freemcan_tui
+ *
+ * Application Layer (Communication Layer 4).
+ *
  * @{
  */
 /************************************************************************/

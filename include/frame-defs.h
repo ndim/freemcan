@@ -18,16 +18,39 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup communication_protocol Communication Protocol Definitions
+ * \defgroup communication_protocol Communication Protocol
  * \ingroup common
  *
+ * \section layer_model Layering model
+ *
+ * To keep the parser in the firmware simple, we use a simpler data
+ * format for communication sent from the host to the device (\ref
+ * frame_host_to_emb). For the more complex data sent from the device
+ * to the hostware, we use the following layering model:
+ *
+ * <table>
+ *  <tr><td></td><th>description</th><th>specification</th>
+ *      <th>hostware implementation</th><th>firmware implementation</th></tr>
+ *  <tr><th>Layer 4</th><td>application layer (process the packets' content)</td>
+ *      <td>N/A</td><td>\ref tui_data_handling, \ref gui_data_handling</td><td>\ref firmware</td></tr>
+ *  <tr><th>Layer 3</th><td>packets of a certain type with a certain content</td>
+ *      <td>\ref packet_defs</td><td>\ref freemcan_packet</td><td>\ref firmware_comm</td></tr>
+ *  <tr><th>Layer 2</th><td>frames of a certain size</td>
+ *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame</td><td>\ref frame_comm</td></tr>
+ *  <tr><th>Layer 1</th><td>byte stream to/from serial port</td>
+ *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
+ *  <tr><th>Layer 0</th><td>bits on the wire between serial ports</td>
+ *      <td>N/A</td><td>N/A</td><td>N/A</td></tr>
+ * </table>
+ *
+ * \section endianness Endianness
  * In the communication between firmware and hostware, all values
  * larger than a single byte are defined to be little endian. The
  * reason is that we want to avoid all unnecessary work in the
  * firmware (like endianness conversion) and avr-gcc provides us a
  * with little endian system.
  *
- * \defgroup frame_defs Frame Format Definition
+ * \defgroup frame_defs Frame Format
  * \ingroup communication_protocol
  * @{
  *
@@ -58,7 +81,7 @@
  * <table>
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *
- *  <tr><td>4</td> <td>#FRAME_MAGIC</td> <td>magic value for beginning of frame</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>magic value marking beginning of frame</td></tr>
  *  <tr><td>2</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
  *  <tr><td>1</td> <td>#frame_type_t</td> <td>frame type</td></tr>
  *  <tr><td>see above</td> <td>?</td> <td>payload data</td></tr>

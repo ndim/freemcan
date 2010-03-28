@@ -54,7 +54,13 @@ typedef struct {
  * in a GUI.
  *
  * In case you happen upon a system where Bnnnn is undefined, please
- * wrap that line in a #ifdef Bnnnn and #endif pair.
+ * wrap that line as follows and submit a patch:
+ *
+ * \code
+ *     #ifdef Bnnnn
+ *       B(nnnn),
+ *     #endif
+ * \endcode
  */
 baud_t baud_table[] = {
   B(50),

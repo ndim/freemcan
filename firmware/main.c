@@ -408,8 +408,10 @@ void io_init(void)
 }
 
 
-/** \defgroup firmware_comm Firmware Communication With Host (Sending and Receiving)
+/** \defgroup firmware_comm Packet Communication
  * \ingroup firmware
+ *
+ * Implement packet part of the communication protocol (Layer 3).
  *
  * As all multi-byte values sent or received are little-endian, we can
  * just send and receive native values on the AVR and forget about

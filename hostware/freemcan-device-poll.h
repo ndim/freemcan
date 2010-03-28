@@ -35,10 +35,7 @@
  */
 
 
-/** \fn device_poll_setup
- * \brief Set up device's IO stuff (from poll(2) loop)
- *\ingroup freemcan_device_poll
- */
+/** Set up device's IO stuff (from poll(2) loop) */
 void device_poll_setup(struct pollfd *pollfds, poll_handler_t *pollhandlers,
 		       nfds_t *index, const nfds_t limit);
 

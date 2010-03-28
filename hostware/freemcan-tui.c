@@ -282,11 +282,6 @@ void tui_do_io(void)
         fmlog("M                       send command \"start (m)easurement\" (long runtime)");
         fmlog("r                       send command \"(r)eset\"");
 	break;
-      case FRAME_CMD_ABORT:
-      case FRAME_CMD_INTERMEDIATE:
-      case FRAME_CMD_RESET:
-	tui_device_send_command(buf[i], 0);
-	break;
       case FRAME_CMD_MEASURE: /* 'm' */
 	/* "SHORT" measurement */
 	tui_device_send_command(FRAME_CMD_MEASURE, 10);
@@ -294,6 +289,11 @@ void tui_do_io(void)
       case 'M': /* 'm' */
 	/* "LONG" measurement */
 	tui_device_send_command(FRAME_CMD_MEASURE, 30);
+	break;
+      case FRAME_CMD_ABORT:
+      case FRAME_CMD_INTERMEDIATE:
+      case FRAME_CMD_RESET:
+	tui_device_send_command(buf[i], 0);
 	break;
       /* No "default:" case as we ignore all other characters. */
       }

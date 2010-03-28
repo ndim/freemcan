@@ -28,18 +28,18 @@
  * frame_host_to_emb). For the more complex data sent from the device
  * to the hostware, we use the following layering model:
  *
- * <table>
- *  <tr><td></td><th>description</th><th>specification</th>
+ * <table class="table header-top header-left">
+ *  <tr><th>layer</th><th>description</th><th>specification</th>
  *      <th>hostware implementation</th><th>firmware implementation</th></tr>
- *  <tr><th>Layer 4</th><td>application layer (process the packets' content)</td>
- *      <td>N/A</td><td>\ref tui_data_handling, \ref gui_data_handling</td><td>\ref firmware</td></tr>
- *  <tr><th>Layer 3</th><td>packets of a certain type with a certain content</td>
+ *  <tr><th>4</th><td>application layer (process the packets' content)</td>
+ *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
+ *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
  *      <td>\ref packet_defs</td><td>\ref freemcan_packet</td><td>\ref firmware_comm</td></tr>
- *  <tr><th>Layer 2</th><td>frames of a certain size</td>
+ *  <tr><th>2</th><td>frames of a certain size</td>
  *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame</td><td>\ref frame_comm</td></tr>
- *  <tr><th>Layer 1</th><td>byte stream to/from serial port</td>
+ *  <tr><th>1</th><td>byte stream to/from serial port</td>
  *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
- *  <tr><th>Layer 0</th><td>bits on the wire between serial ports</td>
+ *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>
  *      <td>N/A</td><td>N/A</td><td>N/A</td></tr>
  * </table>
  *
@@ -61,7 +61,7 @@
  * To keep the parser in the firmware simple, most "frames" sent from
  * the hostware to the firmware are actually just a single byte:
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
  * </table>
@@ -69,7 +69,7 @@
  * The single exception is the "start measurement" command which looks
  * as follows:
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>FRAME_CMD_MEASURE</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
  *  <tr><td>2</td> <td>?</td> <td>uint16_t</td> <td>timervalue (measurement duration)</td></tr>
@@ -78,7 +78,7 @@
  *
  * \subsection frame_emb_to_host Frames sent from firmware to hostware
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *
  *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>magic value marking beginning of frame</td></tr>

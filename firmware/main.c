@@ -569,6 +569,9 @@ int main(void)
 	  }
 	}
 	break;
+      case FRAME_CMD_STATE:
+	/* remain in current state READY, just print it */
+	break;
       default:
 	/* ignore all other bytes */
 	/* NEXT_STATE: READY */
@@ -626,6 +629,9 @@ int main(void)
 	   */
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
 	  /* NEXT_STATE: MEASURING */
+	  break;
+	case FRAME_CMD_STATE:
+	  /* remain in current state MEASURING, just print it */
 	  break;
 	default:
 	  /* ignore all other bytes */

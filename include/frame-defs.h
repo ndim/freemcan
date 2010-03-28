@@ -133,7 +133,7 @@
  */
 typedef enum {
 
-  /** text message for debugging */
+  /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
 
   /** histogram data */

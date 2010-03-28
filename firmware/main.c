@@ -402,7 +402,7 @@ void io_init(void)
     /* configure pin 20 as an output                               */
     DDRD |= (BIT(DDD6));
     /* set pin 20 to ground                                        */
-    PORTD &= ~ BIT(PD6);
+    PORTD &= ~BIT(PD6);
 
     /** \todo configure unused pins */
 }
@@ -620,7 +620,6 @@ int main(void)
 	}
       }
     }
-
 }
 
 /** @} */

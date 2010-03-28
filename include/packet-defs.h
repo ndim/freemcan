@@ -22,25 +22,22 @@
  * \ingroup communication_protocol
  * @{
  *
- * \section packet_protocol Packet Communication Protocol (Layer 3)
+ * \section packet_host_to_emb Packets sent from hostware to firmware
  *
- * \subsection packet_host_to_emb Packets sent from hostware to firmware
+ * The host never sends packets to the firmware. It only sends
+ * simplified frames.  See the \ref frame_defs "frame documentation".
  *
- * The host never sends packets to the firmware. It only sends single
- * bytes. See the frame documentation.
- *
- * \subsection packet_emb_to_host From firmware to hostware: Histogram packet
+ * \section packet_emb_to_host From firmware to hostware: Histogram packet
  *
  * The size of the histogram data is determined from the total packet
- * data size by subtracting the size of all the #packet_histogram_header_t
- * that is sent in front of histogram data.
+ * data size (i.e. the frame's payload size) by subtracting the size
+ * of the #packet_histogram_header_t that is sent in front of
+ * histogram data.
  *
  * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>\ref packet_histogram_header_t "header" field</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td><td>\ref packet_histogram_header_t::element_size "element_size"</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
- *  <tr><td>1</td><td>\ref packet_histogram_header_t::type "type"</td> <td>packet_histogram_type_t</td> <td>histogram type (measurement completed, intermediate result, result at abort)</td></tr>
- *  <tr><td>2</td><td>\ref packet_histogram_header_t::duration "duration"</td> <td>uint16_t</td> <td>measurement duration</td></tr>
- *  <tr><td>see above</td> <td>?</td> <td>histogram data</td></tr>
+ *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>sizeof(packet_histogram_header_t)</td> <td>packet_histogram_header_t</td> <td>histogram packet header</td></tr>
+ *  <tr><td>see above</td> <td>uintX_t []</td> <td>histogram data</td></tr>
  * </table>
  *
  */
@@ -50,6 +47,7 @@
 
 
 #include <stdint.h>
+
 
 
 /** Histogram packet types (UNUSED SO FAR)

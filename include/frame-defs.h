@@ -21,6 +21,21 @@
  * \defgroup communication_protocol Communication Protocol
  * \ingroup common
  *
+ * \section embedded_fsm Firmware state machine
+ *
+ * The firmware implements the following state machine:
+ *
+ * \image html firmware-states.png "Device as State Machine"
+ *
+ * The input triggering a state transition is either a byte received
+ * over the serial line, or a timeout happening (watchdog timeout, or
+ * measurement duration has passed).
+ *
+ * Note1: The "booting" state is a hardware state.
+ *
+ * Note2: Entering an upper case state is always reported by a state
+ *        packet.
+ *
  * \section layer_model Layering model
  *
  * To keep the parser in the firmware simple, we use a simpler data
@@ -89,16 +104,6 @@
  * </table>
  *
  * \todo Document checksum algorithm.
- *
- * \subsection embedded_fsm Firmware state machine
- *
- * The firmware implements the following state machine:
- *
- * \image html firmware-states.png "Device as State Machine"
- *
- * The input triggering a state transition is either a byte received
- * over the serial line, or a timeout happening (watchdog timeout, or
- * measurement duration has passed).
  *
  */
 

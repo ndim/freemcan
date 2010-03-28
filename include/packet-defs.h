@@ -32,13 +32,14 @@
  * \subsection packet_emb_to_host From firmware to hostware: Histogram packet
  *
  * The size of the histogram data is determined from the total packet
- * data size by subtracting the size of all the fixed-size fields in
- * front of it.
+ * data size by subtracting the size of all the #packet_histogram_header_t
+ * that is sent in front of histogram data.
  *
- * <table>
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
- *  <tr><td>1</td> <td>packet_histogram_type_t</td> <td>histogram type (measurement completed, intermediate result, result at abort)</td></tr>
+ * <table class="table header-top">
+ *  <tr><th>size in bytes</th> <th>\ref packet_histogram_header_t "header" field</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>1</td><td>\ref packet_histogram_header_t::element_size "element_size"</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
+ *  <tr><td>1</td><td>\ref packet_histogram_header_t::type "type"</td> <td>packet_histogram_type_t</td> <td>histogram type (measurement completed, intermediate result, result at abort)</td></tr>
+ *  <tr><td>2</td><td>\ref packet_histogram_header_t::duration "duration"</td> <td>uint16_t</td> <td>measurement duration</td></tr>
  *  <tr><td>see above</td> <td>?</td> <td>histogram data</td></tr>
  * </table>
  *
@@ -73,7 +74,11 @@ typedef enum {
 
 
 /** Histogram packet header
+ *
  * \todo Verify the compiler does not do strange alignment things.
+ *
+ * Note: If you change this structure, please make sure you update the
+ * table above.
  */
 typedef struct {
   uint8_t  element_size;

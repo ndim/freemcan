@@ -92,45 +92,13 @@
  *
  * \subsection embedded_fsm Firmware state machine
  *
- * \dot
- * digraph firmware_fsm {
- *   node [shape=ellipse, fontname=Helvetica, fontsize=10];
- *   edge [fontname=Helvetica, fontsize=10];
+ * The firmware implements the following state machine:
  *
- *   {
- *     rank = same;
- *     null [shape = plaintext label=""];
- *     booting;
- *     ready;
- *   }
- *   {
- *     reset;
- *     measuring;
- *   }
+ * \image html firmware-states.png "Device as State Machine"
  *
- *   null -> booting;
- *
- *   reset -> booting [ label="done\n-/-" ];
- *
- *   booting -> ready [ label="done\nstatus 'ready'" ];
- *
- *   ready -> timer0 [ label="cmd 'm'\n-/-" ];
- *   timer0 -> timer1 [ label="timer byte 0\n-/-" ];
- *   timer1 -> checksum [ label="timer byte 1\n-/-" ];
- *   checksum -> measuring [ label="chksum byte, if match\nstatus 'measuring'" ];
- *   checksum -> reset [ label="chksum byte, if fail\nstatus 'chksumfail'" ];
- *
- *   measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" ];
- *   measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate'" ];
- *
- *   ready -> reset [ label="cmd 'r'\nstatus 'reset'"];
- *   measuring -> reset [ label="done\nhistogram 'done'" ];
- * }
- * \enddot
- *
- * \bug Insert state between measuring and reset to resend histogram
- *      data and wait for ACK package from host before discarding
- *      measurement results.
+ * The input triggering a state transition is either a byte received
+ * over the serial line, or a timeout happening (watchdog timeout, or
+ * measurement duration has passed).
  *
  */
 

@@ -1,0 +1,40 @@
+digraph firmware_fsm {
+  node [shape=ellipse, fontname=Helvetica, fontsize=10];
+  edge [fontname=Helvetica, fontsize=10];
+
+  null      [pos="5.5,4!" shape=plaintext label=""];
+  booting   [pos="4,4!"];
+  ready     [pos="2,4!"];
+  done      [pos="4,2!"];
+  reset     [pos="2,2!"];
+  timer0    [pos="0,4!"];
+  timer1    [pos="0,2!"];
+  checksum  [pos="0,0!"];
+  measuring [pos="4,0!"];
+/*
+  done      [pos="4,2!"];
+*/
+  done      [pos="4,2!" shape=plaintext label="..."];
+
+  null -> booting;
+  reset -> booting [ label="done\n-/-" ];
+
+  booting -> ready [ label="done\nstatus 'ready'" ];
+
+  ready -> timer0 [ label="cmd 'm'\n-/-" ];
+  timer0 -> timer1 [ label="timer byte 0\n-/-" ];
+  timer1 -> checksum [ label="timer byte 1\n-/-" ];
+  checksum -> measuring [ label="chksum byte, if match\nstatus 'measuring'" ];
+  checksum -> reset [ label="chksum byte, if fail\nstatus 'chksumfail'" ];
+
+  measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" id="mr1"];
+  measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate'" ];
+
+  ready -> reset [ label="cmd 'r'\nstatus 'reset'"];
+  measuring -> done [ label="done\nhistogram 'done'" id="mr2"];
+/*
+  done -> reset [ label="cmd 'r'\nstatus 'reset'"];
+  done -> done  [ label="else\nhistogram 'resend'" ];
+*/
+  done -> reset [ label="instantly" ];
+}

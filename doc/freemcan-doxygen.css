@@ -34,3 +34,13 @@ table.table.header-top.header-left > tbody > tr > th:first-child {
     border-right: solid 2pt black;
 }
 
+*:target:before {
+    content: "->";
+    font-family: sans;
+    font-size: x-large;
+    font-weight: bold;
+    color: #ff0000;
+    margin: 0;
+    position: absolute;
+    left: 0;
+}

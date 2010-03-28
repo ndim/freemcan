@@ -1,0 +1,46 @@
+@import url("default-stylesheet.css");
+
+table.table {
+    background-color: #f0fff0;
+    border-collapse: collapse;
+    border: solid 2pt black;
+}
+
+table.table > tbody > tr > th,
+table.table > tbody > tr > td {
+    border: solid 1pt black;
+}
+
+table.table > tbody > tr > td {
+    vertical-align: top;
+}
+
+table.table > tbody > tr > th > p,
+table.table > tbody > tr > td > p {
+    margin: 0;
+}
+
+table.table > tbody > tr > th {
+    background-color: #d0e0d0;
+}
+
+table.table.header-top.header-left > tbody > tr:first-child > th,
+table.table.header-top > tbody > tr:first-child > th {
+    border-bottom: solid 2pt black;
+}
+
+
+table.table.header-top.header-left > tbody > tr > th:first-child {
+    border-right: solid 2pt black;
+}
+
+*:target:before {
+    content: "->";
+    font-family: sans;
+    font-size: x-large;
+    font-weight: bold;
+    color: #ff0000;
+    margin: 0;
+    position: absolute;
+    left: 0;
+}

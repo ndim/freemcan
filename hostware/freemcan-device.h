@@ -46,6 +46,7 @@ void device_close(const int device_fd);
 
 /** Write a command to the device.
  *
+ * \param fd The device's file descriptor
  * \param cmd The #frame_cmd_t to send.
  * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
  *              Otherwise, it is ignored.
@@ -57,7 +58,7 @@ void device_send_command(const int fd,
 /** Do the actual IO
  *
  * Can be called from either the select(2) or poll(2) based main loop
- * hook functions (#dev_select_do_io, #dev_poll_handler).
+ * hook functions (#device_select_do_io, #device_poll_handler).
  */
 void device_do_io(const int fd);
 

@@ -1,6 +1,8 @@
 /** \file emulator/erl_unix_port.c
  * \brief Specialized Erlang port to interface to AF_UNIX sockets
  *
+ * \bug Implement FSM status -> state change.
+ *
  * \bug Should perhaps be replaced by kernel-2.13.4/examples/uds_dist
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

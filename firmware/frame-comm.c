@@ -18,8 +18,12 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup frame_comm Frame Communication (Layer 2)
+ * \defgroup frame_comm Frame Communication
  * \ingroup firmware
+ *
+ * Implement the frame-by-frame part of the communication protocl
+ * (Layer 2).
+ *
  * @{
  */
 

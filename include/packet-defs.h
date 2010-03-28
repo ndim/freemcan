@@ -18,28 +18,26 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup packet_defs Packet Format Definitions
+ * \defgroup packet_defs Packet Format
  * \ingroup communication_protocol
  * @{
  *
- * \section packet_protocol Packet Communication Protocol (Layer 3)
+ * \section packet_host_to_emb Packets sent from hostware to firmware
  *
- * \subsection packet_host_to_emb Packets sent from hostware to firmware
+ * The host never sends packets to the firmware. It only sends
+ * simplified frames.  See the \ref frame_defs "frame documentation".
  *
- * The host never sends packets to the firmware. It only sends single
- * bytes. See the frame documentation.
- *
- * \subsection packet_emb_to_host From firmware to hostware: Histogram packet
+ * \section packet_emb_to_host From firmware to hostware: Histogram packet
  *
  * The size of the histogram data is determined from the total packet
- * data size by subtracting the size of all the fixed-size fields in
- * front of it.
+ * data size (i.e. the frame's payload size) by subtracting the size
+ * of the #packet_histogram_header_t that is sent in front of
+ * histogram data.
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>uint8_t</td> <td>histogram element size in bytes (1,2,4)</td></tr>
- *  <tr><td>1</td> <td>packet_histogram_type_t</td> <td>histogram type (measurement completed, intermediate result, result at abort)</td></tr>
- *  <tr><td>see above</td> <td>?</td> <td>histogram data</td></tr>
+ *  <tr><td>sizeof(packet_histogram_header_t)</td> <td>packet_histogram_header_t</td> <td>histogram packet header</td></tr>
+ *  <tr><td>see above</td> <td>uintX_t []</td> <td>histogram data</td></tr>
  * </table>
  *
  */
@@ -49,6 +47,7 @@
 
 
 #include <stdint.h>
+
 
 
 /** Histogram packet types (UNUSED SO FAR)
@@ -63,6 +62,9 @@ typedef enum {
   /** Measurement has completed ("done"). */
   PACKET_HISTOGRAM_DONE = 'D',
 
+  /** Repeat sending of 'D' type histogram */
+  PACKET_HISTOGRAM_RESEND = 'R',
+
   /** Measurement has been aborted, report results as gathered so far. */
   PACKET_HISTOGRAM_ABORTED = 'A'
 
@@ -70,7 +72,11 @@ typedef enum {
 
 
 /** Histogram packet header
+ *
  * \todo Verify the compiler does not do strange alignment things.
+ *
+ * Note: If you change this structure, please make sure you update the
+ * table above.
  */
 typedef struct {
   uint8_t  element_size;

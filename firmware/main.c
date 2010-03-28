@@ -391,6 +391,25 @@ void timer_init(void){
 }
 
 
+/** Configure 16bit timer to trigger an ISR four times as fast ast timer_init() does.
+ *
+ * You MUST have run timer_init() some time before running timer_init_quick().
+ */
+inline static
+void timer_init_quick(void)
+{
+  const uint8_t old_tccr1b = TCCR1B;
+  /* pause the clock */
+  TCCR1B &= ~(BIT(CS12) | BIT(CS11) | BIT(CS10));
+  /* faster blinking */
+  OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
+  /* start counting from 0, needs clock to be paused */
+  TCNT1 = 0;
+  /* unpause the clock */
+  TCCR1B = old_tccr1b;
+}
+
+
 /** Initialize peripherals
  *
  * Configure peak hold capacitor reset pin
@@ -402,14 +421,16 @@ void io_init(void)
     /* configure pin 20 as an output                               */
     DDRD |= (BIT(DDD6));
     /* set pin 20 to ground                                        */
-    PORTD &= ~ BIT(PD6);
+    PORTD &= ~BIT(PD6);
 
     /** \todo configure unused pins */
 }
 
 
-/** \defgroup firmware_comm Firmware Communication With Host (Sending and Receiving)
+/** \defgroup firmware_comm Packet Communication
  * \ingroup firmware
+ *
+ * Implement packet part of the communication protocol (Layer 3).
  *
  * As all multi-byte values sent or received are little-endian, we can
  * just send and receive native values on the AVR and forget about
@@ -458,15 +479,16 @@ void send_histogram(const packet_histogram_type_t type)
 }
 
 
-/** Send status message packet to host (layer 3).
+/** Send state message packet to host (layer 3).
  *
- * Status messages are constant strings.
+ * State messages are constant strings describing the FSM state we are
+ * currently in.
  */
 static
-void send_status(const char *msg)
+void send_state(const char *msg)
 {
   const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_STATUS, msg, len);
+  frame_send(FRAME_TYPE_STATE, msg, len);
 }
 
 
@@ -483,6 +505,15 @@ void send_text(const char *msg)
 
 
 /** @} */
+
+
+/** Go into the RESET state, and reset the machine */
+void goto_reset(void) __attribute__((noreturn));
+void goto_reset(void)
+{
+  send_state("RESET");
+  soft_reset();
+}
 
 
 /** AVR firmware's main "loop" function
@@ -524,7 +555,7 @@ int main(void)
     adc_init();
 
     /* STATE: READY */
-    send_status("READY");
+    send_state("READY");
 
     uint8_t quit_flag = 0;
     uint16_t timer_value;
@@ -534,9 +565,8 @@ int main(void)
       const frame_cmd_t cmd = ch;
       switch (cmd) {
       case FRAME_CMD_RESET:
-	send_status("RESET");
 	/* STATE: RESET */
-	soft_reset();
+	goto_reset();
 	break;
       case FRAME_CMD_MEASURE:
 	if (1) {
@@ -547,24 +577,32 @@ int main(void)
 	  timer_value = (((uint16_t)byte1)<<8) | byte0;
 	  /* STATUS: CHECKSUM */
 	  if (uart_checksum_recv()) { /* checksum successful */
-	    send_status("MEASURING");
 	    /* NEXT_STATE: MEASURING */
 	    quit_flag = 1;
 	  } else { /* checksum fail */
-	    send_status("CHKSUMFAIL");
+	    /** \todo Find a way to report checksum failure without
+	     *        resorting to sending free text. */
+	    send_text("checksum fail");
 	    /* STATE: RESET */
-	    soft_reset();
+	    goto_reset();
 	  }
 	}
+	break;
+      case FRAME_CMD_STATE:
+	/* remain in current state READY, just print it */
 	break;
       default:
 	/* ignore all other bytes */
 	/* NEXT_STATE: READY */
 	break;
       }
+      if (quit_flag)
+	break;
+      send_state("READY");
     }
 
     /* STATE: MEASURING */
+    send_state("MEASURING");
 
     /* set up timer with the value we just got */
     timer_count = orig_timer_count = timer_value;
@@ -577,7 +615,26 @@ int main(void)
       if (timer_flag) { /* done */
 	cli();
 	send_histogram(PACKET_HISTOGRAM_DONE);
-	soft_reset();
+	timer_init_quick();
+	while (1) {
+	  /* STATE: DONE (wait for RESET command while seinding histograms) */
+	  send_state("DONE");
+	  const char ch = uart_getc();
+	  const frame_cmd_t cmd = ch;
+	  switch (cmd) {
+	  case FRAME_CMD_STATE:
+	    /* remain in current state DONE, just print it */
+	    break;
+	  case FRAME_CMD_RESET:
+	    /* STATE: RESET */
+	    goto_reset();
+	    break;
+	  default:
+	    /* repeat sending histogram */
+	    send_histogram(PACKET_HISTOGRAM_RESEND);
+	    break;
+	  }
+	}
       } else if (bit_is_set(UCSR0A, RXC0)) {
 	/* there is a character in the UART input buffer */
 	const char ch = uart_getc();
@@ -587,7 +644,7 @@ int main(void)
 	  cli();
 	  send_histogram(PACKET_HISTOGRAM_ABORTED);
 	  /* STATE: RESET */
-	  soft_reset();
+	  goto_reset();
 	break;
 	case FRAME_CMD_INTERMEDIATE:
 	  /** The ISR(ADC_vect) will be called when the analog circuit
@@ -611,14 +668,17 @@ int main(void)
 	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
 	  /* NEXT_STATE: MEASURING */
 	  break;
+	case FRAME_CMD_STATE:
+	  /* remain in current state MEASURING, just print it */
+	  break;
 	default:
 	  /* ignore all other bytes */
 	  /* NEXT_STATE: MEASURING */
 	  break;
 	}
+	send_state("MEASURING");
       }
     }
-
 }
 
 /** @} */

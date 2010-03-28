@@ -18,16 +18,54 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup communication_protocol Communication Protocol Definitions
+ * \defgroup communication_protocol Communication Protocol
  * \ingroup common
  *
+ * \section embedded_fsm Firmware state machine
+ *
+ * The firmware implements the following state machine:
+ *
+ * \image html firmware-states.png "Device as State Machine"
+ *
+ * The input triggering a state transition is either a byte received
+ * over the serial line, or a timeout happening (watchdog timeout, or
+ * measurement duration has passed).
+ *
+ * Note1: The "booting" state is a hardware state.
+ *
+ * Note2: Entering an upper case state is always reported by a state
+ *        packet.
+ *
+ * \section layer_model Layering model
+ *
+ * To keep the parser in the firmware simple, we use a simpler data
+ * format for communication sent from the host to the device (\ref
+ * frame_host_to_emb). For the more complex data sent from the device
+ * to the hostware, we use the following layering model:
+ *
+ * <table class="table header-top header-left">
+ *  <tr><th>layer</th><th>description</th><th>specification</th>
+ *      <th>hostware implementation</th><th>firmware implementation</th></tr>
+ *  <tr><th>4</th><td>application layer (process the packets' content)</td>
+ *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
+ *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
+ *      <td>\ref packet_defs</td><td>\ref freemcan_packet</td><td>\ref firmware_comm</td></tr>
+ *  <tr><th>2</th><td>frames of a certain size</td>
+ *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame</td><td>\ref frame_comm</td></tr>
+ *  <tr><th>1</th><td>byte stream to/from serial port</td>
+ *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
+ *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>
+ *      <td>N/A</td><td>N/A</td><td>N/A</td></tr>
+ * </table>
+ *
+ * \section endianness Endianness
  * In the communication between firmware and hostware, all values
  * larger than a single byte are defined to be little endian. The
  * reason is that we want to avoid all unnecessary work in the
  * firmware (like endianness conversion) and avr-gcc provides us a
  * with little endian system.
  *
- * \defgroup frame_defs Frame Format Definition
+ * \defgroup frame_defs Frame Format
  * \ingroup communication_protocol
  * @{
  *
@@ -38,7 +76,7 @@
  * To keep the parser in the firmware simple, most "frames" sent from
  * the hostware to the firmware are actually just a single byte:
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
  * </table>
@@ -46,7 +84,7 @@
  * The single exception is the "start measurement" command which looks
  * as follows:
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>FRAME_CMD_MEASURE</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
  *  <tr><td>2</td> <td>?</td> <td>uint16_t</td> <td>timervalue (measurement duration)</td></tr>
@@ -55,10 +93,10 @@
  *
  * \subsection frame_emb_to_host Frames sent from firmware to hostware
  *
- * <table>
+ * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *
- *  <tr><td>4</td> <td>#FRAME_MAGIC</td> <td>magic value for beginning of frame</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>magic value marking beginning of frame</td></tr>
  *  <tr><td>2</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
  *  <tr><td>1</td> <td>#frame_type_t</td> <td>frame type</td></tr>
  *  <tr><td>see above</td> <td>?</td> <td>payload data</td></tr>
@@ -66,48 +104,6 @@
  * </table>
  *
  * \todo Document checksum algorithm.
- *
- * \subsection embedded_fsm Firmware state machine
- *
- * \dot
- * digraph firmware_fsm {
- *   node [shape=ellipse, fontname=Helvetica, fontsize=10];
- *   edge [fontname=Helvetica, fontsize=10];
- *
- *   {
- *     rank = same;
- *     null [shape = plaintext label=""];
- *     booting;
- *     ready;
- *   }
- *   {
- *     reset;
- *     measuring;
- *   }
- *
- *   null -> booting;
- *
- *   reset -> booting [ label="done\n-/-" ];
- *
- *   booting -> ready [ label="done\nstatus 'ready'" ];
- *
- *   ready -> timer0 [ label="cmd 'm'\n-/-" ];
- *   timer0 -> timer1 [ label="timer byte 0\n-/-" ];
- *   timer1 -> checksum [ label="timer byte 1\n-/-" ];
- *   checksum -> measuring [ label="chksum byte, if match\nstatus 'measuring'" ];
- *   checksum -> reset [ label="chksum byte, if fail\nstatus 'chksumfail'" ];
- *
- *   measuring -> reset [ label="cmd 'a'\nhistogram 'aborted'" ];
- *   measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate'" ];
- *
- *   ready -> reset [ label="cmd 'r'\nstatus 'reset'"];
- *   measuring -> reset [ label="done\nhistogram 'done'" ];
- * }
- * \enddot
- *
- * \bug Insert state between measuring and reset to resend histogram
- *      data and wait for ACK package from host before discarding
- *      measurement results.
  *
  */
 
@@ -142,14 +138,14 @@
  */
 typedef enum {
 
-  /** text message for debugging */
+  /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
 
   /** histogram data */
   FRAME_TYPE_HISTOGRAM = 'H',
 
-  /** device status message */
-  FRAME_TYPE_STATUS = 'S'
+  /** device state message */
+  FRAME_TYPE_STATE = 'S'
 
 } frame_type_t;
 
@@ -168,6 +164,9 @@ typedef enum {
 
   /** Abort running measurement and transmit current results */
   FRAME_CMD_ABORT = 'a',
+
+  /** Query current state */
+  FRAME_CMD_STATE = 's',
 
   /** Reset device */
   FRAME_CMD_RESET = 'r'

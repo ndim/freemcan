@@ -57,6 +57,12 @@ typedef struct {
 
 /** Create (allocate and initialize) a new packet_histogram_t instance.
  *
+ * \param type Type of histogram packet, i.e. reason why it was sent.
+ * \param receive_time Timestamp at which the packet was received.
+ * \param element_size Size of each element in bytes (1,2,3,4).
+ * \param element_count The number of elements received from device.
+ * \param duration The duration of the measurement which produced
+ *                 the data in elements.
  * \param elements Pointer to the array of data as received from the
  *                 device.  A NULL pointer is interpreted like an
  *                 array consisting entirely of zeros.
@@ -91,8 +97,8 @@ void packet_histogram_unref(packet_histogram_t *hist);
 typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
 					   void *data);
 
-/** Callback function type called when status packet arrives */
-typedef void (*packet_handler_status_t)(const char *status, void *data);
+/** Callback function type called when state packet arrives */
+typedef void (*packet_handler_state_t)(const char *state, void *data);
 
 /** Callback function type called when text packet arrives */
 typedef void (*packet_handler_text_t)(const char *status, void *data);
@@ -112,7 +118,7 @@ void packet_reset_handlers();
  * parser.
  */
 void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_status_t status_packet_handler,
+			 packet_handler_state_t state_packet_handler,
 			 packet_handler_text_t text_packet_handler,
 			 void *data);
 

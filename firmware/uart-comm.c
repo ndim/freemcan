@@ -19,8 +19,12 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup uart_comm Firmware UART Communications (Layer 1)
+ * \defgroup uart_comm Firmware UART Communications
  * \ingroup firmware
+ *
+ * Implements the byte stream part of the communication protocol
+ * (Layer 1).
+ *
  * @{
  */
 
@@ -92,8 +96,12 @@ void uart_checksum_reset(void)
 /** Update checksum
  *
  * \todo Use a good checksum algorithm with good values.
+ *
+ * We are calling this function twice - so not inlining the code saves
+ * us some bytes that need to be programmed into the uC. For some
+ * reason, gcc inlines the code anyway.
  */
-static inline
+static
 void uart_checksum_update(const char c)
 {
   const uint8_t  n = (uint8_t)c;
@@ -141,24 +149,18 @@ void uart_putc(const char c)
 /** Write NUL terminated string to UART */
 void uart_puts(const char *s)
 {
-    while (*s)
-    {   /* til final string character '\0' */
-        uart_putc(*s);
-        s++;
-    }
+  for (; *s; s++) {
+    uart_putc(*s);
+  }
 }
 
 
 /** Write data buffer of arbitrary size and content to UART */
 void uart_putb(const void *buf, size_t len)
 {
-    const char *s = (const char *)buf;
-    while (len > 0)
-    {
-        uart_putc(*s);
-        s++;
-	len--;
-    }
+  for (const char *s = (const char *)buf; len > 0; s++, len--) {
+    uart_putc(*s);
+  }
 }
 
 

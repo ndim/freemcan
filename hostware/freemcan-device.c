@@ -126,7 +126,7 @@ void device_close(const int device_fd)
 void device_send_command(const int fd,
 			 const frame_cmd_t cmd, const uint16_t param)
 {
-  fmlog("Sending %c command to device (param=%d=0x%04x)",
+  fmlog("Sending '%c' command to device (param=%d=0x%04x)",
 	cmd, param, param);
   switch (cmd) {
   case FRAME_CMD_MEASURE:

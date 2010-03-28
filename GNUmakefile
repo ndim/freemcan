@@ -2,6 +2,7 @@ AWK       ?= awk
 DOXYGEN   ?= doxygen
 GIT       ?= git
 GZIP      ?= gzip
+NEATO     ?= neato
 RST2HTML  ?= rst2html
 SED       ?= sed
 SLOCCOUNT ?= sloccount
@@ -61,10 +62,22 @@ Doxyfile: Doxyfile.in
 		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)-g$(GIT_VERSION)|g' \
 		-e "s|@PWD@|$${PWD}|g" \
 		< $< > $@
+	mkdir -p dox/html
+	$(DOXYGEN) -w html \
+		dox/html/default-header.html \
+		dox/html/default-footer.html \
+		dox/html/default-stylesheet.css
 
 .PHONY: dox
-dox: Doxyfile
+dox: Doxyfile dox-files
 	$(DOXYGEN) $<
+
+.PHONY: dox-files
+dox-files: dox/built/firmware-states.png
+
+dox/built/%.png: include/%.neato
+	mkdir -p "$(@D)"
+	$(NEATO) -o "$@" -Tpng $<
 
 .PHONY: sloccount
 sloccount:

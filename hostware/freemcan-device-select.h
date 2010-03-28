@@ -34,16 +34,10 @@
  * @{
  */
 
-/** \fn dev_select_set_in
- * \brief Set up select() data structure with device data
- * \ingroup freemcan_device_select
- */
+/** Set up select(2) data structure with device data */
 int  device_select_set_in(fd_set *in_fdset, int maxfd);
 
-/** \fn dev_select_do_io
- * \brief Do device's IO stuff if necessary (from select loop)
- * \ingroup freemcan_device_select
- */
+/** Do device's IO stuff if necessary (from select(2) loop) */
 void device_select_do_io(fd_set *in_fdset);
 
 

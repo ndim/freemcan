@@ -18,7 +18,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_frame Data Frame Parser (Layer 2)
+ * \defgroup freemcan_frame Data Frame Parser
  * \ingroup hostware_generic
  *
  * The only potential endianness issue in freemcan-frame.c is the

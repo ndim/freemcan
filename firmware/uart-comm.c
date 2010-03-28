@@ -96,8 +96,12 @@ void uart_checksum_reset(void)
 /** Update checksum
  *
  * \todo Use a good checksum algorithm with good values.
+ *
+ * We are calling this function twice - so not inlining the code saves
+ * us some bytes that need to be programmed into the uC. For some
+ * reason, gcc inlines the code anyway.
  */
-static inline
+static
 void uart_checksum_update(const char c)
 {
   const uint8_t  n = (uint8_t)c;

@@ -1,4 +1,4 @@
-/** \file firmware/endian-conversion.h
+/** \file hostware/endian-conversion.h
  * \brief Endianness conversion layer
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -48,6 +48,7 @@ gui_log_handler(void *UP(data),
 
 
 typedef enum {
+  ST_UNINITIALIZED,
   ST_ERROR,
   ST_READY,
   ST_MEASURING,
@@ -104,6 +105,7 @@ struct _GtkFMainWindow {
   GConfEngine *conf_engine;
 
   GtkLabel *device_label;
+  GtkLabel *state_label;
 };
 
 
@@ -235,6 +237,30 @@ void gconf_client_notify_func(GConfClient *UP(client),
 }
 
 
+gboolean device_error_probe(gpointer data)
+{
+  /** \bug Detect the device disappearing, i.e. not answering to our
+   *       commands within a reasonable time. */
+  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
+  if (gui->state != ST_ERROR) {
+    /* remove the timer which regularly calls us */
+    return FALSE;
+  }
+  gui_device_command(FRAME_CMD_STATE, 0);
+  return TRUE;
+}
+
+
+static
+void gtk_fmainwindow_state_label(GtkFMainWindow *self,
+				     const char *state_label,
+				     const char *state_tooltip)
+{
+  gtk_label_set_text(GTK_LABEL(self->state_label), state_label);
+  gtk_widget_set_tooltip_text(GTK_WIDGET(self->state_label), state_tooltip);
+}
+
+
 static
 void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const state_t state)
   __attribute__((nonnull(1)));
@@ -242,9 +268,7 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const state_t state)
 static
 void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
 {
-  /* old_state could be used to detect checksum failure by transition
-   * from ready -> (checksum) -> reset */
-  /* const state_t old_state = gui->state; */
+  const state_t old_state = self->state;
   self->state = state;
   gboolean
     en_seconds_spinbutton = FALSE,
@@ -253,14 +277,30 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
     en_abort_button = FALSE,
     en_intermediate_button = FALSE;
   switch (state) {
+  case ST_UNINITIALIZED:
+    /* keep everything disabled */
+    gtk_fmainwindow_state_label(self, "UNINITIALIZED",
+				"The GUI's device interface has not been initialized yet");
+    break;
   case ST_ERROR:
     /* keep everything disabled */
+    gtk_fmainwindow_state_label(self, "ERROR",
+				"Some error occured while accessing device");
+    if (old_state != ST_ERROR) {
+      const guint UV(timer_id) =
+	g_timeout_add_full(G_PRIORITY_DEFAULT, 1000,
+			   device_error_probe, self, NULL);
+    }
     break;
   case ST_DONE:
     en_reset_button = TRUE;
+    gtk_fmainwindow_state_label(self, "DONE",
+				"The measurement has completed");
     break;
   case ST_RESET:
     /* keep everything disabled */
+    gtk_fmainwindow_state_label(self, "RESET",
+				"Device is resetting");
     break;
   case ST_READY:
     en_reset_button = TRUE;
@@ -270,11 +310,15 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
       fhistogram_unref(self->current_histogram);
       self->current_histogram = NULL;
     }
+    gtk_fmainwindow_state_label(self, "READY",
+                                "Device is ready for starting a measurement");
     gtk_widget_queue_draw(GTK_WIDGET(self->histogram_chart));
     break;
   case ST_MEASURING:
     en_intermediate_button = TRUE;
     en_abort_button = TRUE;
+    gtk_fmainwindow_state_label(self, "MEASURING",
+				"Measurement in progress");
     break;
   }
   gtk_widget_set_sensitive(GTK_WIDGET(self->seconds_spinbutton), en_seconds_spinbutton);
@@ -587,7 +631,7 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 
   GtkFMainWindow *UV(mw) = GTK_FMAINWINDOW(self);
 
-  self->state = ST_ERROR;
+  self->state = ST_UNINITIALIZED;
   self->current_histogram = NULL;
 
   /** Must be called before gconf_* */
@@ -640,6 +684,8 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 
   self->device_label =
     GTK_LABEL(gtk_builder_get_object(self->builder, "device_label"));
+  self->state_label =
+    GTK_LABEL(gtk_builder_get_object(self->builder, "state_label"));
 
   /* init measurement_value */
   if (1) {
@@ -652,7 +698,6 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
     gconf_client_set_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, new_value, &error);
     g_prefix_error(&error, "error setting m-d");
   }
-  gtk_fmainwindow_set_state(self, ST_ERROR);
 
   /* Start up freemcan infrastructure */
   stdlog = fopen("freemcan-gui.log", "w");
@@ -662,6 +707,9 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 		      packet_handler_text,
 		      self);
   fmlog("Graphical User Interface (GUI) set up");
+
+  /* This will cause the device to send us data */
+  gtk_fmainwindow_set_state(self, ST_ERROR);
 }
 
 

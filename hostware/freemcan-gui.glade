@@ -23,7 +23,7 @@
                   <widget class="GtkVButtonBox" id="vbuttonbox1">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkSpinButton" id="seconds_spinbutton">
+                      <widget class="GtkSpinButton" id="duration_spinbutton">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="tooltip" translatable="yes">Measurement duration in seconds</property>
@@ -32,7 +32,7 @@
                         <property name="adjustment">180 0 65520 60 600 3600</property>
                         <property name="climb_rate">0.10000000000000001</property>
                         <property name="numeric">True</property>
-                        <signal name="value_changed" handler="on_seconds_spinbutton_value_changed"/>
+                        <signal name="value_changed" handler="on_duration_spinbutton_value_changed"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -102,6 +102,23 @@
                         <property name="expand">False</property>
                         <property name="fill">False</property>
                         <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkSpinButton" id="interval_spinbutton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">Interval in seconds to get intermediate histogram data.
+Set to 0 to disable periodic updates.</property>
+                        <property name="invisible_char">&#x25CF;</property>
+                        <property name="adjustment">0 0 600 10 60 60</property>
+                        <property name="numeric">True</property>
+                        <signal name="value_changed" handler="on_interval_spinbutton_value_changed"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">5</property>
                       </packing>
                     </child>
                   </widget>

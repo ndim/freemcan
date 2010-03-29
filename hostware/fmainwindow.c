@@ -48,9 +48,34 @@ gui_log_handler(void *UP(data),
 
 
 typedef enum {
+  ST_ERROR,
   ST_READY,
-  ST_MEASURING
+  ST_MEASURING,
+  ST_DONE,
+  ST_RESET
 } state_t;
+
+
+state_t string_to_state(const char *str)
+{
+  static const struct {
+    const char *name;
+    const state_t state;
+  } foo[] = {
+    {"READY", ST_READY},
+    {"MEASURING", ST_MEASURING},
+    {"DONE", ST_DONE},
+    {"RESET", ST_RESET},
+    {NULL, 0}
+  };
+  for (int i=0; foo[i].name; ++i) {
+    if (0 == strcmp(foo[i].name, str)) {
+      return foo[i].state;
+    }
+  }
+  return ST_ERROR;
+}
+
 
 struct _GtkFMainWindowClass {
   GtkWindowClass parent_class;
@@ -211,31 +236,53 @@ void gconf_client_notify_func(GConfClient *UP(client),
 
 
 static
-void gui_show_as_measuring(GtkFMainWindow *gui, gboolean b)
-  __attribute__((nonnull(1)));
-
-static
-void gui_show_as_measuring(GtkFMainWindow *gui, gboolean b)
-{
-  gtk_widget_set_sensitive(GTK_WIDGET(gui->seconds_spinbutton), !b);
-  const gint value = gconf_client_get_int(gui->config, GCONF_KEY_MEASUREMENT_DURATION, NULL);
-  gtk_widget_set_sensitive(GTK_WIDGET(gui->measure_button), (!b) && value);
-  gtk_widget_set_sensitive(GTK_WIDGET(gui->reset_button), !b);
-  gtk_widget_set_sensitive(GTK_WIDGET(gui->abort_button), b);
-  gtk_widget_set_sensitive(GTK_WIDGET(gui->intermediate_button), b);
-  gtk_fmainwindow_set_statusbar(gui, b?"Measuring":"Not measuring");
-}
-
-
-static
 void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const state_t state)
   __attribute__((nonnull(1)));
 
 static
-void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const state_t state)
+void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
 {
-  gui->state = state;
-  gui_show_as_measuring(gui, state == ST_MEASURING);
+  /* old_state could be used to detect checksum failure by transition
+   * from ready -> (checksum) -> reset */
+  /* const state_t old_state = gui->state; */
+  self->state = state;
+  gboolean
+    en_seconds_spinbutton = FALSE,
+    en_measure_button = FALSE,
+    en_reset_button = FALSE,
+    en_abort_button = FALSE,
+    en_intermediate_button = FALSE;
+  switch (state) {
+  case ST_ERROR:
+    /* keep everything disabled */
+    break;
+  case ST_DONE:
+    en_reset_button = TRUE;
+    break;
+  case ST_RESET:
+    /* keep everything disabled */
+    break;
+  case ST_READY:
+    en_reset_button = TRUE;
+    en_measure_button = TRUE;
+    en_seconds_spinbutton = TRUE;
+    if (self->current_histogram) {
+      fhistogram_unref(self->current_histogram);
+      self->current_histogram = NULL;
+    }
+    gtk_widget_queue_draw(GTK_WIDGET(self->histogram_chart));
+    break;
+  case ST_MEASURING:
+    en_intermediate_button = TRUE;
+    en_abort_button = TRUE;
+    break;
+  }
+  gtk_widget_set_sensitive(GTK_WIDGET(self->seconds_spinbutton), en_seconds_spinbutton);
+  const gint value = gconf_client_get_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, NULL);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->measure_button), en_measure_button && value);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->reset_button), en_reset_button);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->abort_button), en_abort_button);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->intermediate_button), en_intermediate_button);
 }
 
 
@@ -253,32 +300,28 @@ on_measure_button_clicked(GtkButton *UP(button), GtkFMainWindow *gui)
   }
   assert((value > 0) && (value < UINT16_MAX));
   gui_device_command(FRAME_CMD_MEASURE, value);
-  gtk_fmainwindow_set_state(gui, ST_MEASURING);
 }
 
 
 G_MODULE_EXPORT void
-on_abort_button_clicked(GtkButton *UP(button), GtkFMainWindow *gui)
+on_abort_button_clicked(GtkButton *UP(button), GtkFMainWindow *UP(gui))
 {
   gui_device_command(FRAME_CMD_ABORT, 0);
-  gtk_fmainwindow_set_state(gui, ST_READY);
 }
 
 
 G_MODULE_EXPORT void
-on_reset_button_clicked(GtkButton *UP(button), GtkFMainWindow *gui)
+on_reset_button_clicked(GtkButton *UP(button), GtkFMainWindow *UP(gui))
 {
   gui_device_command(FRAME_CMD_RESET, 0);
-  gtk_fmainwindow_set_state(gui, ST_READY);
 }
 
 
 G_MODULE_EXPORT void
-on_intermediate_button_clicked(GtkButton *UP(button), GtkFMainWindow *gui)
+on_intermediate_button_clicked(GtkButton *UP(button), GtkFMainWindow *UP(gui))
 {
   /* This is the state anyway, no need to call it: show_gui_as_measuring(TRUE); */
   gui_device_command(FRAME_CMD_INTERMEDIATE, 0);
-  gtk_fmainwindow_set_state(gui, ST_MEASURING);
 }
 
 
@@ -322,7 +365,7 @@ on_histogram_chart_expose_event(GtkWidget *widget, GdkEventExpose *event,
 
   if (1) {
     gdk_draw_arc(widget->window,
-		 widget->style->fg_gc[GTK_WIDGET_STATE (widget)],
+		 widget->style->fg_gc[GTK_WIDGET_STATE(widget)],
 		 TRUE,
 		 0, 0, widget->allocation.width, widget->allocation.height,
 		 0, 64 * 360);
@@ -428,24 +471,44 @@ on_histogram_chart_expose_event(GtkWidget *widget, GdkEventExpose *event,
 /************************************************************************/
 
 
+void on_packet_state(const char *state, void *data)
+{
+  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
+  gtk_fmainwindow_set_statusbar(gui, state);
+  gtk_fmainwindow_set_state(gui, string_to_state(state));
+}
+
+
+void on_packet_text(const char *text, void *data)
+{
+  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
+  gtk_fmainwindow_set_statusbar(gui, text);
+}
+
+
+void on_packet_histogram(fhistogram_t *histogram, void *data)
+{
+  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
+  gtk_fmainwindow_histogram_update(gui, histogram);
+}
+
+
 /** Status data packet handler (GUI specific)
  *
  * \bug Use received status packets to update GUI state
  */
 static void packet_handler_state(const char *state, void *data)
 {
-  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
   fmlog("STATE: %s", state);
-  gtk_fmainwindow_set_statusbar(gui, state);
+  on_packet_state(state, data);
 }
 
 
 /** Text data packet handler (GUI specific) */
 static void packet_handler_text(const char *text, void *data)
 {
-  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
   fmlog("TEXT: %s", text);
-  gtk_fmainwindow_set_statusbar(gui, text);
+  on_packet_text(text, data);
 }
 
 
@@ -453,7 +516,6 @@ static void packet_handler_text(const char *text, void *data)
 static void packet_handler_histogram(packet_histogram_t *histogram_packet,
 				     void *data)
 {
-  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
   const size_t element_count = histogram_packet->element_count;
   fmlog("Received '%c' type histogram data of %d elements:",
 	histogram_packet->type, element_count);
@@ -462,9 +524,9 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
   /* export current histogram to file(s) */
   export_histogram(histogram_packet);
 
-  fhistogram_t *hist = fhistogram_new_from_packet(histogram_packet);
-  gtk_fmainwindow_histogram_update(gui, hist);
-  fhistogram_unref(hist);
+  fhistogram_t *histogram = fhistogram_new_from_packet(histogram_packet);
+  on_packet_histogram(histogram, data);
+  fhistogram_unref(histogram);
 }
 
 /** @} */
@@ -525,7 +587,7 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 
   GtkFMainWindow *UV(mw) = GTK_FMAINWINDOW(self);
 
-  self->state = ST_READY;
+  self->state = ST_ERROR;
   self->current_histogram = NULL;
 
   /** Must be called before gconf_* */
@@ -590,7 +652,7 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
     gconf_client_set_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, new_value, &error);
     g_prefix_error(&error, "error setting m-d");
   }
-  gtk_fmainwindow_set_state(self, ST_READY);
+  gtk_fmainwindow_set_state(self, ST_ERROR);
 
   /* Start up freemcan infrastructure */
   stdlog = fopen("freemcan-gui.log", "w");

@@ -5,7 +5,6 @@ digraph firmware_fsm {
   null      [pos="5.5,4!" shape=plaintext label=""];
   booting   [pos="4,4!"];
   ready     [pos="2,4!" label="READY"];
-  done      [pos="4,2!"];
   reset     [pos="2,2!" label="RESET"];
   timer0    [pos="0,4!"];
   timer1    [pos="0,2!"];
@@ -29,6 +28,6 @@ digraph firmware_fsm {
 
   ready -> reset [ label="cmd 'r'\nstate 'RESET'"];
   measuring -> done [ label="done\nhistogram 'done', state 'DONE'"];
-  done -> reset [ label="cmd 'r'\nstat 'RESET'"];
+  done -> reset [ label="cmd 'r'\nstate 'RESET'"];
   done -> done  [ label="any other byte\nhistogram 'resend', state 'DONE'" ];
 }

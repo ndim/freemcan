@@ -255,12 +255,24 @@ $(TARGET).elf: $(OBJ)
 # which the 4K of SRAM start, up to and including address 0x10ff.
 checks : check-bss-end
 check-bss-end: $(TARGET).elf
-	@MAX_BSS_END="$$(printf "%d\n" 0x801100)"; \
-	BSS_END="$$(nm $< | awk '/__bss_end/ { print strtonum("0x"$$1); }')"; \
+	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
+	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
 	printf "CHECK: MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END"; \
 	test "$$MAX_BSS_END" -ge "$$BSS_END"
 
-# The numbers avr-size prints need some explanation, expecially the data part.
+# Check that SRAM + stack fit into the ATmega644's 4K of SRAM.
+MIN_STACK_SIZE = 48
+checks : check-stack-size
+check-stack-size : $(TARGET).elf
+	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
+	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
+	STACK_START="$$(nm $< | awk '/__stack/ { print (strtonum("0x"$$1)); }')"; \
+	SUM="$$(expr $$BSS_END + $(MIN_STACK_SIZE))"; \
+	printf "CHECK: STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
+		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)"; \
+	test "$$STACK_START" -ge "$$SUM"
+
+# Caution: The "data" number includes FUSES and other things besides the .data section.
 checks : check-avr-size
 check-avr-size: $(TARGET).elf
 	avr-size $<

@@ -25,6 +25,7 @@ TARGET = firmware
 SRC = main.c uart-comm.c frame-comm.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
+BSRC =
 
 # Comment out the following two files to remove the printf implementation
 # from the firmware.
@@ -139,7 +140,7 @@ MV = mv -f
 OD = od
 
 # Define all object files.
-OBJ = $(SRC:.c=.o) $(ASRC:.S=.o)
+OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) $(BSRC:.bin=.o)
 
 # Define all listing files.
 LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)

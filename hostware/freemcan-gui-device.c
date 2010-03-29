@@ -95,7 +95,6 @@ void gui_device_update(const char *device_name)
       g_io_add_watch_full(ioc, 0, G_IO_IN,
 			  gui_device_read_data_cb, NULL,
 			  NULL);
-      gui_device_command(FRAME_CMD_ABORT, 0);
     }
   }
 }

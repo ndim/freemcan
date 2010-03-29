@@ -29,8 +29,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <gdk/gdk.h>
-
 #include <cairo/cairo.h>
 #include <cairo/cairo-pdf.h>
 #include <cairo/cairo-ps.h>
@@ -140,7 +138,7 @@ void draw_diagram(cairo_t *cr, const double w, const double h,
 
   /* http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2 */
   const size_t v = hist_count;
-  const gboolean is_power_of_two = v && !(v & (v - 1));
+  const bool is_power_of_two = v && !(v & (v - 1));
   if (is_power_of_two) {
     int bits = 0;
     size_t v = hist_count;
@@ -257,7 +255,7 @@ void draw_diagram_to_eps_file(const fhistogram_t *histogram)
   const int w = FILE_WIDTH_IN_PT;
   const int h = FILE_HEIGHT_IN_PT;
   cairo_surface_t *surf = cairo_ps_surface_create(filename, w, h);
-  cairo_ps_surface_set_eps(surf, TRUE);
+  cairo_ps_surface_set_eps(surf, true);
   cairo_ps_surface_dsc_comment (surf, "%%Title: FreeMCAn diagram");
 
   cairo_t *cr = cairo_create(surf);

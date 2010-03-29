@@ -3,5 +3,6 @@
 /*.lfuse.txt
 /*.hfuse.txt
 /*.efuse.txt
+/invented-histogram.bin
 /settings.mk
 /firmware.*

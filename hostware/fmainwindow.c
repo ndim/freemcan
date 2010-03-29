@@ -25,6 +25,7 @@
 
 #define GCONF_KEY_DEVICE_NAME          GCONF_KEY_NAME("device-name")
 #define GCONF_KEY_MEASUREMENT_DURATION GCONF_KEY_NAME("measurement-duration")
+#define GCONF_KEY_INTERVAL_DURATION    GCONF_KEY_NAME("interval-duration")
 
 
 /** Log file */
@@ -96,7 +97,8 @@ struct _GtkFMainWindow {
   GtkButton *reset_button;
   GtkButton *intermediate_button;
   GtkButton *measure_button;
-  GtkSpinButton *seconds_spinbutton;
+  GtkSpinButton *duration_spinbutton;
+  GtkSpinButton *interval_spinbutton;
   GtkStatusbar *statusbar;
 
   GtkDrawingArea *histogram_chart;
@@ -106,6 +108,8 @@ struct _GtkFMainWindow {
 
   GtkLabel *device_label;
   GtkLabel *state_label;
+
+  unsigned int histogram_probe_counter;
 };
 
 
@@ -124,11 +128,22 @@ void show_gui_as_measuring(gboolean b);
 
 
 G_MODULE_EXPORT void
-on_seconds_spinbutton_value_changed(GtkSpinButton *spinbutton,
-				    GtkFMainWindow *gui)
+on_duration_spinbutton_value_changed(GtkSpinButton *spinbutton,
+				     GtkFMainWindow *gui)
 {
   const gint value = gtk_spin_button_get_value_as_int(spinbutton);
-  gconf_client_set_int(GTK_FMAINWINDOW(gui)->config, GCONF_KEY_MEASUREMENT_DURATION, value, NULL);
+  gconf_client_set_int(GTK_FMAINWINDOW(gui)->config,
+		       GCONF_KEY_MEASUREMENT_DURATION, value, NULL);
+}
+
+
+G_MODULE_EXPORT void
+on_interval_spinbutton_value_changed(GtkSpinButton *spinbutton,
+				     GtkFMainWindow *gui)
+{
+  const gint value = gtk_spin_button_get_value_as_int(spinbutton);
+  gconf_client_set_int(GTK_FMAINWINDOW(gui)->config,
+		       GCONF_KEY_INTERVAL_DURATION, value, NULL);
 }
 
 
@@ -237,6 +252,22 @@ void gconf_client_notify_func(GConfClient *UP(client),
 }
 
 
+gboolean device_histogram_probe(gpointer data)
+{
+  GtkFMainWindow *gui = GTK_FMAINWINDOW(data);
+  if ((gui->state != ST_MEASURING) || (gui->histogram_probe_counter <= 0)) {
+    /* remove the timer which regularly calls us */
+    return FALSE;
+  }
+  gui->histogram_probe_counter--;
+  if (gui->histogram_probe_counter <= 0) {
+    return FALSE;
+  }
+  gui_device_command(FRAME_CMD_INTERMEDIATE, 0);
+  return TRUE;
+}
+
+
 gboolean device_error_probe(gpointer data)
 {
   /** \bug Detect the device disappearing, i.e. not answering to our
@@ -271,11 +302,18 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
   const state_t old_state = self->state;
   self->state = state;
   gboolean
-    en_seconds_spinbutton = FALSE,
+    en_duration_spinbutton = FALSE,
+    en_interval_spinbutton = FALSE,
     en_measure_button = FALSE,
     en_reset_button = FALSE,
     en_abort_button = FALSE,
     en_intermediate_button = FALSE;
+
+  const gint measurement_duration_value =
+    gconf_client_get_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, NULL);
+  const gint interval_seconds =
+    gconf_client_get_int(self->config, GCONF_KEY_INTERVAL_DURATION, NULL);
+
   switch (state) {
   case ST_UNINITIALIZED:
     /* keep everything disabled */
@@ -305,7 +343,8 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
   case ST_READY:
     en_reset_button = TRUE;
     en_measure_button = TRUE;
-    en_seconds_spinbutton = TRUE;
+    en_duration_spinbutton = TRUE;
+    en_interval_spinbutton = TRUE;
     if (self->current_histogram) {
       fhistogram_unref(self->current_histogram);
       self->current_histogram = NULL;
@@ -315,15 +354,25 @@ void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
     gtk_widget_queue_draw(GTK_WIDGET(self->histogram_chart));
     break;
   case ST_MEASURING:
-    en_intermediate_button = TRUE;
+    en_intermediate_button = (interval_seconds<1);
     en_abort_button = TRUE;
     gtk_fmainwindow_state_label(self, "MEASURING",
 				"Measurement in progress");
+    if (old_state != ST_MEASURING) {
+      if (!en_intermediate_button) {
+	self->histogram_probe_counter =
+	  measurement_duration_value / interval_seconds;
+	const guint UV(timer_id) =
+	  g_timeout_add_full(G_PRIORITY_DEFAULT, interval_seconds*1000,
+			     device_histogram_probe, self, NULL);
+      }
+    }
     break;
   }
-  gtk_widget_set_sensitive(GTK_WIDGET(self->seconds_spinbutton), en_seconds_spinbutton);
-  const gint value = gconf_client_get_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, NULL);
-  gtk_widget_set_sensitive(GTK_WIDGET(self->measure_button), en_measure_button && value);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->duration_spinbutton), en_duration_spinbutton);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->interval_spinbutton), en_interval_spinbutton);
+  gtk_widget_set_sensitive(GTK_WIDGET(self->measure_button),
+			   en_measure_button && measurement_duration_value);
   gtk_widget_set_sensitive(GTK_WIDGET(self->reset_button), en_reset_button);
   gtk_widget_set_sensitive(GTK_WIDGET(self->abort_button), en_abort_button);
   gtk_widget_set_sensitive(GTK_WIDGET(self->intermediate_button), en_intermediate_button);
@@ -633,6 +682,7 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 
   self->state = ST_UNINITIALIZED;
   self->current_histogram = NULL;
+  self->histogram_probe_counter = 0;
 
   /** Must be called before gconf_* */
   g_type_init();
@@ -659,15 +709,19 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
 			  gconf_client_notify_func, NULL,
 			  NULL,
 			  NULL);
+  /** \bug Add gconf schema (however that is supposed to work) */
 
   /* Get main window pointer from UI */
   self->main_window =
     GTK_WINDOW(gtk_builder_get_object(self->builder, "freemcan_mainwindow"));
 
   /* Get a few parts from UI */
-  self->seconds_spinbutton =
+  self->duration_spinbutton =
     GTK_SPIN_BUTTON(gtk_builder_get_object(self->builder,
-					   "seconds_spinbutton"));
+					   "duration_spinbutton"));
+  self->interval_spinbutton =
+    GTK_SPIN_BUTTON(gtk_builder_get_object(self->builder,
+					   "interval_spinbutton"));
   self->abort_button =
     GTK_BUTTON(gtk_builder_get_object(self->builder, "abort_button"));
   self->intermediate_button =
@@ -697,6 +751,22 @@ gtk_fmainwindow_init(GtkFMainWindow *self)
     fmlog("new m-d value: %d", new_value);
     gconf_client_set_int(self->config, GCONF_KEY_MEASUREMENT_DURATION, new_value, &error);
     g_prefix_error(&error, "error setting m-d");
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->duration_spinbutton), new_value);
+    /** \bug Update our values when gconf stuff changes */
+  }
+
+  /* init interval_value */
+  if (1) {
+    const gint value =
+      gconf_client_get_int(self->config, GCONF_KEY_INTERVAL_DURATION, &error);
+    g_prefix_error(&error, "error getting i-d");
+    fmlog("got i-d value: %d", value);
+    const gint new_value = (value > 0)?value:20;
+    fmlog("new i-d value: %d", new_value);
+    gconf_client_set_int(self->config, GCONF_KEY_INTERVAL_DURATION, new_value, &error);
+    g_prefix_error(&error, "error setting i-d");
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->interval_spinbutton), new_value);
+    /** \bug Update our values when gconf stuff changes */
   }
 
   /* Start up freemcan infrastructure */

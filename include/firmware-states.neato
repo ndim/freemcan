@@ -5,12 +5,12 @@ digraph firmware_fsm {
   null      [pos="5.5,4!" shape=plaintext label=""];
   booting   [pos="4,4!"];
   ready     [pos="2,4!" label="READY"];
-  reset     [pos="2,2!" label="RESET"];
+  reset     [pos="2,2.5!" label="RESET"];
   timer0    [pos="0,4!"];
-  timer1    [pos="0,2!"];
+  timer1    [pos="0,1.85!"];
   checksum  [pos="0,0!"];
   measuring [pos="4,0!" label="MEASURING"];
-  done      [pos="4,2!" label="DONE"];
+  done      [pos="4,1.85!" label="DONE"];
 
   null -> booting;
   reset -> booting [ label="done\n-/-" ];

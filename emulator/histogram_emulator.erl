@@ -10,7 +10,7 @@ gauss(Sigma, X) ->
 
 histogram(Seconds) ->
     ElementCount = 1024,
-    Peaks = [{60, 1, 25}, {150,1.5,30}, {220, 0.6, 20}],
+    Peaks = [{120, 1, 25}, {300,1.5,30}, {440, 0.6, 20}, {820, 0.4, 30}],
     [ round(Seconds*100.0*lists:sum([ F*gauss(S, (N-P))
 				    || {P,F,S} <- Peaks ]) +
 	    2.0*random:uniform())

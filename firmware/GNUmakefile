@@ -25,7 +25,7 @@ TARGET = firmware
 SRC = main.c uart-comm.c frame-comm.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
-BSRC =
+BSRC = invented-histogram.bin
 
 # Comment out the following two files to remove the printf implementation
 # from the firmware.
@@ -292,7 +292,14 @@ check-avr-size: $(TARGET).elf
 .S.o:
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
+invented-histogram.bin: ../emulator/histogram_emulator.erl
+	$(MAKE) -C ../emulator histogram_emulator.beam
+	erl -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
 
+invented-histogram.o: invented-histogram.bin
+	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
+		--rename-section .data=.text,contents,alloc,load,readonly,code \
+		"$<" "$@"
 
 # Target: clean project.
 clean:

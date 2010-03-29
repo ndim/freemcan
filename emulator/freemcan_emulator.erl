@@ -76,7 +76,7 @@ histogram_packet(aborted, Seconds) when is_integer(Seconds) ->
 
 histogram_packet(Type, Seconds, Histogram) when is_integer(Type) ->
     Payload = [<<3>>, Type, <<Seconds:16/little-integer>>,
-	       [ <<(64261*Val):24/little-integer>> || Val <- Histogram ]],
+	       [ <<Val:24/little-integer>> || Val <- Histogram ]],
     frame(histogram, Payload).
 
 

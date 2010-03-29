@@ -466,11 +466,12 @@ void send_histogram(const packet_histogram_type_t type)
     b = last_timer_count;
   } while ((b-a) != 1);
   /* Now 'a' contains a valid value */
+  const uint16_t duration = orig_timer_count - a;
 
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
     type,
-    orig_timer_count - a
+    duration
   };
   frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
   uart_putb((const void *)&header, sizeof(header));

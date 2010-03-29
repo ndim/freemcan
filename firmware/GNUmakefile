@@ -1,5 +1,17 @@
 # Hey Emacs, this is a -*- makefile -*-
 
+# Notes:
+#   * A default firmware is between 1700 and 1800 bytes.
+#   * Run "make BUILD_FREEMCAN_INVENTED_HISTOGRAM=yes" to build the
+#     histogram inventor into the firmware
+#     CAUTION: This adds about 3200 byte to the firmware.
+#   * Run "make BUILD_FREEMCAN_PRINTF=yes" to build the printf code
+#     into the firmware.
+#     CAUTION: This adds about 1500 byte to the firmware.
+#   * You can define these variables in settings.mk if you like.
+#   * "make program" takes about 8 seconds with a 6600 byte "fat"
+#     firmware image on a proper RS232 port.
+
 # AVR-GCC Makefile template, derived from the WinAVR template (which
 # is public domain), believed to be neutral to any flavor of "make"
 # (GNU make, BSD make, SysV make).
@@ -25,12 +37,16 @@ TARGET = firmware
 SRC = main.c uart-comm.c frame-comm.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
-BSRC = invented-histogram.bin
+BSRC =
+ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
+BSRC += invented-histogram.bin
+CFLAGS += -DINVENTED_HISTOGRAM
+endif
 
-# Comment out the following two files to remove the printf implementation
-# from the firmware.
-# SRC += uart-printf.c
-# CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
+SRC += uart-printf.c
+CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+endif
 
 # Name of this Makefile (used for "make depend").
 MAKEFILE = GNUmakefile
@@ -129,6 +145,7 @@ AVRDUDE_BASIC = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDUDE_ERASE_COUNTER)
 
 
+ERL = erl
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
@@ -292,9 +309,10 @@ check-avr-size: $(TARGET).elf
 .S.o:
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
+CLEANFILES += invented-histogram.bin
 invented-histogram.bin: ../emulator/histogram_emulator.erl
 	$(MAKE) -C ../emulator histogram_emulator.beam
-	erl -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
+	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
 
 invented-histogram.o: invented-histogram.bin
 	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \

@@ -441,9 +441,6 @@ void io_init(void)
  */
 
 
-#define INVENTED_HISTOGRAM
-
-
 #ifdef INVENTED_HISTOGRAM
 
 /** created from binary via objcopy */

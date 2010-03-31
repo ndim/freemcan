@@ -65,6 +65,7 @@ gboolean gui_device_read_data_cb (GIOChannel *source,
 GIOChannel *ioc = NULL;
 
 
+/** \bug Detect when device is disconnected */
 void gui_device_command(const frame_cmd_t cmd, const uint16_t param)
 {
   fmlog("%s('%c', 0x%04x=%d)", __PRETTY_FUNCTION__, cmd, param, param);

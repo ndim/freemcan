@@ -43,6 +43,12 @@
 /* We want to avoid switching to double speed mode as long as
  * possible, as in normal speed mode the receiver will sample more
  * often than in double speed mode.
+ *
+ * On the other hand, the relative baud rate error (depending
+ * on F_CPU) might turn out to be less in double speed mode.
+ *
+ * So double speed works at 115200 with F_CPU = 16MHz on my system
+ * but not single speed. -ndim
  */
 
 
@@ -82,7 +88,7 @@ void uart_init(void)
 }
 
 
-/** Reset checksum accumulator */
+/** Checksum accumulator */
 static uint16_t checksum_accu;
 
 

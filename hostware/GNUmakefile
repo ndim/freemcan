@@ -16,11 +16,8 @@ CFLAGS += -g
 CFLAGS += -I../include
 CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
 
-bin_PROGRAMS += freemcan-tui-poll
-CLEANFILES   += freemcan-tui-poll
-
-bin_PROGRAMS += freemcan-tui-select
-CLEANFILES   += freemcan-tui-select
+bin_PROGRAMS += freemcan-tui
+CLEANFILES   += freemcan-tui
 
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
@@ -49,7 +46,6 @@ clean:
 freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
 freemcan-device.o : CFLAGS += -D_GNU_SOURCE
 freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
-freemcan-tui-main-poll.o : CFLAGS += -D_GNU_SOURCE
 freemcan-tui-main-select.o : CFLAGS += -D_GNU_SOURCE
 
 -include $(DEPEND_MK)
@@ -66,15 +62,8 @@ TUI_COMMON_OBJ += freemcan-signals.o
 TUI_COMMON_OBJ += freemcan-tui.o
 TUI_COMMON_OBJ += serial-setup.o
 
-freemcan-tui-poll : freemcan-tui-main-poll.o $(TUI_COMMON_OBJ) freemcan-device-poll.o
+freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ) freemcan-device-select.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
-
-freemcan-tui-select : freemcan-tui-main-select.o $(TUI_COMMON_OBJ) freemcan-device-select.o
-	$(LINK.c) $^ $(LDLIBS) -o $@
-
-freemcan-tui : freemcan-tui-select
-	rm -f "$@"
-	ln "$<" "$@"
 
 test-log : test-log.o freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@

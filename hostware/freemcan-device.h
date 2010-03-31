@@ -35,7 +35,6 @@
 #include <unistd.h>
 
 #include "frame-defs.h"
-#include "freemcan-poll.h"
 
 /** Open device */
 int device_open(const char *device_name)

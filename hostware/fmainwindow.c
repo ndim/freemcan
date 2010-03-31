@@ -55,14 +55,14 @@ typedef enum {
   ST_MEASURING,
   ST_DONE,
   ST_RESET
-} state_t;
+} gui_state_t;
 
 
-state_t string_to_state(const char *str)
+gui_state_t string_to_state(const char *str)
 {
   static const struct {
     const char *name;
-    const state_t state;
+    const gui_state_t state;
   } foo[] = {
     {"READY", ST_READY},
     {"MEASURING", ST_MEASURING},
@@ -86,7 +86,7 @@ struct _GtkFMainWindowClass {
 struct _GtkFMainWindow {
   GtkWindow parent_instance;
 
-  state_t state;
+  gui_state_t state;
   fhistogram_t *current_histogram;
 
   GtkBuilder *builder;
@@ -293,13 +293,13 @@ void gtk_fmainwindow_state_label(GtkFMainWindow *self,
 
 
 static
-void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const state_t state)
+void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const gui_state_t state)
   __attribute__((nonnull(1)));
 
 static
-void gtk_fmainwindow_set_state(GtkFMainWindow *self, const state_t state)
+void gtk_fmainwindow_set_state(GtkFMainWindow *self, const gui_state_t state)
 {
-  const state_t old_state = self->state;
+  const gui_state_t old_state = self->state;
   self->state = state;
   gboolean
     en_duration_spinbutton = FALSE,

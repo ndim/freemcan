@@ -62,12 +62,19 @@ gui_log_handler(void *UP(data),
 }
 
 
+/** GUI state for GUI state machine */
 typedef enum {
+  /** Unitialized GUI. How the GUI starts up */
   ST_UNINITIALIZED,
+  /** Some error occured while communicating with the device */
   ST_ERROR,
+  /** Device is ready for command */
   ST_READY,
+  /** Device is measuring */
   ST_MEASURING,
+  /** Device has completed measurement */
   ST_DONE,
+  /** Device is about to reset itself */
   ST_RESET
 } gui_state_t;
 

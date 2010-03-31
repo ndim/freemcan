@@ -1,3 +1,8 @@
+/** \file hostware/fmainwindow.c
+ * \brief GtkFMainWindow class
+ *
+ */
+
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
@@ -20,6 +25,15 @@
 #include "freemcan-log.h"
 
 
+/**
+ * \defgroup fmainwindow GtkFMainWindow
+ * \ingroup freemcan_gui
+ *
+ * @{
+ */
+
+
+/** gconf namespace */
 #define GCONF_KEY_NAMESPACE "/apps/" "freemcan"
 #define GCONF_KEY_NAME(x) GCONF_KEY_NAMESPACE "/" x
 
@@ -127,6 +141,8 @@ void show_gui_as_measuring(gboolean b);
  */
 
 
+/** \bug Set numeric value to N without focussing outside the spinbutton: New value is ignored. */
+
 G_MODULE_EXPORT void
 on_duration_spinbutton_value_changed(GtkSpinButton *spinbutton,
 				     GtkFMainWindow *gui)
@@ -137,6 +153,7 @@ on_duration_spinbutton_value_changed(GtkSpinButton *spinbutton,
 }
 
 
+/** \bug Set numeric value to N without focussing outside the spinbutton: New value is ignored. */
 G_MODULE_EXPORT void
 on_interval_spinbutton_value_changed(GtkSpinButton *spinbutton,
 				     GtkFMainWindow *gui)
@@ -213,6 +230,7 @@ static
 void on_change_to_device_name(const char *filename, GtkFMainWindow *gui)
   __attribute__((nonnull(1,2)));
 
+/** \bug Fix "open" button and label */
 static
 void on_change_to_device_name(const char *filename, GtkFMainWindow *gui)
 {
@@ -296,6 +314,9 @@ static
 void gtk_fmainwindow_set_state(GtkFMainWindow *gui, const gui_state_t state)
   __attribute__((nonnull(1)));
 
+/** \bug Need changing intermediate update interval during ongoing measurement. */
+/** \bug Need way to trigger download when GUI is started in DONE state.
+ *       Via ST_UNINIT -> ST_DONE transition? */
 static
 void gtk_fmainwindow_set_state(GtkFMainWindow *self, const gui_state_t state)
 {
@@ -418,6 +439,7 @@ on_intermediate_button_clicked(GtkButton *UP(button), GtkFMainWindow *UP(gui))
 }
 
 
+/** \bug Fix about dialog's close button */
 G_MODULE_EXPORT void
 on_about_button_clicked(GtkButton *UP(button), GtkFMainWindow *gui)
 {
@@ -824,3 +846,6 @@ GtkWidget *gtk_fmainwindow_new()
 {
    return GTK_WIDGET(gtk_type_new(gtk_fmainwindow_get_type()));
 }
+
+
+/** @} */

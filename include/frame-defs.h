@@ -117,6 +117,8 @@
 /** Header magic marker value for data frames to host, AVR uint32_t version.
  *
  * This is good for the little endian AVR controller.
+ *
+ * \todo Try multi byte character constant like 'FMPK'?
  */
 #define FRAME_MAGIC_LE_U32  \
   ( \

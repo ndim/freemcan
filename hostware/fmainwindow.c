@@ -270,6 +270,8 @@ void gconf_client_notify_func(GConfClient *UP(client),
     fmlog("         value=%d=0x%x", value, value);
     on_change_to_measurement_duration(value, gui);
   } else if (g_strcmp0(entry->key, GCONF_KEY_MEASUREMENT_DURATION) == 0) {
+    /** \bug use device's key name */
+    /** \bug add change handler for interval */
     const char *value = gconf_value_get_string(entry->value);
     fmlog("         value=\"%s\"", value);
     on_change_to_device_name(value, gui);

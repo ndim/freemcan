@@ -65,10 +65,15 @@ For building the GUI, you need a few more software packages installed:
   * gtk_ (gtk2-devel)
   * xsltproc_ (libxslt)
 
+And for developing on the GUI, you also need the following package:
+
+  * glade3_
+
 .. _avr-gcc:   http://gcc.gnu.org/
 .. _cairo:     http://www.cairographics.org/
 .. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
 .. _gcc:       http://gcc.gnu.org/
+.. _glade3:    http://glade.gnome.org/
 .. _glib:      http://www.gtk.org/documentation.html
 .. _graphviz:  http://www.graphviz.org/
 .. _gtk:       http://www.gtk.org/documentation.html

@@ -542,38 +542,43 @@ void send_text(const char *msg)
 /** @} */
 
 
-/** Go into the RESET state, and reset the machine */
-void goto_reset(void) __attribute__((noreturn));
-void goto_reset(void)
-{
-  send_state("RESET");
-  soft_reset();
-}
-
-
 /** AVR firmware's main "loop" function
  *
- * Note that we create a "loop" by resetting the AVR device when we
- * are finished, which will cause the system to start again with the
- * hardware and software in the defined default state.
+ * Note that we create a "loop" by having the watchdog timer reset the
+ * AVR device when one loop iteration is finished. This will cause the
+ * system to start again with the hardware and software in the defined
+ * default state.
  *
- * The #main function implements the state machine as described in
- * \ref embedded_fsm. The states from that state machine are what the
- * "STATE: FOO" comments in #main refer to.
+ * This function implements the state machine as described in \ref
+ * embedded_fsm. The "state_foo:" and "state_FOO:" labels refer to.the
+ * states from that state machine definition.
+ *
+ * It turns out that writing this as a few labels with goto statements
+ * models the FSM more directly and more legibly than nesting while
+ * loops and switch statements.
  *
  * avr-gcc knows that int main(void) ending with an endless loop and
  * not returning is normal, so we can avoid the
  *
  *    int main(void) __attribute__((noreturn));
  *
- * declaration and compile without warnings (or a return instruction
+ * declaration and compile without warnings (or an unused return instruction
  * at the end of main).
  */
 int main(void)
 {
-    /** No need to initialize variables here. See \ref firmware_memories. */
+    /** No need to initialize global variables here. See \ref firmware_memories. */
 
-    /* STATE: BOOT */
+    /** Used in several places when reading in characters from UART */
+    char ch;
+    /** Used in several places when reading in characters from UART */
+    frame_cmd_t cmd;
+    /** Used while receiving "m" command */
+    uint8_t timer0;
+    /** Used while receiving "m" command */
+    uint8_t timer1;
+
+    /* state_booting: */
 
     /* configure USART0 for 8N1 */
     uart_init();
@@ -589,131 +594,109 @@ int main(void)
      * at pin 40 ADC0 */
     adc_init();
 
-    /* STATE: READY */
+ state_READY:
     send_state("READY");
-
-    uint8_t quit_flag = 0;
-    uint16_t timer_value;
-    while (!quit_flag) {
-      uart_checksum_reset();
-      const char ch = uart_getc();
-      const frame_cmd_t cmd = ch;
-      switch (cmd) {
-      case FRAME_CMD_RESET:
-	/* STATE: RESET */
-	goto_reset();
-	break;
-      case FRAME_CMD_MEASURE:
-	if (1) {
-	  /* STATUS: TIMER0 */
-	  const uint8_t byte0 = uart_getc();
-	  /* STATUS: TIMER1 */
-	  const uint8_t byte1 = uart_getc();
-	  timer_value = (((uint16_t)byte1)<<8) | byte0;
-	  /* STATUS: CHECKSUM */
-	  if (uart_checksum_recv()) { /* checksum successful */
-	    /* NEXT_STATE: MEASURING */
-	    quit_flag = 1;
-	  } else { /* checksum fail */
-	    /** \todo Find a way to report checksum failure without
-	     *        resorting to sending free text. */
-	    send_text("checksum fail");
-	    /* STATE: RESET */
-	    goto_reset();
-	  }
-	}
-	break;
-      case FRAME_CMD_STATE:
-	/* remain in current state READY, just print it */
-	break;
-      default:
-	/* ignore all other bytes */
-	/* NEXT_STATE: READY */
-	break;
-      }
-      if (quit_flag)
-	break;
-      send_state("READY");
+    uart_checksum_reset();
+    cmd = ch = uart_getc();
+    switch (cmd) {
+    case FRAME_CMD_RESET:
+      goto state_RESET;
+    case FRAME_CMD_MEASURE:
+      goto state_timer0;
+    case FRAME_CMD_STATE:
+      goto state_READY;
+    default: /* ignore all other bytes */
+      goto state_READY;
     }
 
-    /* STATE: MEASURING */
+ state_timer0:
+    timer0 = uart_getc();
+    goto state_timer1;
+
+ state_timer1:
+    timer1 = uart_getc();
+    goto state_checksum;
+
+ state_checksum:
+    if (uart_checksum_recv()) { /* checksum successful */
+      /* set up timer with the value we just got */
+      timer_count = orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
+      /* begin measurement */
+      timer_init();
+      sei();
+      goto state_MEASURING;
+    } else { /* checksum fail */
+      /** \todo Find a way to report checksum failure without
+       *        resorting to sending free text. */
+      send_text("checksum fail");
+      goto state_RESET;
+    }
+
+ state_MEASURING:
     send_state("MEASURING");
+    goto state_MEASURING_nomsg;
 
-    /* set up timer with the value we just got */
-    timer_count = orig_timer_count = timer_value;
-
-    /* begin measurement */
-    timer_init();
-    sei();
-
-    while (1) {
-      if (timer_flag) { /* done */
+ state_MEASURING_nomsg:
+    if (timer_flag) { /* done */
+      cli();
+      send_histogram(PACKET_HISTOGRAM_DONE);
+      timer_init_quick();
+      goto state_DONE;
+    } else if (bit_is_set(UCSR0A, RXC0)) {
+      /* there is a character in the UART input buffer */
+      cmd = ch = uart_getc();
+      switch (cmd) {
+      case FRAME_CMD_ABORT:
 	cli();
-	send_histogram(PACKET_HISTOGRAM_DONE);
-	timer_init_quick();
-	while (1) {
-	  /* STATE: DONE (wait for RESET command while seinding histograms) */
-	  send_state("DONE");
-	  const char ch = uart_getc();
-	  const frame_cmd_t cmd = ch;
-	  switch (cmd) {
-	  case FRAME_CMD_STATE:
-	    /* remain in current state DONE, just print it */
-	    break;
-	  case FRAME_CMD_RESET:
-	    /* STATE: RESET */
-	    goto_reset();
-	    break;
-	  default:
-	    /* repeat sending histogram */
-	    send_histogram(PACKET_HISTOGRAM_RESEND);
-	    break;
-	  }
-	}
-      } else if (bit_is_set(UCSR0A, RXC0)) {
-	/* there is a character in the UART input buffer */
-	const char ch = uart_getc();
-	const frame_cmd_t cmd = ch;
-	switch (cmd) {
-	case FRAME_CMD_ABORT:
-	  cli();
-	  send_histogram(PACKET_HISTOGRAM_ABORTED);
-	  /* STATE: RESET */
-	  goto_reset();
-	break;
-	case FRAME_CMD_INTERMEDIATE:
-	  /** The ISR(ADC_vect) will be called when the analog circuit
-	   * detects an event.  This will cause glitches in the
-	   * intermediate histogram values as the histogram values are
-	   * larger than 8 bits.  However, we have decided that for
-	   * *intermediate* results, those glitches are acceptable.
-	   *
-	   * Keeping interrupts enabled has the additional advantage
-	   * that the measurement continues during send_histogram(),
-	   * so we need not concern ourselves with pausing the
-	   * measurement timer or anything similar.
-	   *
-	   * If you decide to bracket the send_histogram() call with a
-	   * cli()/sei() pair, be aware that you need to solve the
-	   * issue of resetting the peak hold capacitor on resume if
-	   * an event has been detected by the analog circuit while we
-	   * had interrupts disabled and thus ISR(ADC_vect) could not
-	   * reset the peak hold capacitor.
-	   */
-	  send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
-	  /* NEXT_STATE: MEASURING */
-	  break;
-	case FRAME_CMD_STATE:
-	  /* remain in current state MEASURING, just print it */
-	  break;
-	default:
-	  /* ignore all other bytes */
-	  /* NEXT_STATE: MEASURING */
-	  break;
-	}
-	send_state("MEASURING");
+	send_histogram(PACKET_HISTOGRAM_ABORTED);
+	goto state_RESET;
+      case FRAME_CMD_INTERMEDIATE:
+	/** The ISR(ADC_vect) will be called when the analog circuit
+	 * detects an event.  This will cause glitches in the
+	 * intermediate histogram values as the histogram values are
+	 * larger than 8 bits.  However, we have decided that for
+	 * *intermediate* results, those glitches are acceptable.
+	 *
+	 * Keeping interrupts enabled has the additional advantage
+	 * that the measurement continues during send_histogram(),
+	 * so we need not concern ourselves with pausing the
+	 * measurement timer or anything similar.
+	 *
+	 * If you decide to bracket the send_histogram() call with a
+	 * cli()/sei() pair, be aware that you need to solve the
+	 * issue of resetting the peak hold capacitor on resume if
+	 * an event has been detected by the analog circuit while we
+	 * had interrupts disabled and thus ISR(ADC_vect) could not
+	 * reset the peak hold capacitor.
+	 */
+	send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
+	goto state_MEASURING;
+      case FRAME_CMD_STATE:
+	goto state_MEASURING;
+      default: /* ignore all other bytes */
+	goto state_MEASURING;
       }
+    } else {
+      goto state_MEASURING_nomsg;
     }
+
+ state_DONE:
+    /* STATE: DONE (wait for RESET command while seinding histograms) */
+    send_state("DONE");
+    cmd = ch = uart_getc();
+    switch (cmd) {
+    case FRAME_CMD_STATE:
+      goto state_DONE;
+    case FRAME_CMD_RESET:
+      goto state_RESET;
+    default:
+      send_histogram(PACKET_HISTOGRAM_RESEND);
+      goto state_DONE;
+    }
+
+ state_RESET:
+    send_state("RESET");
+    soft_reset();
 }
 
 /** @} */

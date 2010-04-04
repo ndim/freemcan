@@ -1,3 +1,5 @@
+-include local.mk
+
 AWK       ?= awk
 DOXYGEN   ?= doxygen
 GIT       ?= git

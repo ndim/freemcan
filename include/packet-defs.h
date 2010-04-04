@@ -79,8 +79,11 @@ typedef enum {
  * table above.
  */
 typedef struct {
+  /** histogram element size in bytes (1,2,3,4) */
   uint8_t  element_size;
+  /** histogram type (#packet_histogram_type_t cast to uint8_t) */
   uint8_t  type;
+  /** duration of measurement that lead to the attached data */
   uint16_t duration;
 } packet_histogram_header_t;
 

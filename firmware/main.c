@@ -504,7 +504,8 @@ void send_histogram(const packet_histogram_type_t type)
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
     type,
-    duration
+    duration,
+    orig_timer_count
   };
   frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
   uart_putb((const void *)&header, sizeof(header));

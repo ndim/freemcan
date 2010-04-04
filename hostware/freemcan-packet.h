@@ -50,6 +50,9 @@ typedef struct {
   /** Duration of measurement which lead to the histogram data */
   unsigned int duration;
 
+  /** Total duration of measurement in progress */
+  unsigned int total_duration;
+
   /** Maximum "good" value from elements[] array (ignores clamping value!) */
   uint32_t max_value;
 
@@ -79,6 +82,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const uint8_t element_size,
 					 const size_t element_count,
 					 const uint16_t duration,
+					 const uint16_t total_duration,
 					 const void *elements)
   __attribute__((malloc));
 

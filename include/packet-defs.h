@@ -85,6 +85,8 @@ typedef struct {
   uint8_t  type;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
+  /** total duration (of the measurement in progress) */
+  uint16_t total_duration;
 } packet_histogram_header_t;
 
 

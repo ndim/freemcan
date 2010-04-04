@@ -41,6 +41,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 					 const uint8_t element_size,
 					 const size_t element_count,
 					 const uint16_t duration,
+					 const uint16_t total_duration,
 					 const void *elements)
 {
   packet_histogram_t *result =
@@ -53,6 +54,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
   result->element_count     = element_count;
   result->orig_element_size = element_size;
   result->duration          = duration;
+  result->total_duration    = total_duration;
 
   if (!elements) {
     result->max_value = 0;
@@ -175,6 +177,7 @@ void frame_handler(const frame_t *frame)
 						      header->element_size,
 						      element_count,
 						      letoh16(header->duration),
+						      letoh16(header->total_duration),
 						      &(frame->payload[sizeof(*header)]));
       packet_handler_histogram(hist, packet_handler_data);
       packet_histogram_unref(hist);

@@ -57,6 +57,16 @@ char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
 }
 
 
+const char *time_rfc_3339(const time_t time)
+{
+  const struct tm *tm_ = localtime(&time);
+  assert(tm_);
+  static char buf[64];
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S%z", tm_);
+  return buf;
+}
+
+
 /* documented in freemcan-export.h */
 void export_histogram(const packet_histogram_t *histogram_packet)
 {
@@ -65,6 +75,19 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   FILE *histfile = fopen(fname, "w");
   assert(histfile);
   fmlog("Writing histogram to file %s", fname);
+  const char *type_str = "unknown type";
+  switch (histogram_packet->type) {
+  case PACKET_HISTOGRAM_DONE: type_str = "measurement completed"; break;
+  case PACKET_HISTOGRAM_RESEND: type_str = "resent histogram after measurement completed"; break;
+  case PACKET_HISTOGRAM_ABORTED: type_str = "measurement aborted"; break;
+  case PACKET_HISTOGRAM_INTERMEDIATE: type_str = "intermediate result"; break;
+  }
+  fprintf(histfile, "# type:\t'%c' (%s)\n", histogram_packet->type, type_str);
+  fprintf(histfile, "# receive_time:\t%lu (%s)\n",
+	  histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
+  fprintf(histfile, "# element_count:\t%d\n", histogram_packet->element_count);
+  fprintf(histfile, "# duration:\t%d\n", histogram_packet->duration);
+  fprintf(histfile, "# max_value:\t%d\n", histogram_packet->max_value);
   for (size_t i=0; i<element_count; i++) {
     fprintf(histfile, "%d\t%u\n", i, histogram_packet->elements[i]);
   }

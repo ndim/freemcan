@@ -44,6 +44,9 @@ typedef struct {
   /** Number of elements in histogram array */
   size_t element_count;
 
+  /** Size of each received histogram elements in bytes */
+  size_t orig_element_size;
+
   /** Duration of measurement which lead to the histogram data */
   unsigned int duration;
 

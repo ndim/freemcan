@@ -47,11 +47,12 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
     malloc(sizeof(packet_histogram_t)+element_count*sizeof(uint32_t));
   assert(result != NULL);
 
-  result->refs          = 1;
-  result->type          = type;
-  result->receive_time  = receive_time;
-  result->element_count = element_count;
-  result->duration      = duration;
+  result->refs              = 1;
+  result->type              = type;
+  result->receive_time      = receive_time;
+  result->element_count     = element_count;
+  result->orig_element_size = element_size;
+  result->duration          = duration;
 
   if (!elements) {
     result->max_value = 0;

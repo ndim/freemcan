@@ -86,6 +86,8 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   fprintf(histfile, "# receive_time:\t%lu (%s)\n",
 	  histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
   fprintf(histfile, "# element_count:\t%d\n", histogram_packet->element_count);
+  fprintf(histfile, "# orig_element_size:\t%d (%d bit)\n",
+	  histogram_packet->orig_element_size, 8*histogram_packet->orig_element_size);
   fprintf(histfile, "# duration:\t%d\n", histogram_packet->duration);
   fprintf(histfile, "# max_value:\t%d\n", histogram_packet->max_value);
   for (size_t i=0; i<element_count; i++) {

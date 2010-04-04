@@ -81,6 +81,16 @@ dox/built/%.png: include/%.neato
 	mkdir -p "$(@D)"
 	$(NEATO) -o "$@" -Tpng $<
 
+RSYNC_USER ?= rsync_user
+RSYNC_HOST ?= rsync-host.example.com
+RSYNC_USERHOST ?= $(RSYNC_USER)@$(RSYNC_HOST)
+RSYNC_SUBDIR ?= sub/dir/
+
+.PHONY: upload-dox
+upload-dox: dox
+	chmod -R a+rX dox/html
+	rsync -avz dox/html/ $(RSYNC_USERHOST):$(RSYNC_SUBDIR)
+
 .PHONY: sloccount
 sloccount:
 	@$(SLOCCOUNT) emulator/ firmware/ hostware/ \

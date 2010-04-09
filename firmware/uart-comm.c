@@ -152,15 +152,6 @@ void uart_putc(const char c)
 }
 
 
-/** Write NUL terminated string to UART */
-void uart_puts(const char *s)
-{
-  for (; *s; s++) {
-    uart_putc(*s);
-  }
-}
-
-
 /** Write data buffer of arbitrary size and content to UART */
 void uart_putb(const void *buf, size_t len)
 {

@@ -80,7 +80,7 @@ void fhistogram_unref(fhistogram_t *histogram)
 fhistogram_t *fhistogram_new_zero(const size_t elements)
 {
   fhistogram_t *result = fhistogram_new_uninitialized(elements);
-  packet_histogram_t *packet = packet_histogram_new(0, 0, 1, elements, 0, NULL);
+  packet_histogram_t *packet = packet_histogram_new(0, 0, 1, elements, 0, 0, NULL);
   assert(packet);
   result->packet = packet;
   assert(packet->element_count <= 4096);

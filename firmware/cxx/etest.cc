@@ -1,10 +1,12 @@
 #include "elt.h"
 
-Element32 e32[16];
-Element24 e24[16];
-Element16 e16[16];
-Element8  e8[16];
-int       i0[16];
+#define MAX_IDX 0x100
+
+Element32 e32[MAX_IDX];
+Element24 e24[MAX_IDX];
+Element16 e16[MAX_IDX];
+Element8  e8[MAX_IDX];
+int       i0[MAX_IDX];
 
 void test(void)
 {

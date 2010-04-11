@@ -29,9 +29,25 @@ private:
   uint8_t data[3];
 public:
   Element24& operator++() {
-    ++data[0];
-    ++data[1];
-    ++data[2];
+    asm("\n\t"
+	/* load 24 bit value */
+	"ld  r24, Z\n\t"                      /* 2 cycles */
+	"ldd r25, Z+1\n\t"                    /* 2 cycles */
+	"ldd __tmp_reg__, Z+2\n\t"            /* 2 cycles */
+	
+	/* increase 24 bit value by one */
+	"adiw r24, 1\n\t"                     /* 2 cycles for word (r25:r24) */
+	"adc  __tmp_reg__, __zero_reg__\n\t"  /* 1 cycle */
+
+	/* store 24 bit value */
+	"std Z+2, __tmp_reg__\n\t"            /* 2 cycles */
+	"std Z+1, r25\n\t"                    /* 2 cycles */
+	"st  Z, r24\n\t"                      /* 2 cycles */
+	: /* output operands */
+	: /* input operands */
+	  "z" (data)
+	: "r24", "r25"
+	);
   };
 };
 

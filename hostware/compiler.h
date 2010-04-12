@@ -24,7 +24,7 @@
 
 
 /** \defgroup compiler_defs Compiler Specific Definitions
- * \ingroup hostware
+ * \ingroup hostware_generic
  *
  * @{
  */

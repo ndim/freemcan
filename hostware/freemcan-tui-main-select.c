@@ -123,7 +123,7 @@ void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param)
 
 /************************************************************************/
 /** \defgroup mainloop_select Main loop based on select(2)
- * \ingroup hostware
+ * \ingroup hostware_tui
  * @{
  */
 /************************************************************************/

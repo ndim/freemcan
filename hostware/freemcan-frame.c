@@ -104,6 +104,9 @@ void frame_reset_handler(void)
  ************************************************************************/
 
 
+/** Static magic constant for comparision */
+static const char *magic = FRAME_MAGIC_STR;
+
 /** Parser state machine states */
 typedef enum {
   /** waiting for magic number bytes to appear */
@@ -118,29 +121,52 @@ typedef enum {
   STATE_CHECKSUM
 } state_t;
 
-/** Parser state machine state */
-static state_t state = STATE_MAGIC;
 
-/** Parser state machine state data */
-static size_t offset = 0;
+/** Complete frame parser state */
+typedef struct {
 
-/** Static magic constant for comparision */
-static const char *magic = FRAME_MAGIC_STR;
+  /** Parser state machine state */
+  state_t state;
 
-/** The frame size for frame in progress */
-static uint16_t frame_size;
+  /** Parser state machine state data */
+  size_t offset;
 
-/** The frame type for frame in progress */
-static uint8_t  frame_type;
+  /** The frame size for frame in progress */
+  uint16_t frame_size;
 
-/** The frame checksum for frame in progress */
-static uint8_t  frame_checksum;
+  /** The frame type for frame in progress */
+  uint8_t frame_type;
 
-/** The parsed frame in progress */
-static frame_t  *frame_wip; /* work in progress */
+  /** The frame checksum for frame in progress */
+  uint8_t frame_checksum;
 
-/** Count the number of checksum errors we get */
-static unsigned int checksum_errors = 0;
+  /** The parsed frame in progress */
+  frame_t  *frame_wip; /* work in progress */
+
+  /** Count the number of checksum errors we get */
+  unsigned int checksum_errors;
+} frame_parser_t;
+
+
+static void parser_state_init(frame_parser_t *ps)
+{
+  ps->state = STATE_MAGIC;
+  ps->offset = 0;
+  ps->frame_wip = NULL;
+  ps->checksum_errors = 0;
+}
+
+
+/** Global parser's complete state */
+static frame_parser_t ps;
+
+/** Initialize ps */
+static void ff_init(void) __attribute__((constructor));
+static void ff_init(void)
+{
+  parser_state_init(&ps);
+}
+
 
 /* documented in freemcan-frame.h */
 bool enable_layer2_dump = false;
@@ -148,46 +174,46 @@ bool enable_layer2_dump = false;
 
 /** step the parser FSM */
 static
-void step_fsm(const char ch)
+void step_fsm(frame_parser_t *ps, const char ch)
 {
   const uint8_t u = ch;
 
-  switch (state) {
+  switch (ps->state) {
   case STATE_MAGIC:
-    if (ch == magic[offset]) {
-      if (offset == 0) {
+    if (ch == magic[ps->offset]) {
+      if (ps->offset == 0) {
 	/* beginning of magic and header and frame */
 	/* start new checksum */
 	checksum_reset();
       }
       checksum_update(u);
-      offset++;
-      if (offset <= 3) {
-	state = STATE_MAGIC;
+      ps->offset++;
+      if (ps->offset <= 3) {
+	ps->state = STATE_MAGIC;
 	return;
       } else {
-	offset = 0;
-	state = STATE_SIZE;
+	ps->offset = 0;
+	ps->state = STATE_SIZE;
 	return;
       }
     } else { /* start looking for beginning of magic again */
-      offset = 0;
-      state = STATE_MAGIC;
+      ps->offset = 0;
+      ps->state = STATE_MAGIC;
       return;
     }
     break;
   case STATE_SIZE:
     checksum_update(u);
-    switch (offset) {
+    switch (ps->offset) {
     case 0:
-      frame_size = (frame_size & 0xff00) | u;
-      offset = 1;
-      state = STATE_SIZE;
+      ps->frame_size = (ps->frame_size & 0xff00) | u;
+      ps->offset = 1;
+      ps->state = STATE_SIZE;
       return;
     case 1:
-      frame_size = (frame_size & 0x00ff) | (((uint16_t)u)<<8);
-      offset = 0;
-      state = STATE_FRAME_TYPE;
+      ps->frame_size = (ps->frame_size & 0x00ff) | (((uint16_t)u)<<8);
+      ps->offset = 0;
+      ps->state = STATE_FRAME_TYPE;
       return;
       /* We have the value of (offset) firmly under control from
        * within this very function, so we do not need to catch any
@@ -196,40 +222,40 @@ void step_fsm(const char ch)
     break;
   case STATE_FRAME_TYPE:
     checksum_update(u);
-    frame_type = u;
-    offset = 0;
+    ps->frame_type = u;
+    ps->offset = 0;
     /* Total size composed from:
      *  - size fixed parts of frame_t data structure
      *  - dynamic payload size
      *  - terminating convenience nul byte
      */
-    frame_wip = frame_new(frame_size+1);
-    assert(frame_wip);
-    state = STATE_PAYLOAD;
+    ps->frame_wip = frame_new(ps->frame_size+1);
+    assert(ps->frame_wip);
+    ps->state = STATE_PAYLOAD;
     return;
   case STATE_PAYLOAD:
     checksum_update(u);
-    frame_wip->payload[offset] = u;
-    offset++;
-    if (offset < frame_size) {
-      state = STATE_PAYLOAD;
+    ps->frame_wip->payload[ps->offset] = u;
+    ps->offset++;
+    if (ps->offset < ps->frame_size) {
+      ps->state = STATE_PAYLOAD;
       return;
-    } else if (offset == frame_size) {
-      state = STATE_CHECKSUM;
+    } else if (ps->offset == ps->frame_size) {
+      ps->state = STATE_CHECKSUM;
       return;
     }
     break;
   case STATE_CHECKSUM:
-    frame_checksum = u;
-    if (checksum_match(frame_checksum)) {
+    ps->frame_checksum = u;
+    if (checksum_match(ps->frame_checksum)) {
       if (frame_handler) {
 	/* nul-terminate the payload buffer for convenience */
-	frame_wip->payload[offset] = '\0';
-	frame_wip->type = frame_type;
-	frame_wip->size = frame_size;
+	ps->frame_wip->payload[ps->offset] = '\0';
+	ps->frame_wip->type = ps->frame_type;
+	ps->frame_wip->size = ps->frame_size;
 	if (enable_layer2_dump) {
-	  const frame_type_t type = frame_wip->type;
-	  const uint16_t size     = frame_wip->size;
+	  const frame_type_t type = ps->frame_wip->type;
+	  const uint16_t size     = ps->frame_wip->size;
 	  if ((32<=type) && (type<127)) {
 	    fmlog("Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
 		  type, type, type, size, size);
@@ -237,18 +263,18 @@ void step_fsm(const char ch)
 	    fmlog("Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
 		  type, type, size, size);
 	  }
-	  fmlog_data(frame_wip->payload, size);
+	  fmlog_data(ps->frame_wip->payload, size);
 	}
-	frame_handler(frame_wip);
+	frame_handler(ps->frame_wip);
       }
-      frame_unref(frame_wip);
-      offset = 0;
-      state = STATE_MAGIC;
+      frame_unref(ps->frame_wip);
+      ps->offset = 0;
+      ps->state = STATE_MAGIC;
       return;
     } else {
-      checksum_errors++;
-      offset = 0;
-      state = STATE_MAGIC;
+      ps->checksum_errors++;
+      ps->offset = 0;
+      ps->state = STATE_MAGIC;
       return;
     }
     break;
@@ -273,7 +299,7 @@ void frame_parse_bytes(const void *buf, const size_t size)
     fmlog_data(buf, size);
   }
   for (size_t i=0; i<size; i++) {
-    step_fsm(cbuf[i]);
+    step_fsm(&ps, cbuf[i]);
   }
 }
 

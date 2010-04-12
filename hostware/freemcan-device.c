@@ -56,8 +56,10 @@
 
 /** Internals of opaque device type */
 struct _device_t {
+  unsigned int refs;
   int fd;
   frame_parser_t *frame_parser;
+  checksum_t *checksum_output;
 };
 
 
@@ -65,9 +67,30 @@ device_t *device_new(frame_parser_t *frame_parser)
 {
   device_t *device = malloc(sizeof(*device));
   assert(device);
+  device->refs = 1;
   device->fd = -1;
   device->frame_parser = frame_parser;
+  device->checksum_output = checksum_new();
   return device;
+}
+
+
+void device_ref(device_t *self)
+{
+  assert(self->refs > 0);
+  self->refs++;
+}
+
+
+void device_unref(device_t *self)
+{
+  assert(self->refs > 0);
+  self->refs--;
+  if (self->refs == 0) {
+    frame_parser_unref(self->frame_parser);
+    checksum_unref(self->checksum_output);
+    free(self);
+  }
 }
 
 
@@ -75,9 +98,6 @@ int device_get_fd(device_t *self)
 {
   return self->fd;
 }
-
-
-send_command_f tui_device_send_command;
 
 
 /** Open character special device file with proper setup (to hardware device) */
@@ -208,7 +228,7 @@ void device_do_io(device_t *self)
       fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data(buf, read_bytes);
     }
-    frame_parser_bytes(NULL, buf, read_bytes); /** \bug HACK: Need to switch to non-global frame parser */
+    frame_parser_bytes(self->frame_parser, buf, read_bytes);
 }
 
 

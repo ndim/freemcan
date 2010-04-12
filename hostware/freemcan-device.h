@@ -27,29 +27,45 @@
 #define FREEMCAN_DEVICE_H
 
 #include "frame-defs.h"
-#include "frame-parser.h"
 
 
 /** Opaque device type */
 struct _device_t;
+
+/** Opaque device type */
 typedef struct _device_t device_t;
+
+
+#include "frame-parser.h"
+
 
 /** New device */
 device_t *device_new(frame_parser_t *frame_parser)
-  __attribute__(( nonnull(1) ))
-  __attribute__((malloc));
+  __attribute__(( nonnull(1) ));
+
+
+void device_ref(device_t *self)
+  __attribute__(( nonnull(1) ));
+
+
+void device_unref(device_t *self)
+  __attribute__(( nonnull(1) ));
+
 
 /** Open device */
 void device_open(device_t *self, const char *device_name)
   __attribute__(( nonnull(1,2) ));
 
+
 /** Close device */
 void device_close(device_t *self)
   __attribute__(( nonnull(1) ));
 
+
 /** Get device file descriptor */
 int device_get_fd(device_t *self)
   __attribute__(( nonnull(1) ));
+
 
 /** Write a command to the device.
  *

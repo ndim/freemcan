@@ -29,8 +29,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "frame.h"
-
 
 /** frame parser (opaque data type) */
 struct _frame_parser_t;
@@ -39,20 +37,20 @@ struct _frame_parser_t;
 typedef struct _frame_parser_t frame_parser_t;
 
 
-frame_parser_t *frame_parser_new(void)
-  __attribute__((malloc));
-
-void frame_parser_ref(frame_parser_t *self);
-void frame_parser_unref(frame_parser_t *self);
+#include "packet-parser.h"
 
 
-/** Set frame handler function to the given function */
-void frame_parser_set_handler(frame_parser_t *self,
-			      frame_handler_t handler);
+frame_parser_t *frame_parser_new(packet_parser_t *packet_parser)
+  __attribute__(( malloc ))
+  __attribute__(( nonnull(1) ));
 
 
-/** Reset frame handler function to No-Op */
-void frame_parser_reset_handler(frame_parser_t *self);
+void frame_parser_ref(frame_parser_t *self)
+  __attribute__(( nonnull(1) ));
+
+
+void frame_parser_unref(frame_parser_t *self)
+  __attribute__(( nonnull(1) ));
 
 
 /** Parse a few bytes as frame
@@ -63,7 +61,8 @@ void frame_parser_reset_handler(frame_parser_t *self);
  * #frame_set_handler will be called with the parsed frame.
  */
 void frame_parser_bytes(frame_parser_t *self,
-			const void *buf, const size_t size);
+			const void *buf, const size_t size)
+  __attribute__(( nonnull(1,2) ));
 
 
 /** Whether to dump layer 1 data (byte stream) into log */
@@ -72,6 +71,7 @@ bool enable_layer1_dump;
 
 /** Whether to dump layer 2 data (frames) into log */
 bool enable_layer2_dump;
+
 
 /** @} */
 

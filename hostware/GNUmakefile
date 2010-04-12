@@ -64,7 +64,7 @@ TUI_COMMON_OBJ += freemcan-signals.o
 TUI_COMMON_OBJ += freemcan-tui.o
 TUI_COMMON_OBJ += serial-setup.o
 
-freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ) freemcan-device-select.o
+freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 test-log : test-log.o freemcan-log.o

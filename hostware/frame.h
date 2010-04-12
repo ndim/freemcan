@@ -52,38 +52,13 @@ typedef struct {
 frame_t *frame_new(const size_t payload_size)
   __attribute__((malloc));
 
-void frame_ref(frame_t *self);
-void frame_unref(frame_t *self);
+
+void frame_ref(frame_t *self)
+  __attribute__(( nonnull(1) ));
 
 
-/** Handler function for newly parsed frames
- *
- * \param frame The frame to handle
- * \param data Private data for the handler function
- *
- * Note that for your convenience, the next byte after the frame
- * payload will be a NUL byte, effectively making the payload a NUL
- * terminated string if the payload content is a string.
- */
-typedef void (*frame_handler_t)(const frame_t *frame);
-
-
-/** Parse a few bytes as frame
- *
- * Call this function repeatedly as the data is trickling in. Whenever
- * a complete frame is detected by the internal parsing logic, the
- * hander function the caller should have set by calling
- * #frame_set_handler will be called with the parsed frame.
- */
-void frame_parse_bytes(const void *buf, const size_t size);
-
-
-/** Whether to dump layer 1 data (byte stream) into log */
-bool enable_layer1_dump;
-
-
-/** Whether to dump layer 2 data (frames) into log */
-bool enable_layer2_dump;
+void frame_unref(frame_t *self)
+  __attribute__(( nonnull(1) ));
 
 
 /** @} */

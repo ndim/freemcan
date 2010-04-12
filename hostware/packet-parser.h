@@ -27,26 +27,41 @@
 
 #include "packet-defs.h"
 
+/** packet parser (opaque data type) */
+struct _packet_parser_t;
+
+/** packet parser (opaque data type) */
+typedef struct _packet_parser_t packet_parser_t;
+
+
 #include "freemcan-packet.h"
 
+
+packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
+				   packet_handler_state_t state_packet_handler,
+				   packet_handler_text_t text_packet_handler,
+				   void *data);
+
+
+void packet_parser_ref(packet_parser_t *self)
+  __attribute__(( nonnull(1) ));
+
+
+void packet_parser_unref(packet_parser_t *self)
+  __attribute__(( nonnull(1) ));
+
+
+#include "frame.h"
+
+void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame);
 
 /** Reset packet handler callbacks.
  *
  * This also unregisters the packet parser callback from the frame
  * parser.
  */
-void packet_reset_handlers();
+void packet_parser_reset_handlers(packet_parser_t *self);
 
-
-/** Set the packet handler callbacks.
- *
- * This also registers the packet parser callback with the frame
- * parser.
- */
-void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_state_t state_packet_handler,
-			 packet_handler_text_t text_packet_handler,
-			 void *data);
 
 /** @} */
 

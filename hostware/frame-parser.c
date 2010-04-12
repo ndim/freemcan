@@ -38,6 +38,7 @@
 #include "freemcan-checksum.h"
 #include "frame-parser.h"
 #include "freemcan-log.h"
+#include "packet-parser.h"
 
 
 /************************************************************************
@@ -89,25 +90,25 @@ struct _frame_parser_t {
   /** Count the number of checksum errors we get */
   unsigned int checksum_errors;
 
-  /** Handler function for completed frames */
-  frame_handler_t frame_handler;
+  /** Packet parser */
+  packet_parser_t *packet_parser;
 
   /** Checksum state */
-  checksum_t *cs;
+  checksum_t *checksum_input;
 };
 
 
-frame_parser_t *frame_parser_new(void)
+frame_parser_t *frame_parser_new(packet_parser_t *packet_parser)
 {
-  frame_parser_t *ps = malloc(sizeof(*ps));
+  assert(packet_parser);
+  frame_parser_t *ps = calloc(1, sizeof(*ps));
   assert(ps);
   ps->refs = 1;
   ps->state = STATE_MAGIC;
-  ps->offset = 0;
-  ps->frame_wip = NULL;
-  ps->checksum_errors = 0;
-  ps->frame_handler = NULL;
-  ps->cs = checksum_new();
+  ps->checksum_input = checksum_new();
+  ps->packet_parser = packet_parser;
+  packet_parser_ref(ps->packet_parser);
+  /* everything else initialized to 0 and NULL courtesy of calloc(3) */
   return ps;
 }
 
@@ -124,44 +125,18 @@ void frame_parser_unref(frame_parser_t *self)
   assert(self->refs > 0);
   self->refs--;
   if (self->refs == 0) {
-    checksum_unref(self->cs);
+    if (self->packet_parser) {
+      packet_parser_unref(self->packet_parser);
+    }
+    checksum_unref(self->checksum_input);
     free(self);
   }
 }
 
 
-/** Global parser's complete state */
-static frame_parser_t *ps;
-
-
 /************************************************************************
  * Frame Handler (next layer)
  ************************************************************************/
-
-void frame_parser_set_handler(frame_parser_t *self,
-			      frame_handler_t handler)
-{
-  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
-    self = ps;
-  self->frame_handler = handler;
-}
-
-
-void frame_parser_reset_handler(frame_parser_t *self)
-{
-  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
-    self = ps;
-  self->frame_handler = NULL;
-}
-
-
-/** Initialize ps */
-static void ff_init(void) __attribute__((constructor));
-static void ff_init(void)
-{
-  /** \bug HACK: Need to switch to non-global frame parser */
-  ps = frame_parser_new();
-}
 
 
 /* documented in freemcan-frame.h */
@@ -180,9 +155,9 @@ void step_fsm(frame_parser_t *ps, const char ch)
       if (ps->offset == 0) {
 	/* beginning of magic and header and frame */
 	/* start new checksum */
-	checksum_reset(ps->cs);
+	checksum_reset(ps->checksum_input);
       }
-      checksum_update(ps->cs, u);
+      checksum_update(ps->checksum_input, u);
       ps->offset++;
       if (ps->offset <= 3) {
 	ps->state = STATE_MAGIC;
@@ -199,7 +174,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     }
     break;
   case STATE_SIZE:
-    checksum_update(ps->cs, u);
+    checksum_update(ps->checksum_input, u);
     switch (ps->offset) {
     case 0:
       ps->frame_size = (ps->frame_size & 0xff00) | u;
@@ -217,7 +192,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     }
     break;
   case STATE_FRAME_TYPE:
-    checksum_update(ps->cs, u);
+    checksum_update(ps->checksum_input, u);
     ps->frame_type = u;
     ps->offset = 0;
     /* Total size composed from:
@@ -230,7 +205,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     ps->state = STATE_PAYLOAD;
     return;
   case STATE_PAYLOAD:
-    checksum_update(ps->cs, u);
+    checksum_update(ps->checksum_input, u);
     ps->frame_wip->payload[ps->offset] = u;
     ps->offset++;
     if (ps->offset < ps->frame_size) {
@@ -243,8 +218,8 @@ void step_fsm(frame_parser_t *ps, const char ch)
     break;
   case STATE_CHECKSUM:
     ps->frame_checksum = u;
-    if (checksum_match(ps->cs, ps->frame_checksum)) {
-      if (ps->frame_handler) {
+    if (checksum_match(ps->checksum_input, ps->frame_checksum)) {
+      if (ps->packet_parser) {
 	/* nul-terminate the payload buffer for convenience */
 	ps->frame_wip->payload[ps->offset] = '\0';
 	ps->frame_wip->type = ps->frame_type;
@@ -261,7 +236,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
 	  }
 	  fmlog_data(ps->frame_wip->payload, size);
 	}
-	ps->frame_handler(ps->frame_wip);
+	packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
       }
       frame_unref(ps->frame_wip);
       ps->offset = 0;
@@ -295,8 +270,6 @@ void frame_parser_bytes(frame_parser_t *self,
     fmlog("Received 0x%04x=%d bytes of layer 1 data", size, size);
     fmlog_data(buf, size);
   }
-  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
-    self = ps;
   for (size_t i=0; i<size; i++) {
     step_fsm(self, cbuf[i]);
   }

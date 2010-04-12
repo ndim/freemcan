@@ -36,29 +36,69 @@
 #include "freemcan-packet.h"
 #include "endian-conversion.h"
 
-
-static packet_handler_histogram_t packet_handler_histogram = NULL;
-static packet_handler_state_t     packet_handler_state = NULL;
-static packet_handler_text_t      packet_handler_text = NULL;
-static void *                     packet_handler_data = NULL;
+#include "packet-parser.h"
 
 
-static
-void frame_handler(const frame_t *frame)
+struct _packet_parser_t {
+  unsigned int refs;
+  packet_handler_histogram_t packet_handler_histogram;
+  packet_handler_state_t     packet_handler_state;
+  packet_handler_text_t      packet_handler_text;
+  void *                     packet_handler_data;
+};
+
+
+packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
+				   packet_handler_state_t state_packet_handler,
+				   packet_handler_text_t text_packet_handler,
+				   void *data)
+{
+  packet_parser_t *self = calloc(1, sizeof(packet_parser_t));
+  assert(self);
+  self->refs = 1;
+  self->packet_handler_histogram = histogram_packet_handler;
+  self->packet_handler_state = state_packet_handler;
+  self->packet_handler_text = text_packet_handler;
+  self->packet_handler_data = data;
+  /* everything else set to NULL by calloc */
+  return self;
+}
+
+
+void packet_parser_ref(packet_parser_t *self)
+{
+  assert(self->refs > 0);
+  self->refs++;
+}
+
+
+void packet_parser_unref(packet_parser_t *self)
+{
+  assert(self->refs > 0);
+  self->refs--;
+  if (self->refs == 0) {
+    free(self);
+  }
+}
+
+
+void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
 {
   switch (frame->type) {
   case FRAME_TYPE_STATE:
-    if (packet_handler_state) {
-      packet_handler_state((const char *)frame->payload, packet_handler_data);
+    if (self->packet_handler_state) {
+      self->packet_handler_state((const char *)frame->payload,
+				 self->packet_handler_data);
     }
     return;
   case FRAME_TYPE_TEXT:
-    if (packet_handler_text) {
-      packet_handler_text((const char *)frame->payload, packet_handler_data);
+    if (self->packet_handler_text) {
+      self->packet_handler_text((const char *)frame->payload,
+				self->packet_handler_data);
     }
     return;
   case FRAME_TYPE_HISTOGRAM:
-    if (packet_handler_histogram) {
+    if (self->packet_handler_histogram) {
       const packet_histogram_header_t *header =
 	(const packet_histogram_header_t *)&(frame->payload[0]);
       /* We need to do endianness conversion on all multi-byte values
@@ -73,7 +113,7 @@ void frame_handler(const frame_t *frame)
 						      letoh16(header->duration),
 						      letoh16(header->total_duration),
 						      &(frame->payload[sizeof(*header)]));
-      packet_handler_histogram(hist, packet_handler_data);
+      self->packet_handler_histogram(hist, self->packet_handler_data);
       packet_histogram_unref(hist);
     }
     return;
@@ -87,27 +127,5 @@ void frame_handler(const frame_t *frame)
   fmlog_data((void *)frame->payload, frame->size);
 }
 
-
-void packet_reset_handlers()
-{
-  packet_handler_histogram = NULL;
-  packet_handler_state = NULL;
-  packet_handler_text = NULL;
-  packet_handler_data = NULL;
-  frame_parser_reset_handler(NULL); /** \bug HACK: Need to switch to non-global frame parser */
-}
-
-
-void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_state_t state_packet_handler,
-			 packet_handler_text_t text_packet_handler,
-			 void *data)
-{
-  packet_handler_histogram = histogram_packet_handler;
-  packet_handler_state = state_packet_handler;
-  packet_handler_text = text_packet_handler;
-  packet_handler_data = data;
-  frame_parser_set_handler(NULL, frame_handler); /** \bug HACK: Need to switch to non-global frame parser */
-}
 
 /** @} */

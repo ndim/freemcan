@@ -26,14 +26,6 @@
 #ifndef FREEMCAN_DEVICE_H
 #define FREEMCAN_DEVICE_H
 
-/* According to POSIX.1-2001 */
-#include <sys/select.h>
-
-/* According to earlier standards */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "frame-defs.h"
 
 /** Open device */

@@ -22,7 +22,7 @@
  * \ingroup hostware_generic
  *
  * The only potential endianness issue in hostware/frame-parser.c is
- * the frame payload size in #frame_size which is read byte by byte in
+ * the frame payload size in #_frame_parser_t::frame_size which is read byte by byte in
  * an endianness independent fashion.
  *
  * @{

@@ -69,7 +69,7 @@ int device_get_fd(device_t *self)
 
 /** Write a command to the device.
  *
- * \param fd The device's file descriptor
+ * \param self The device object
  * \param cmd The #frame_cmd_t to send.
  * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
  *              Otherwise, it is ignored.
@@ -82,7 +82,7 @@ void device_send_command(device_t *self,
 /** Do the actual IO
  *
  * Can be called from either the select(2) or poll(2) based main loop
- * hook functions (#device_select_do_io, #device_poll_handler).
+ * hook functions (#device_select_do_io).
  */
 void device_do_io(device_t *self)
   __attribute__(( nonnull(1) ));

@@ -57,8 +57,7 @@ void frame_parser_unref(frame_parser_t *self)
  *
  * Call this function repeatedly as the data is trickling in. Whenever
  * a complete frame is detected by the internal parsing logic, the
- * hander function the caller should have set by calling
- * #frame_set_handler will be called with the parsed frame.
+ * self's packet_parser will be notified via #packet_parser_handle_frame.
  */
 void frame_parser_bytes(frame_parser_t *self,
 			const void *buf, const size_t size)

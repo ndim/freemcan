@@ -27,13 +27,29 @@
 #define FREEMCAN_DEVICE_H
 
 #include "frame-defs.h"
+#include "frame-parser.h"
+
+
+/** Opaque device type */
+struct _device_t;
+typedef struct _device_t device_t;
+
+/** New device */
+device_t *device_new(frame_parser_t *frame_parser)
+  __attribute__(( nonnull(1) ))
+  __attribute__((malloc));
 
 /** Open device */
-int device_open(const char *device_name)
-  __attribute__((warn_unused_result));
+void device_open(device_t *self, const char *device_name)
+  __attribute__(( nonnull(1,2) ));
 
 /** Close device */
-void device_close(const int device_fd);
+void device_close(device_t *self)
+  __attribute__(( nonnull(1) ));
+
+/** Get device file descriptor */
+int device_get_fd(device_t *self)
+  __attribute__(( nonnull(1) ));
 
 /** Write a command to the device.
  *
@@ -42,8 +58,9 @@ void device_close(const int device_fd);
  * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
  *              Otherwise, it is ignored.
  */
-void device_send_command(const int fd,
-			 const frame_cmd_t cmd, const uint16_t param);
+void device_send_command(device_t *self,
+			 const frame_cmd_t cmd, const uint16_t param)
+  __attribute__(( nonnull(1) ));
 
 
 /** Do the actual IO
@@ -51,7 +68,8 @@ void device_send_command(const int fd,
  * Can be called from either the select(2) or poll(2) based main loop
  * hook functions (#device_select_do_io, #device_poll_handler).
  */
-void device_do_io(const int fd);
+void device_do_io(device_t *self)
+  __attribute__(( nonnull(1) ));
 
 
 /** @} */

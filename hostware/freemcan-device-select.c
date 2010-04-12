@@ -36,13 +36,15 @@
  */
 
 
-int device_fd = -1;
+device_t *device = NULL;
 
 
 /* documented in dfreemcan-device-select.h */
 int device_select_set_in(fd_set *in_fdset, int maxfd)
 {
-  assert(device_fd > 0);
+  assert(device);
+  const int device_fd = device_get_fd(device);
+  assert(device_fd >= 0);
   FD_SET(device_fd, in_fdset);
   if (device_fd > maxfd) {
     return device_fd;
@@ -54,32 +56,36 @@ int device_select_set_in(fd_set *in_fdset, int maxfd)
 /* documented in dfreemcan-device-select.h */
 void device_select_do_io(fd_set *in_fdset)
 {
-  assert(device_fd > 0);
+  assert(device);
+  const int device_fd = device_get_fd(device);
+  assert(device_fd >= 0);
   if (FD_ISSET(device_fd, in_fdset)) {
-    device_do_io(device_fd);
+    device_do_io(device);
   }
 }
 
 
 void device_select_init(const char *device_name)
 {
-  device_fd = device_open(device_name);
-  assert(device_fd >= 0);
+  if (!device) {
+    /** \bug HACK: Properly initialize parsers and stuff */
+    frame_parser_t *fp = frame_parser_new();
+    device = device_new(fp);
+  }
+  device_open(device, device_name);
+  assert(device_get_fd(device) >= 0);
 }
 
 
 void device_select_fini()
 {
-  device_close(device_fd);
-  device_fd = -1;
+  device_close(device);
 }
 
 
 void send_command(const frame_cmd_t cmd, const uint16_t param)
 {
-  if (device_fd >= 0) {
-    device_send_command(device_fd, cmd, param);
-  }
+  device_send_command(device, cmd, param);
 }
 
 

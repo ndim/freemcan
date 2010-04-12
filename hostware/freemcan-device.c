@@ -54,6 +54,29 @@
 #include "uart-defs.h"
 
 
+/** Internals of opaque device type */
+struct _device_t {
+  int fd;
+  frame_parser_t *frame_parser;
+};
+
+
+device_t *device_new(frame_parser_t *frame_parser)
+{
+  device_t *device = malloc(sizeof(*device));
+  assert(device);
+  device->fd = -1;
+  device->frame_parser = frame_parser;
+  return device;
+}
+
+
+int device_get_fd(device_t *self)
+{
+  return self->fd;
+}
+
+
 send_command_f tui_device_send_command;
 
 
@@ -97,7 +120,7 @@ int open_unix_socket(const char *socket_name)
 }
 
 
-int device_open(const char *device_name)
+void device_open(device_t *self, const char *device_name)
 {
   struct stat sb;
   const int stat_ret = stat(device_name, &sb);
@@ -105,29 +128,40 @@ int device_open(const char *device_name)
     perror("stat()");
     abort();
   }
+  if (self->fd > 0) {
+    device_close(self);
+  }
   if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
-    return open_char_device(device_name);
+    self->fd = open_char_device(device_name);
   } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
-    return open_unix_socket(device_name);
+    self->fd = open_unix_socket(device_name);
   } else {
     fmlog("device of unknown type: %s", device_name);
-    return -1;
+    self->fd = -1;
   }
 }
 
 
-void device_close(const int device_fd)
+void device_close(device_t *self)
 {
-  assert(device_fd > 0);
-  close(device_fd);
+  assert(self->fd > 0);
+  close(self->fd);
+  self->fd = -1;
 }
 
 
-void device_send_command(const int fd,
+void device_send_command(device_t *self,
 			 const frame_cmd_t cmd, const uint16_t param)
 {
-  fmlog("Sending '%c' command to device (param=%d=0x%04x)",
-	cmd, param, param);
+  const int fd = self->fd;
+  if (fd > 0) {
+    fmlog("Sending '%c' command to device (param=%d=0x%04x)",
+	  cmd, param, param);
+  } else {
+    fmlog("Not sending '%c' command to closed device (param=%d=0x%04x)",
+	  cmd, param, param);
+    return;
+  }
   switch (cmd) {
   case FRAME_CMD_MEASURE:
     /* this is the only command with a parameter */
@@ -153,8 +187,9 @@ void device_send_command(const int fd,
 
 
 /* documented in freemcan-device.h */
-void device_do_io(const int fd)
+void device_do_io(device_t *self)
 {
+    const int fd = self->fd;
     const int bytes_to_read = read_size(fd);
     if (bytes_to_read == 0) {
       fmlog("EOF via device fd %d", fd);

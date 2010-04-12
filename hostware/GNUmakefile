@@ -59,6 +59,7 @@ TUI_COMMON_OBJ += frame-parser.o
 TUI_COMMON_OBJ += freemcan-iohelpers.o
 TUI_COMMON_OBJ += freemcan-log.o
 TUI_COMMON_OBJ += freemcan-packet.o
+TUI_COMMON_OBJ += packet-parser.o
 TUI_COMMON_OBJ += freemcan-signals.o
 TUI_COMMON_OBJ += freemcan-tui.o
 TUI_COMMON_OBJ += serial-setup.o

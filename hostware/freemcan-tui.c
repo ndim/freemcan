@@ -54,6 +54,7 @@
 
 #include "frame-defs.h"
 #include "frame-parser.h"
+#include "packet-parser.h"
 
 #include "freemcan-device.h"
 #include "freemcan-packet.h"

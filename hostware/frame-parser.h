@@ -65,11 +65,11 @@ void frame_parser_bytes(frame_parser_t *self,
 
 
 /** Whether to dump layer 1 data (byte stream) into log */
-bool enable_layer1_dump;
+extern bool enable_layer1_dump;
 
 
 /** Whether to dump layer 2 data (frames) into log */
-bool enable_layer2_dump;
+extern bool enable_layer2_dump;
 
 
 /** @} */

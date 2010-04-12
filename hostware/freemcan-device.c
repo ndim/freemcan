@@ -45,7 +45,7 @@
 
 #include "freemcan-checksum.h"
 #include "freemcan-device.h"
-#include "freemcan-frame.h"
+#include "frame-parser.h"
 #include "freemcan-log.h"
 #include "freemcan-iohelpers.h"
 #include "freemcan-tui.h"
@@ -172,7 +172,7 @@ void device_do_io(const int fd)
       fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data(buf, read_bytes);
     }
-    frame_parse_bytes(buf, read_bytes);
+    frame_parser_bytes(NULL, buf, read_bytes); /** \bug HACK: Need to switch to non-global frame parser */
 }
 
 

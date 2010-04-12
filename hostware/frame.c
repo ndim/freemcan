@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-checksum.c
- * \brief Checksum for layer 2 frames (implementation)
+/** \file hostware/frame.c
+ * \brief Data frame (layer 2) (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,11 +18,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_frame_checksum Data Frame Checksum (Layer 2)
+ * \defgroup freemcan_frame Data Frame
  * \ingroup hostware_generic
- *
- * \note The checksum engine uses a global state. Only use it for
- * one communication streams at a time.
  *
  * @{
  */
@@ -34,45 +31,40 @@
 
 
 #include "frame-defs.h"
+#include "freemcan-checksum.h"
+#include "frame.h"
 #include "freemcan-log.h"
 
 
+
 /************************************************************************
- * Checksum
+ * Frame reference counting/memory management
  ************************************************************************/
 
 
-static uint16_t checksum_accu;
-
-
-void checksum_reset()
+frame_t *frame_new(const size_t payload_size)
 {
-  checksum_accu = 0x3e59;
+  frame_t *frame = malloc(sizeof(frame_t) + payload_size);
+  assert(frame);
+  frame->refs = 1;
+  return frame;
 }
 
 
-bool checksum_match(const uint8_t value)
+void frame_ref(frame_t *self)
 {
-  const uint8_t checksum = (checksum_accu & 0xff);
-  const bool retval = (checksum == value);
-  return retval;
+  assert(self->refs > 0);
+  self->refs++;
 }
 
 
-void checksum_write(const int fd)
+void frame_unref(frame_t *self)
 {
-  const uint8_t checksum = (checksum_accu & 0xff);
-  write(fd, &checksum, sizeof(checksum));
-}
-
-
-void checksum_update(const uint8_t value)
-{
-  const uint8_t  n = (uint8_t)value;
-  const uint16_t x = 8*n+2*n+n;
-  const uint16_t r = (checksum_accu << 3) | (checksum_accu >> 13);
-  const uint16_t v = r ^ x;
-  checksum_accu = v;
+  assert(self->refs > 0);
+  self->refs--;
+  if (self->refs == 0) {
+    free(self);
+  }
 }
 
 

@@ -52,8 +52,10 @@
 
 #include "compiler.h"
 
+#include "frame-defs.h"
+#include "frame-parser.h"
+
 #include "freemcan-device.h"
-#include "freemcan-frame.h"
 #include "freemcan-packet.h"
 #include "freemcan-export.h"
 #include "freemcan-iohelpers.h"

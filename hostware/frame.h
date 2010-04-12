@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-frame.h
- * \brief Data frame parser (layer 2) (interface)
+/** \file hostware/frame.h
+ * \brief Data frame (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -48,8 +48,12 @@ typedef struct {
   uint8_t payload[];
 } frame_t;
 
-void frame_ref(frame_t *frame);
-void frame_unref(frame_t *frame);
+
+frame_t *frame_new(const size_t payload_size)
+  __attribute__((malloc));
+
+void frame_ref(frame_t *self);
+void frame_unref(frame_t *self);
 
 
 /** Handler function for newly parsed frames
@@ -62,12 +66,6 @@ void frame_unref(frame_t *frame);
  * terminated string if the payload content is a string.
  */
 typedef void (*frame_handler_t)(const frame_t *frame);
-
-/** Set frame handler function to the given function */
-void frame_set_handler(frame_handler_t handler);
-
-/** Reset frame handler function to No-Op */
-void frame_reset_handler(void);
 
 
 /** Parse a few bytes as frame
@@ -86,6 +84,7 @@ bool enable_layer1_dump;
 
 /** Whether to dump layer 2 data (frames) into log */
 bool enable_layer2_dump;
+
 
 /** @} */
 

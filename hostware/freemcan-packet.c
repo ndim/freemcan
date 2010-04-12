@@ -31,7 +31,8 @@
 #include "packet-defs.h"
 
 #include "freemcan-log.h"
-#include "freemcan-frame.h"
+#include "frame.h"
+#include "frame-parser.h"
 #include "freemcan-packet.h"
 #include "endian-conversion.h"
 
@@ -200,7 +201,7 @@ void packet_reset_handlers()
   packet_handler_state = NULL;
   packet_handler_text = NULL;
   packet_handler_data = NULL;
-  frame_reset_handler();
+  frame_parser_reset_handler(NULL); /** \bug HACK: Need to switch to non-global frame parser */
 }
 
 
@@ -213,7 +214,7 @@ void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
   packet_handler_state = state_packet_handler;
   packet_handler_text = text_packet_handler;
   packet_handler_data = data;
-  frame_set_handler(frame_handler);
+  frame_parser_set_handler(NULL, frame_handler); /** \bug HACK: Need to switch to non-global frame parser */
 }
 
 /** @} */

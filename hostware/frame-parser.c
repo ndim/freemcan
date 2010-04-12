@@ -1,4 +1,4 @@
-/** \file hostware/freemcan-frame.c
+/** \file hostware/frame-parser.c
  * \brief Data frame parser (layer 2) (implementation)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -18,12 +18,12 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup freemcan_frame Data Frame Parser
+ * \defgroup freemcan_frame_parser Data Frame Parser
  * \ingroup hostware_generic
  *
- * The only potential endianness issue in freemcan-frame.c is the
- * frame payload size in #frame_size which is read byte by byte in an
- * endianness independent fashion.
+ * The only potential endianness issue in hostware/frame-parser.c is
+ * the frame payload size in #frame_size which is read byte by byte in
+ * an endianness independent fashion.
  *
  * @{
  */
@@ -36,67 +36,8 @@
 
 #include "frame-defs.h"
 #include "freemcan-checksum.h"
-#include "freemcan-frame.h"
+#include "frame-parser.h"
 #include "freemcan-log.h"
-
-
-
-/************************************************************************
- * Frame reference counting/memory management
- ************************************************************************/
-
-
-static
-frame_t *frame_new()
-  __attribute__((malloc));
-
-static
-frame_t *frame_new(const size_t payload_size)
-{
-  frame_t *frame = malloc(sizeof(frame_t) + payload_size);
-  assert(frame);
-  frame->refs = 1;
-  return frame;
-}
-
-
-void frame_ref(frame_t *frame)
-{
-  assert(frame->refs > 0);
-  frame->refs++;
-}
-
-
-void frame_unref(frame_t *frame)
-{
-  assert(frame->refs > 0);
-  frame->refs--;
-  if (frame->refs == 0) {
-    free(frame);
-  }
-}
-
-
-
-/************************************************************************
- * Frame Handler (next layer)
- ************************************************************************/
-
-
-static frame_handler_t frame_handler;
-
-
-void frame_set_handler(frame_handler_t handler)
-{
-  frame_handler = handler;
-}
-
-
-void frame_reset_handler(void)
-{
-  frame_handler = NULL;
-}
-
 
 
 /************************************************************************
@@ -123,7 +64,9 @@ typedef enum {
 
 
 /** Complete frame parser state */
-typedef struct {
+struct _frame_parser_t {
+  /** Reference counter */
+  unsigned int refs;
 
   /** Parser state machine state */
   state_t state;
@@ -145,26 +88,74 @@ typedef struct {
 
   /** Count the number of checksum errors we get */
   unsigned int checksum_errors;
-} frame_parser_t;
+
+  /** Handler function for completed frames */
+  frame_handler_t frame_handler;
+};
 
 
-static void parser_state_init(frame_parser_t *ps)
+frame_parser_t *frame_parser_new(void)
 {
+  frame_parser_t *ps = malloc(sizeof(*ps));
+  assert(ps);
+  ps->refs = 1;
   ps->state = STATE_MAGIC;
   ps->offset = 0;
   ps->frame_wip = NULL;
   ps->checksum_errors = 0;
+  ps->frame_handler = NULL;
+  return ps;
+}
+
+
+void frame_parser_ref(frame_parser_t *self)
+{
+  assert(self->refs > 0);
+  self->refs++;
+}
+
+
+void frame_parser_unref(frame_parser_t *self)
+{
+  assert(self->refs > 0);
+  self->refs--;
+  if (self->refs == 0) {
+    free(self);
+  }
 }
 
 
 /** Global parser's complete state */
-static frame_parser_t ps;
+static frame_parser_t *ps;
+
+
+/************************************************************************
+ * Frame Handler (next layer)
+ ************************************************************************/
+
+void frame_parser_set_handler(frame_parser_t *self,
+			      frame_handler_t handler)
+{
+  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
+    self = ps;
+  self->frame_handler = handler;
+}
+
+
+void frame_parser_reset_handler(frame_parser_t *self)
+{
+  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
+    self = ps;
+  self->frame_handler = NULL;
+}
+
 
 /** Initialize ps */
 static void ff_init(void) __attribute__((constructor));
 static void ff_init(void)
 {
-  parser_state_init(&ps);
+  /** \bug HACK: Need to switch to non-global frame parser */
+  ps = frame_parser_new();
 }
 
 
@@ -248,7 +239,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
   case STATE_CHECKSUM:
     ps->frame_checksum = u;
     if (checksum_match(ps->frame_checksum)) {
-      if (frame_handler) {
+      if (ps->frame_handler) {
 	/* nul-terminate the payload buffer for convenience */
 	ps->frame_wip->payload[ps->offset] = '\0';
 	ps->frame_wip->type = ps->frame_type;
@@ -265,7 +256,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
 	  }
 	  fmlog_data(ps->frame_wip->payload, size);
 	}
-	frame_handler(ps->frame_wip);
+	ps->frame_handler(ps->frame_wip);
       }
       frame_unref(ps->frame_wip);
       ps->offset = 0;
@@ -291,16 +282,20 @@ bool enable_layer1_dump = false;
 
 
 /* documented in freemcan-frame.h */
-void frame_parse_bytes(const void *buf, const size_t size)
+void frame_parser_bytes(frame_parser_t *self,
+			const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;
   if (enable_layer1_dump) {
     fmlog("Received 0x%04x=%d bytes of layer 1 data", size, size);
     fmlog_data(buf, size);
   }
+  if (!self) /** \bug HACK: Need to switch to non-global frame parser */
+    self = ps;
   for (size_t i=0; i<size; i++) {
-    step_fsm(&ps, cbuf[i]);
+    step_fsm(self, cbuf[i]);
   }
 }
+
 
 /** @} */

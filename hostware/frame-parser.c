@@ -91,6 +91,9 @@ struct _frame_parser_t {
 
   /** Handler function for completed frames */
   frame_handler_t frame_handler;
+
+  /** Checksum state */
+  checksum_t *cs;
 };
 
 
@@ -104,6 +107,7 @@ frame_parser_t *frame_parser_new(void)
   ps->frame_wip = NULL;
   ps->checksum_errors = 0;
   ps->frame_handler = NULL;
+  ps->cs = checksum_new();
   return ps;
 }
 
@@ -120,6 +124,7 @@ void frame_parser_unref(frame_parser_t *self)
   assert(self->refs > 0);
   self->refs--;
   if (self->refs == 0) {
+    checksum_unref(self->cs);
     free(self);
   }
 }
@@ -175,9 +180,9 @@ void step_fsm(frame_parser_t *ps, const char ch)
       if (ps->offset == 0) {
 	/* beginning of magic and header and frame */
 	/* start new checksum */
-	checksum_reset();
+	checksum_reset(ps->cs);
       }
-      checksum_update(u);
+      checksum_update(ps->cs, u);
       ps->offset++;
       if (ps->offset <= 3) {
 	ps->state = STATE_MAGIC;
@@ -194,7 +199,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     }
     break;
   case STATE_SIZE:
-    checksum_update(u);
+    checksum_update(ps->cs, u);
     switch (ps->offset) {
     case 0:
       ps->frame_size = (ps->frame_size & 0xff00) | u;
@@ -212,7 +217,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     }
     break;
   case STATE_FRAME_TYPE:
-    checksum_update(u);
+    checksum_update(ps->cs, u);
     ps->frame_type = u;
     ps->offset = 0;
     /* Total size composed from:
@@ -225,7 +230,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     ps->state = STATE_PAYLOAD;
     return;
   case STATE_PAYLOAD:
-    checksum_update(u);
+    checksum_update(ps->cs, u);
     ps->frame_wip->payload[ps->offset] = u;
     ps->offset++;
     if (ps->offset < ps->frame_size) {
@@ -238,7 +243,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
     break;
   case STATE_CHECKSUM:
     ps->frame_checksum = u;
-    if (checksum_match(ps->frame_checksum)) {
+    if (checksum_match(ps->cs, ps->frame_checksum)) {
       if (ps->frame_handler) {
 	/* nul-terminate the payload buffer for convenience */
 	ps->frame_wip->payload[ps->offset] = '\0';

@@ -166,16 +166,17 @@ void device_send_command(device_t *self,
   case FRAME_CMD_MEASURE:
     /* this is the only command with a parameter */
     if (1) {
-      checksum_reset();
+      checksum_t *cs = checksum_new();
       const uint8_t cmd8 = cmd;
       write(fd, &cmd8, 1);
-      checksum_update(cmd8);
+      checksum_update(cs, cmd8);
       const uint8_t byte0 = (param & 0xff);
-      checksum_update(byte0);
+      checksum_update(cs, byte0);
       const uint8_t byte1 = ((param>>8) & 0xff);
-      checksum_update(byte1);
+      checksum_update(cs, byte1);
       write(fd, &param, sizeof(param));
-      checksum_write(fd);
+      checksum_write(cs, fd);
+      checksum_unref(cs);
     }
     break;
   default:

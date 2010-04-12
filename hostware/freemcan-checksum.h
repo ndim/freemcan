@@ -31,18 +31,29 @@
 
 #include "frame-defs.h"
 
+/** Opaque checksum state type */
+struct _checksum_t;
+
+/** Opaque checksum state type */
+typedef struct _checksum_t checksum_t;
+
+/** New checksum state */
+checksum_t *checksum_new(void);
+
+void checksum_ref(checksum_t *self);
+void checksum_unref(checksum_t *self);
 
 /** Reset checksum state machine */
-void checksum_reset(void);
+void checksum_reset(checksum_t *self);
 
 /** Update checksum state machine with value */
-void checksum_update(const uint8_t value);
+void checksum_update(checksum_t *self, const uint8_t value);
 
 /** Write checksum to file descriptor */
-void checksum_write(const int fd);
+void checksum_write(checksum_t *self, const int fd);
 
 /** Match value against internal checksum state */
-bool checksum_match(const uint8_t value);
+bool checksum_match(checksum_t *self, const uint8_t value);
 
 
 /** @} */

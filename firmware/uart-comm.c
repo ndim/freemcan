@@ -49,18 +49,42 @@
  *
  * So double speed works at 115200 with F_CPU = 16MHz on my system
  * but not single speed. -ndim
+ *
+ * (-> 2.1% error) may work but in general an error < 1% 
+ * is suggested -samplemaker
  */
 
+/* Check settings in asynchronous normal speed mode */
+#define UBRR_VALUE ((F_CPU+UART_BAUDRATE*8UL)/(UART_BAUDRATE*16UL)-1UL)
+#define BAUD_REAL (F_CPU/(16UL*(UBRR_VALUE+1UL)))
+#define BAUD_ERROR ((BAUD_REAL*1000UL)/UART_BAUDRATE)
 
-#if (UART_BAUDRATE >= 100000UL)
-# define UART_DIVISOR 8UL
-# define UART_RATE_2X 1UL
-#elif (UART_BAUDRATE >= 1000UL)
-# define UART_DIVISOR 16UL
-# define UART_RATE_2X 0UL
+/* If baud error is too high revert to double speed mode */
+#if ((BAUD_ERROR<(1000-UART_RELTOL)) || (BAUD_ERROR>(1000+UART_RELTOL)))
+  #define USE_2X 1
+  #warning baud error too high: reverting to asynchronous double speed mode
 #else
-# error UART_BAUDRATE value problem
+  #define USE_2X 0
 #endif
+
+/* Check asynchronous double speed mode if requested */
+#if USE_2X
+#undef UBRR_VALUE
+#undef BAUD_REAL
+#undef BAUD_ERROR
+#define UBRR_VALUE ((F_CPU+UART_BAUDRATE*4UL)/(UART_BAUDRATE*8UL)-1UL)
+#define BAUD_REAL (F_CPU/(8UL*(UBRR_VALUE+1UL)))
+#define BAUD_ERROR ((BAUD_REAL*1000UL)/UART_BAUDRATE)
+
+/* If nothing helps give up */
+#if ((BAUD_ERROR<(1000-UART_RELTOL)) || (BAUD_ERROR>(1000+UART_RELTOL)))
+  #error baud error is too high also in UART asynchronous double speed mode!
+#endif
+
+#endif
+
+#define UBRRL_VALUE (UBRR_VALUE & 0xff)
+#define UBRRH_VALUE (UBRR_VALUE >> 8)
 
 
 /** USART0 initialisation to 8 databits no parity
@@ -68,11 +92,10 @@
  */
 void uart_init(void)
 {
-  /* These baud setting are valid only for asynchrounous normal/double mode */
-  const uint16_t baud_value=(F_CPU / (UART_DIVISOR * UART_BAUDRATE)) - 1;
+  /* set baud rate */
 
-  UBRR0H=(uint8_t)(baud_value >> 8);
-  UBRR0L=(uint8_t)(baud_value);
+  UBRR0H=UBRRH_VALUE;
+  UBRR0L=UBRRL_VALUE;
 
   /* Asynchronous (no clock is used); 8 databit with no parity bit (8N1
    * frame format) */
@@ -84,7 +107,7 @@ void uart_init(void)
   /* Clear or set U2X0 baudrate doubling bit, depending on
    * UART_BAUDRATE. Also disable multi device mode, and do not clear
    * the TXC0 bit (you would *clear* TXC0 bit by writing a 1). */
-  UCSR0A = (UART_RATE_2X<<U2X0);
+  UCSR0A = (USE_2X<<U2X0);
 }
 
 

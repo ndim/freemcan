@@ -47,7 +47,7 @@
  *       re-program the firmware?
  */
 
-
+//#define UART_BAUDRATE 2400UL
 //#define UART_BAUDRATE 9600UL
 //#define UART_BAUDRATE 38400UL
 //#define UART_BAUDRATE 57600UL
@@ -56,6 +56,16 @@
 //#define UART_BAUDRATE 460800UL
 //#define UART_BAUDRATE 500000UL
 //#define UART_BAUDRATE 1000000UL
+
+
+/** Maximum admissible UART baud rate error 
+ *
+ * Error between requested baud rate and real baudrate [per mill] 
+ * Suggestion is to set this to 1% [10]
+ *
+ */
+ 
+#define UART_RELTOL 21  // 2.1% Error
 
 
 /** @} */

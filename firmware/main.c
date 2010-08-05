@@ -601,9 +601,9 @@ int main(void)
     adc_init();
 
     /** Used while receiving "m" command */
-    volatile uint8_t timer0 = 0;
+    uint8_t timer0 = 0;
     /** Used while receiving "m" command */
-    volatile uint8_t timer1 = 0;
+    uint8_t timer1 = 0;
 
     /** Firmware FSM state */
     firmware_state_t state = ST_READY;
@@ -637,11 +637,11 @@ int main(void)
 	} /* switch (cmd) */
 	break;
       case ST_timer0:
-	timer0 = (uint8_t)(uart_getc());
+	timer0 = uart_getc();
 	next_state = ST_timer1;
 	break;
       case ST_timer1:
-	timer1 = (uint8_t)(uart_getc());
+	timer1 = uart_getc();
 	next_state = ST_checksum;
 	break;
       case ST_checksum:

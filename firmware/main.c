@@ -601,9 +601,9 @@ int main(void)
     adc_init();
 
     /** Used while receiving "m" command */
-    uint8_t timer0 = 0;
+    register uint8_t timer0 = 0;
     /** Used while receiving "m" command */
-    uint8_t timer1 = 0;
+    register uint8_t timer1 = 0;
 
     /** Firmware FSM state */
     firmware_state_t state = ST_READY;

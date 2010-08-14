@@ -12,22 +12,22 @@ digraph firmware_fsm {
   measuring [pos="4,0!" label="MEASURING"];
   done      [pos="4,1.85!" label="DONE"];
 
-  null -> booting;
-  reset -> booting [ label="done\n-/-" ];
+  null -> booting [ style=bold ];
+  reset -> booting [ label="hardwareq reset done\n-/-" style=bold ];
 
-  booting -> ready [ label="done\nstate 'READY'" ];
+  booting -> ready [ label="hw boot done\nstate 'READY'" style=bold ];
 
-  ready -> timer0 [ label="cmd 'm'\n-/-" ];
-  timer0 -> timer1 [ label="timer byte 0\n-/-" ];
-  timer1 -> checksum [ label="timer byte 1\n-/-" ];
-  checksum -> measuring [ label="chksum byte, if match\nstate 'MEASURING'" ];
-  checksum -> reset [ label="chksum byte, if fail\ntext 'checksum fail', state 'RESET'" ];
+  ready -> timer0 [ label="cmd 'm'\n-/-" style=bold ];
+  timer0 -> timer1 [ label="timer byte 0\n-/-" style=bold ];
+  timer1 -> checksum [ label="timer byte 1\n-/-" style=bold ];
+  checksum -> measuring [ label="chksum byte, if match\nstart measurement, start timer, state 'MEASURING'" style=bold ];
+  checksum -> reset [ color=red fontcolor=red label="chksum byte, if fail\ntext 'checksum fail', state 'RESET'" ];
 
-  measuring -> reset [ label="cmd 'a'\nhistogram 'aborted', state 'RESET'"];
-  measuring -> measuring [ label="cmd 'i'\nhistogram 'intermediate', state 'MEASURING'" ];
+  measuring -> reset [ color=blue fontcolor=blue label="cmd 'a'\nhistogram 'aborted', state 'RESET'"];
+  measuring -> measuring [ color=blue fontcolor=blue label="cmd 'i'\nhistogram 'intermediate', state 'MEASURING'" ];
 
-  ready -> reset [ label="cmd 'r'\nstate 'RESET'"];
-  measuring -> done [ label="done\nhistogram 'done', state 'DONE'"];
-  done -> reset [ label="cmd 'r'\nstate 'RESET'"];
-  done -> done  [ label="any other byte\nhistogram 'resend', state 'DONE'" ];
+  ready -> reset [ color=blue fontcolor=blue label="cmd 'r'\nstate 'RESET'"];
+  measuring -> done [ label="timer done\nhistogram 'done', state 'DONE'" style=bold ];
+  done -> reset [ label="cmd 'r'\nstate 'RESET'" style=bold ];
+  done -> done  [ color=blue fontcolor=blue label="any other byte\nhistogram 'resend', state 'DONE'" ];
 }

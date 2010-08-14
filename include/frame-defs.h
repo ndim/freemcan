@@ -31,10 +31,18 @@
  * over the serial line, or a timeout happening (watchdog timeout, or
  * measurement duration has passed).
  *
- * Note1: The "booting" state is a hardware state.
+ * Note1: The "booting" state is a hardware state. The others are
+ *        software states.
  *
  * Note2: Entering an upper case state is always reported by a state
  *        packet.
+ *
+ * Note3: The bold black edges show the default way through the
+ *        state transition diagram.
+ *
+ * Note4: The red edge are error conditions.
+ *
+ * Note5: The blue edges are reactions optional commands.
  *
  * \section layer_model Layering model
  *

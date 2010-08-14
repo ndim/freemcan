@@ -54,15 +54,17 @@ TUI_COMMON_OBJ =
 TUI_COMMON_OBJ += freemcan-checksum.o
 TUI_COMMON_OBJ += freemcan-device.o
 TUI_COMMON_OBJ += freemcan-export.o
-TUI_COMMON_OBJ += freemcan-frame.o
+TUI_COMMON_OBJ += frame.o
+TUI_COMMON_OBJ += frame-parser.o
 TUI_COMMON_OBJ += freemcan-iohelpers.o
 TUI_COMMON_OBJ += freemcan-log.o
 TUI_COMMON_OBJ += freemcan-packet.o
+TUI_COMMON_OBJ += packet-parser.o
 TUI_COMMON_OBJ += freemcan-signals.o
 TUI_COMMON_OBJ += freemcan-tui.o
 TUI_COMMON_OBJ += serial-setup.o
 
-freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ) freemcan-device-select.o
+freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
 test-log : test-log.o freemcan-log.o

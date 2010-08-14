@@ -1,5 +1,5 @@
-/** \file hostware/freemcan-device-select.h
- * \brief FreeMCAn device select(2) support (interface)
+/** \file hostware/frame.h
+ * \brief Data frame (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,30 +18,49 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- */
-
-
-/* According to POSIX.1-2001 */
-#include <sys/select.h>
-
-/* According to earlier standards */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-
-/** \addtogroup freemcan_device_select
+ * \addtogroup freemcan_frame
  * @{
  */
 
-/** Set up select(2) data structure with device data */
-int  device_select_set_in(fd_set *in_fdset, int maxfd);
 
-/** Do device's IO stuff if necessary (from select(2) loop) */
-void device_select_do_io(fd_set *in_fdset);
+#ifndef FREEMCAN_FRAME_H
+#define FREEMCAN_FRAME_H
+
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "frame-defs.h"
 
 
-void device_select_init(const char *device_name);
-void device_select_fini();
+/** Data frame (parsed)
+ *
+ * In this parsed state, the header magic number and trailing checksum
+ * have already been verified to be correct and thus thrown aside.
+ */
+typedef struct {
+  /** Reference counter */
+  int refs;
+  /** Frame type */
+  frame_type_t type;
+  /** Payload size in bytes */
+  uint16_t size;
+  /** Payload */
+  uint8_t payload[];
+} frame_t;
+
+
+frame_t *frame_new(const size_t payload_size)
+  __attribute__((malloc));
+
+
+void frame_ref(frame_t *self)
+  __attribute__(( nonnull(1) ));
+
+
+void frame_unref(frame_t *self)
+  __attribute__(( nonnull(1) ));
+
 
 /** @} */
+
+#endif /* !FREEMCAN_FRAME_H */

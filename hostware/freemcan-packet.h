@@ -1,5 +1,5 @@
 /** \file hostware/freemcan-packet.h
- * \brief Data packet parser (layer 3) (interface)
+ * \brief Data packets (layer 3) (interface)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
@@ -18,7 +18,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup freemcan_packet
+ * \addtogroup freemcan_packets
  * @{
  */
 
@@ -112,24 +112,6 @@ typedef void (*packet_handler_state_t)(const char *state, void *data);
 /** Callback function type called when text packet arrives */
 typedef void (*packet_handler_text_t)(const char *status, void *data);
 
-
-/** Reset packet handler callbacks.
- *
- * This also unregisters the packet parser callback from the frame
- * parser.
- */
-void packet_reset_handlers();
-
-
-/** Set the packet handler callbacks.
- *
- * This also registers the packet parser callback with the frame
- * parser.
- */
-void packet_set_handlers(packet_handler_histogram_t histogram_packet_handler,
-			 packet_handler_state_t state_packet_handler,
-			 packet_handler_text_t text_packet_handler,
-			 void *data);
 
 /** @} */
 

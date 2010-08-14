@@ -27,6 +27,8 @@
 
 #include <stdbool.h>
 
+#include "packet-parser.h"
+
 bool quit_flag;
 
 void tui_init();
@@ -35,8 +37,10 @@ void tui_do_io(void);
 const char *main_init(int argc, char *argv[]);
 
 
-typedef void (*send_command_f)(const frame_cmd_t cmd, const uint16_t param);
-extern send_command_f tui_device_send_command;
+extern packet_parser_t *tui_packet_parser;
+
+
+void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param);
 
 
 #endif /* !FREEMCAN_TUI_H */

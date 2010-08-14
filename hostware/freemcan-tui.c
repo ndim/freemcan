@@ -52,8 +52,11 @@
 
 #include "compiler.h"
 
+#include "frame-defs.h"
+#include "frame-parser.h"
+#include "packet-parser.h"
+
 #include "freemcan-device.h"
-#include "freemcan-frame.h"
 #include "freemcan-packet.h"
 #include "freemcan-export.h"
 #include "freemcan-iohelpers.h"
@@ -197,6 +200,9 @@ tui_log_handler(void *data __attribute__ (( unused )),
 }
 
 
+packet_parser_t *tui_packet_parser = NULL;
+
+
 /** Initialize TTY stuff */
 void tui_init()
 {
@@ -205,10 +211,10 @@ void tui_init()
   stdlog = fopen("freemcan-tui.log", "w");
   fmlog_set_handler(tui_log_handler, NULL);
 
-  packet_set_handlers(packet_handler_histogram,
-		      packet_handler_status,
-		      packet_handler_text,
-		      NULL);
+  tui_packet_parser = packet_parser_new(packet_handler_histogram,
+					packet_handler_status,
+					packet_handler_text,
+					NULL);
 
   fmlog("Text user interface (TUI) set up");
 }
@@ -216,7 +222,7 @@ void tui_init()
 
 void tui_fini()
 {
-  packet_reset_handlers();
+  packet_parser_unref(tui_packet_parser);
   tty_reset();
   fmlog_reset_handler();
   if (stdlog) {

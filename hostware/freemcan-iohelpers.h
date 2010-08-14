@@ -24,8 +24,8 @@
  */
 
 
-#ifndef FREEMCAN_SELECT_H
-#define FREEMCAN_SELECT_H
+#ifndef FREEMCAN_IOHELPERS_H
+#define FREEMCAN_IOHELPERS_H
 
 /* According to POSIX.1-2001 */
 #include <sys/select.h>
@@ -51,4 +51,4 @@ int read_size(const int in_fd);
 
 /** @} */
 
-#endif /* !FREEMCAN_SELECT_H */
+#endif /* !FREEMCAN_IOHELPERS_H */

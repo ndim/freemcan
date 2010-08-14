@@ -49,9 +49,9 @@
  *  <tr><th>4</th><td>application layer (process the packets' content)</td>
  *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
  *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
- *      <td>\ref packet_defs</td><td>\ref freemcan_packet</td><td>\ref firmware_comm</td></tr>
+ *      <td>\ref packet_defs</td><td>\ref freemcan_packet_parser</td><td>\ref firmware_comm</td></tr>
  *  <tr><th>2</th><td>frames of a certain size</td>
- *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame</td><td>\ref frame_comm</td></tr>
+ *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame_parser</td><td>\ref frame_comm</td></tr>
  *  <tr><th>1</th><td>byte stream to/from serial port</td>
  *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
  *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>

@@ -44,7 +44,7 @@ typedef void (*fmlog_handler_t)(void *data,
 void fmlog_reset_handler(void);
 
 /** Set the fmlog message handler to the given handler function */
-void fmlog_set_handler(fmlog_handler_t the_fmlog_handler,  void *the_data);
+void fmlog_set_handler(fmlog_handler_t the_fmlog_handler, void *the_data);
 
 /** Log a message */
 void fmlog(const char *format, ...)

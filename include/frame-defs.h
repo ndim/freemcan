@@ -44,6 +44,11 @@
  *
  * Note5: The blue edges are reactions optional commands.
  *
+ * Note6: The 's' command (state command) is not shown in this graph.
+ *        Receiving a state command sends a "state" message with the
+ *        current state and immediately resumes the interrupted
+ *        operation (valid for the states MEASURING, READY, and DONE).
+ *
  * \section layer_model Layering model
  *
  * To keep the parser in the firmware simple, we use a simpler data

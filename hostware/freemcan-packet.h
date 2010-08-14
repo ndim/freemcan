@@ -69,6 +69,8 @@ typedef struct {
  * \param element_count The number of elements received from device.
  * \param duration The duration of the measurement which produced
  *                 the data in elements.
+ * \param total_duration The total duration of the running measurement
+ *                       until it will be completed.
  * \param elements Pointer to the array of data as received from the
  *                 device.  A NULL pointer is interpreted like an
  *                 array consisting entirely of zeros.

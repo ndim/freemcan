@@ -13,7 +13,7 @@ digraph firmware_fsm {
   done      [pos="4,1.85!" label="DONE"];
 
   null -> booting [ style=bold ];
-  reset -> booting [ label="hardwareq reset done\n-/-" style=bold ];
+  reset -> booting [ label="hardware reset done\n-/-" style=bold ];
 
   booting -> ready [ label="hw boot done\nstate 'READY'" style=bold ];
 

@@ -42,12 +42,11 @@
  *
  * Note4: The red edge are error conditions.
  *
- * Note5: The blue edges are reactions optional commands.
+ * Note5: The green edges show the actions of the optional 's' (state)
+ *        command which just sends the current state and resumes
+ *        whatever it was doing at the time.
  *
- * Note6: The 's' command (state command) is not shown in this graph.
- *        Receiving a state command sends a "state" message with the
- *        current state and immediately resumes the interrupted
- *        operation (valid for the states MEASURING, READY, and DONE).
+ * Note6: The blue edges are reactions to the other optional commands.
  *
  * \section layer_model Layering model
  *

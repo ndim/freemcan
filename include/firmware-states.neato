@@ -10,10 +10,10 @@ digraph firmware_fsm {
   timer1    [pos="0,1.85!"];
   checksum  [pos="0,0!"];
   measuring [pos="4,0!" label="MEASURING"];
-  done      [pos="4,1.85!" label="DONE"];
+  done      [pos="4,2.5!" label="DONE"];
 
   null -> booting [ style=bold label="power on"];
-  reset -> booting [ label="hardware reset done\n-/-" style=bold ];
+  reset -> booting [ label="\nhardware reset done\n-/-" style=bold ];
 
   booting -> ready [ label="hw boot done\nstate 'READY'" style=bold ];
 
@@ -30,4 +30,8 @@ digraph firmware_fsm {
   measuring -> done [ label="timer done\nhistogram 'done', state 'DONE'" style=bold ];
   done -> reset [ label="cmd 'r'\nstate 'RESET'" style=bold ];
   done -> done  [ color=blue fontcolor=blue label="any other byte\nhistogram 'resend', state 'DONE'" ];
+
+  ready:ne -> ready:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'READY'"];
+  done:ne -> done:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'DONE'"];
+  measuring:ne -> measuring:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'MEASURING'"];
 }

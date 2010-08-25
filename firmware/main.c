@@ -88,11 +88,15 @@
 #include <string.h>
 
 #include "global.h"
+
+/* following two includes need F_CPU */
+#include "ad7813.h"
+#include <util/delay.h>
+
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "frame-defs.h"
 #include "packet-defs.h"
-
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -204,46 +208,128 @@ void wdt_init(void)
 }
 
 
-/** AD conversion complete interrupt entry point
+/** Interrupt 0 service proceeding PMT pulse with external ADC
  *
- * This function is called when an A/D conversion has completed.
- * Update histogram
- * Discharge peak hold capacitor
+ * Softtrigger of the AD-converter
+ * Get data
+ * Update of table
+ * Reset of sample & hold capacitor
+ *
+ * Timing of the following code which depends on F_CPU is crucial
+ * since all hardware functionality is emulated by software!
+ *
+ * Measurements done with F_CPU = 18,432 MHz and five NOPs (AD7813_DELAY)
+ * 9-Bit ADC resoluteion and 24 bit table:
+ * Falling edge INT0 til falling edge CONVST         : 1700ns
+ * Pulse width CONVST is on GND                      : 700ns
+ * Rising edge BUSY til rising edge CONVST           : 700ns
+ * Pulse width BUSY is on VDD                        : 1700ns
+ * 1st data read out - READ is on GND                : 700ns
+ * READ is on VDD                                    : 400ns
+ * snd data read out - READ is on GND (second pulse) : 700ns
+
+ * Dead time (complete runtime) should be approx. 10,8us if
+ * preamp is populated with 27pF || 120kOhm
  */
-ISR(ADC_vect) {
 
-  /* pull pin to discharge peak hold capacitor                    */
-  /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= BIT(PD6);
+//__attribute__((optimize(3))) ISR(INT0_vect){
+ISR(INT0_vect){
+   /* Wait til preamplifier, sample & hold circuit and ADC input are
+    * settled down and stable before starting a software trigger on
+    * the ADC. The interrupt execution response is five clock cycles minimum.
+    * After five clock cycles the program vector address for the
+    * actual interrupt handling routine is executed. During these five
+    * clock cycle period, the program counter (three bytes) is pushed
+    * onto the stack. The vector is a jump to the interrupt routine,
+    * and takes three clock cycles. Some working registers are pushed
+    * onto the stack.
+    *
+    * Force falling edge on CONVST pin to soft trigger an ADC conversion
+    * (track and hold)
+    */
+   AD7813_IO_CONVST_PORT &= ~BIT(AD7813_IO_CONVST_CTRL_BIT);
+   /* 1.) Wait for at least AD7813_T_CONVST_FALLING_EDGE_TO_BUSY_RISING_EDGE_DELAY
+    * (t3) but less than (AD7813_T_CONVERSION [t1] -
+    * AD7813_T_CONVST_FALLING_EDGE_TO_BUSY_RISING_EDGE_DELAY [t3])
+    * to have a stable busy signal from AD7813
+    * 2.) Before rising the CONVST signal back to VDD (reset) you have
+    * to wait for AD7813_T_CONVST_PULSEWIDTH (t2) to provide a minimum
+    * pulse width to GND on the CONVST PIN. The CONVST must be reset
+    * to VDD to operate AD7813 in the fast MODE 1 but this must happen
+    * during BUSY is high
+    * Condition 1.) is fullfilled if 30ns < debounce time < 2270ns
+    * Condition 2.) is fullfilled if 20ns < debounce time
+    */
+   AD7813_DELAY
+   AD7813_DELAY
+   /* Reset CONVST to VDD during BUSY is high to operate ADC in MODE 1 */
+   AD7813_IO_CONVST_PORT |= (BIT(AD7813_IO_CONVST_CTRL_BIT));
+   /* Poll BUSY signal til AD conversion is completed (falling edge on
+    * BUSY signal) */
+   loop_until_bit_is_clear(AD7813_IO_BUSY_PIN, AD7813_IO_BUSY_CTRL_BIT);
 
-  /* Read analog value */
-  uint16_t result = ADCW;
+   /* Read 1byte result from ADC: force READ to GND */
+   AD7813_IO_RD_PORT &= ~(BIT(AD7813_IO_RD_CTRL_BIT));
+   /* Wait for at least AD7813_T_DATA_ACCESS_TIME_AFTR_RD_LOW (t6) til
+    * data on latch is valid */
+   AD7813_DELAY
+   /* Read higher byte (8 bit) from ADC latch */
+   register uint8_t result1 = AD7813_IO_DATA_PIN;
+   /* Wait til atmega port is stable */
+   AD7813_DELAY
+   /* Force READ pin to VDD (reset) */
+   AD7813_IO_RD_PORT |= (BIT(AD7813_IO_RD_CTRL_BIT));
 
-  /* We are confident that the range of values the ADC gives us
-   * is within the specced 10bit range of 0..1023. */
+   /* 9 or 10 bit: Serial read out of lower two bits. Not so fast but
+    * higher resolution. Wait for at least either
+    * AD7813_T_BUS_RELINQUISH_TIME_AFTR_RD_HIGH (t7) or
+    * AD7813_T_MIN_BETWEEN_MSB_AND_LSB_READS (t8) */
+   /* #if (ADC_RESOLUTION > 8) */
+   AD7813_DELAY
+   /* Force READ to GND to access lower 2 Bits by serial data read out */
+   AD7813_IO_RD_PORT &= ~(BIT(AD7813_IO_RD_CTRL_BIT));
+   AD7813_DELAY
+   /* Read lower byte (8 bit) from ADC latch */
+   register uint8_t result0 = AD7813_IO_DATA_PIN;
+   /* Wait til ATmega latch is stable */
+   AD7813_DELAY
+   /* Force READ to VDD to reset the signal */
+   AD7813_IO_RD_PORT |= (BIT(AD7813_IO_RD_CTRL_BIT));
 
-  /* cut off 2, 1 or 0 LSB */
-  const uint16_t index = result >> (10-ADC_RESOLUTION);
+   const uint16_t index = (((((uint16_t)(result1)) << 2) | (result0 >> 6)) >> (10-ADC_RESOLUTION));
 
-  /* For 24bit values, the source code looks a little more complicated
-   * than just table[index]++ (even though the generated machine
-   * instructions are not).  Anyway, we needed to move the increment
-   * into a properly defined _inc function.
-   */
-  volatile histogram_element_t *element = &(table[index]);
-  histogram_element_inc(element);
+   /* 8 bit or less (delay must be adjusted separately)
+   #else
+     const uint16_t index = ((uint16_t)(result1) >> (8-ADC_RESOLUTION));
+   #endif */
 
-  /* set pin to GND and release peak hold capacitor   */
-  PORTD &=~ BIT(PD6);
+   /* The ADC needs a pause time of
+    * AD7813_T_RISING_EDGE_OF_CS_OR_RD_TO_FALLING_EDGE_OF_CONVST_DELAY
+    * now (t9) which is far below the rest of this ISR so we do not
+    * care about it */
 
-  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
-   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
-   * not executed and therefore this flag is not reset automatically.
-   * To reset this flag the bit at position INTF0 must be set.
-   */
-  EIFR |= BIT(INTF0);
+   /* For 24bit values, the source code looks a little more complicated
+    * than just table[index]++ (even though the generated machine
+    * instructions are not).  Anyway, we needed to move the increment
+    * into a properly defined _inc function.
+    */
+   volatile histogram_element_t *element = &(table[index]);
+   histogram_element_inc(element);
+
+   /* Wait til preamp falls below INT0 trigger threshold
+    * with 27pF||120k */
+   _delay_us(AD7813_TO_SHRST_T_DELAY);
+
+   /* Reset SH-CAP - 2,2us pulse width, start approx 9us after INT0 */
+   SHRST_IO_PORT |= BIT(SHRST_IO_CTRL_BIT);
+   _delay_us(2);
+   /* Set pin to GND and release peak hold capacitor   */
+   SHRST_IO_PORT &=~ BIT(SHRST_IO_CTRL_BIT);
+
+   /* If there are any pending int0 interrupts clear them since they cannot
+    * be valid (e.g. second PMT pulse occured during execution of ISR) */
+   EIFR |= BIT(INTF0);
 }
-
 
 /** 16 Bit timer ISR
  *
@@ -301,67 +387,12 @@ void trigger_src_conf(void)
      * vector table  */
     EIFR |= BIT(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
-     * register). we do not want to jump to the ISR in case of an interrupt
-     * so we do not set this bit  */
-    // EIMSK |= (BIT(INT0));
+     * register). jump to the ISR in case of an interrupt  */
+    EIMSK |= (BIT(INT0));
 
 }
 
-
-/** ADC initialisation and configuration
- *
- * ADC configured as auto trigger
- * Trigger source INT0
- * Use external analog reference AREF at PIN 32
- * AD input channel on Pin 40 ADC0
- */
-inline static
-void adc_init(void)
-{
-  uint16_t result;
-
-  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
-  ADMUX = 0;
-
-  /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
-
-  /* clear ADC Control and Status Register A
-   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = BIT(ADEN);
-
-  /* ADC prescaler selection (ADC Prescaler Select Bits) */
-  /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*BIT(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*BIT(ADPS1)) |
-              ((ADC_PRESCALER & 0x01)*BIT(ADPS0)));
-
-  /* dummy read out (first conversion takes some time) */
-  /* software triggered AD-Conversion */
-  ADCSRA |= BIT(ADSC);
-
-  /* wait until conversion is complete */
-  loop_until_bit_is_clear(ADCSRA, ADSC);
-
-  /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
-
-  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
-   * (-> ADC interrupt enable) */
-  ADCSRA |= BIT(ADIE);
-
-   /* Configure ADC trigger source:
-    * Select external trigger "interrupt request 0"
-    * Interrupt on rising edge                         */
-  ADCSRB |= BIT(ADTS1);
-  ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
-
-  /* ADC auto trigger enable: ADC will be started by trigger signal */
-  ADCSRA |= BIT(ADATE);
-}
-
-
-/** Configure 16 bit timer to trigger an ISR every second         
+/** Configure 16 bit timer to trigger an ISR every second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
@@ -410,6 +441,44 @@ void timer_init_quick(void)
   TCCR1B = old_tccr1b;
 }
 
+/** Initialize AD7813 peripherals
+ */
+inline static
+void AD7813_init(void)
+{
+    /* ADC7813 data bus */
+
+    /* Configure complete port group as input */
+    AD7813_IO_DATA_DDR &= ~AD7813_IO_DATA_CTRL_VALUE;
+    /* Disable all internal pull ups on this port, Isource=Isink=200uA */
+    AD7813_IO_DATA_PORT &= ~AD7813_IO_DATA_CTRL_VALUE;
+
+    /* Configure ADC control pins. Inputs first of all to avoid
+     * short circuits */
+
+    /* Configure BUSY as input */
+    AD7813_IO_BUSY_DDR &= ~(BIT(AD7813_IO_BUSY_CTRL_BIT));
+    /* Disable pull up resistor at input */
+    AD7813_IO_BUSY_PORT &= ~BIT(AD7813_IO_BUSY_CTRL_BIT);
+
+    /* Configure READ as output */
+    AD7813_IO_RD_DDR |= (BIT(AD7813_IO_RD_CTRL_BIT));
+    /* Set READ to VDD */
+    AD7813_IO_RD_PORT |= (BIT(AD7813_IO_RD_CTRL_BIT));
+
+    /* Configure CONVST as output */
+    AD7813_IO_CONVST_DDR |= (BIT(AD7813_IO_CONVST_CTRL_BIT));
+    /* Set CONVST to VDD */
+    AD7813_IO_CONVST_PORT |= (BIT(AD7813_IO_CONVST_CTRL_BIT));
+
+    /* An internal INT CONVST signal pulse is started after CONVST
+     * is switched to VDD. After the ADC is powered up and INT
+     * CONVST goes down the ADC is engaged and ready for track/hold
+     * edge on CONVST. The power up takes a time of
+     * AD7813_T_PWR_UP_AFTR_RISING_EDGE_ON_CONVST. So actually we
+     * need to wait at this point for that time but it is small and
+     * so we assume that all following code consumes more time  */
+}
 
 /** Initialize peripherals
  *
@@ -419,10 +488,10 @@ void timer_init_quick(void)
 inline static
 void io_init(void)
 {
-    /* configure pin 20 as an output                               */
-    DDRD |= (BIT(DDD6));
-    /* set pin 20 to ground                                        */
-    PORTD &= ~BIT(PD6);
+    /* configure pin as an output                               */
+    SHRST_IO_DDR |= (BIT(SHRST_IO_CTRL_BIT));
+    /* set pin to ground                                        */
+    SHRST_IO_PORT &= ~BIT(SHRST_IO_CTRL_BIT);
 
     /** \todo configure unused pins */
 }
@@ -593,12 +662,10 @@ int main(void)
     /* initialize peripherals */
     io_init();
 
+    AD7813_init();
+
     /* configure INT0 pin 16 */
     trigger_src_conf();
-
-    /* configure AREF at pin 32 and single shot auto trigger over int0
-     * at pin 40 ADC0 */
-    adc_init();
 
     /** Used while receiving "m" command */
     register uint8_t timer0 = 0;

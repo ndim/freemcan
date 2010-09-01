@@ -10,12 +10,13 @@ LDLIBS ?=
 
 CFLAGS += -std=c99
 CFLAGS += -pedantic
-CFLAGS += -Wall -Wextra 
-CFLAGS += -lm
+CFLAGS += -Wall -Wextra
 # CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include
 CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
+LDLIBS += -lm
+
 
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui

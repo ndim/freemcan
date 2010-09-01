@@ -32,6 +32,8 @@
  * \{
  */
 
+#define __i386__
+
 #if defined(__i386__)
 # define ENDIANNESS_IS_LE
 #elif defined(__ppc__)

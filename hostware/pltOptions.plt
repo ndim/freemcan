@@ -24,7 +24,7 @@ set title "Histogram" font "Arial,16"
 #set yrange [0:700]
 set ylabel 'Counts'
 set grid ytics lt 0 lw 1 lc rgb "#909070"
-set xrange [0:1022]
+set xrange [0:15]
 set xlabel 'Channel No.'
 set grid xtics lt 0 lw 1 lc rgb "#909070"
 set x2tics ("xy keV" 93,"xz keV" 139)

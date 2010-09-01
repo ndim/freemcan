@@ -10,7 +10,8 @@ LDLIBS ?=
 
 CFLAGS += -std=c99
 CFLAGS += -pedantic
-CFLAGS += -Wall -Wextra
+CFLAGS += -Wall -Wextra 
+CFLAGS += -lm
 # CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include

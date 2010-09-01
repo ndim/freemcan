@@ -261,8 +261,9 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
   else if (max >=      10000) { places =  5; perline =  8; }
   else if (max >=       1000) { places =  4; perline =  8; }
   else if (max >=        100) { places =  3; perline = 16; }
-  else if (max >=         10) { places =  2; perline = 16; }
-  else                        { places =  1; perline = 32; }
+  else                        { places =  2; perline = 16; }
+//  else if (max >=         10) { places =  2; perline = 16; }
+//  else                        { places =  1; perline = 32; }
 
   /* prepare format string for numbers */
   char fmt[10] = "";

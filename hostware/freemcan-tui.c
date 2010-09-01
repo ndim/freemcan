@@ -284,11 +284,11 @@ void tui_do_io(void)
 	break;
       case FRAME_CMD_MEASURE: /* 'm' */
 	/* "SHORT" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 10);
+	tui_device_send_command(FRAME_CMD_MEASURE, 5);
 	break;
       case 'M': /* 'm' */
 	/* "LONG" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 30);
+	tui_device_send_command(FRAME_CMD_MEASURE, 40);
 	break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:

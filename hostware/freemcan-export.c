@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <math.h>
 #include <time.h>
 
 #include "freemcan-export.h"
@@ -83,14 +83,35 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   case PACKET_HISTOGRAM_INTERMEDIATE: type_str = "intermediate result"; break;
   }
   fprintf(histfile, "# type:\t'%c' (%s)\n", histogram_packet->type, type_str);
-  fprintf(histfile, "# receive_time:\t%lu (%s)\n",
-	  histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
-  fprintf(histfile, "# element_count:\t%d\n", histogram_packet->element_count);
-  fprintf(histfile, "# orig_element_size:\t%d (%d bit)\n",
-	  histogram_packet->orig_element_size, 8*histogram_packet->orig_element_size);
-  fprintf(histfile, "# duration:\t%d\n", histogram_packet->duration);
-  fprintf(histfile, "# total_duration:\t%d\n", histogram_packet->total_duration);
-  fprintf(histfile, "# max_value:\t%d\n", histogram_packet->max_value);
+ // fprintf(histfile, "# receive_time:\t%lu (%s)\n",
+ //	  histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
+ fprintf(histfile, "# number of intervalls:\t%d\n", histogram_packet->element_count);
+ // fprintf(histfile, "# orig_element_size:\t%d (%d bit)\n",
+ //	  histogram_packet->orig_element_size, 8*histogram_packet->orig_element_size);
+ // fprintf(histfile, "# duration:\t%d\n", histogram_packet->duration);
+  fprintf(histfile, "#duration per interval: %d sec\n", histogram_packet->total_duration);
+ // fprintf(histfile, "# max_value:\t%d\n", histogram_packet->max_value);
+
+  unsigned long total_count = 0;
+  for (size_t i=0; i<element_count; i++) {
+    total_count += histogram_packet->elements[i];
+  }
+
+  fprintf(histfile, "#elapsed time:      %d sec\n", histogram_packet->element_count*histogram_packet->total_duration);
+
+  fprintf(histfile, "#total counts:      %d", total_count);
+  
+  float total_counts_error = sqrt((float)(total_count));
+  fprintf(histfile, "    +/- %1.2f CNTs (average is within 1 sigma)\n", total_counts_error);
+
+  float average_count_rate = 60.0*(float)(total_count)/(float)(element_count*histogram_packet->total_duration);
+  fprintf(histfile, "#counts per minute: %1.2f", average_count_rate);
+
+  float average_counts_error = average_count_rate*total_counts_error/total_count;
+  fprintf(histfile, "  +/- %1.2f CPMs (average is within 1 sigma)\n", average_counts_error);
+
+  fprintf(histfile, "#statistical error: %1.1f \%\n", 100.0*average_counts_error/average_count_rate);
+
   for (size_t i=0; i<element_count; i++) {
     fprintf(histfile, "%d\t%u\n", i, histogram_packet->elements[i]);
   }

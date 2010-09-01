@@ -45,7 +45,7 @@
 
 #include "freemcan-checksum.h"
 #include "freemcan-device.h"
-#include "freemcan-frame.h"
+#include "frame-parser.h"
 #include "freemcan-log.h"
 #include "freemcan-iohelpers.h"
 #include "freemcan-tui.h"
@@ -54,7 +54,50 @@
 #include "uart-defs.h"
 
 
-send_command_f tui_device_send_command;
+/** Internals of opaque device type */
+struct _device_t {
+  unsigned int refs;
+  int fd;
+  frame_parser_t *frame_parser;
+  checksum_t *checksum_output;
+};
+
+
+device_t *device_new(frame_parser_t *frame_parser)
+{
+  device_t *device = malloc(sizeof(*device));
+  assert(device);
+  device->refs = 1;
+  device->fd = -1;
+  device->frame_parser = frame_parser;
+  device->checksum_output = checksum_new();
+  return device;
+}
+
+
+void device_ref(device_t *self)
+{
+  assert(self->refs > 0);
+  self->refs++;
+}
+
+
+void device_unref(device_t *self)
+{
+  assert(self->refs > 0);
+  self->refs--;
+  if (self->refs == 0) {
+    frame_parser_unref(self->frame_parser);
+    checksum_unref(self->checksum_output);
+    free(self);
+  }
+}
+
+
+int device_get_fd(device_t *self)
+{
+  return self->fd;
+}
 
 
 /** Open character special device file with proper setup (to hardware device) */
@@ -97,7 +140,7 @@ int open_unix_socket(const char *socket_name)
 }
 
 
-int device_open(const char *device_name)
+void device_open(device_t *self, const char *device_name)
 {
   struct stat sb;
   const int stat_ret = stat(device_name, &sb);
@@ -105,43 +148,55 @@ int device_open(const char *device_name)
     perror("stat()");
     abort();
   }
+  if (self->fd > 0) {
+    device_close(self);
+  }
   if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
-    return open_char_device(device_name);
+    self->fd = open_char_device(device_name);
   } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
-    return open_unix_socket(device_name);
+    self->fd = open_unix_socket(device_name);
   } else {
     fmlog("device of unknown type: %s", device_name);
-    return -1;
+    self->fd = -1;
   }
 }
 
 
-void device_close(const int device_fd)
+void device_close(device_t *self)
 {
-  assert(device_fd > 0);
-  close(device_fd);
+  assert(self->fd > 0);
+  close(self->fd);
+  self->fd = -1;
 }
 
 
-void device_send_command(const int fd,
+void device_send_command(device_t *self,
 			 const frame_cmd_t cmd, const uint16_t param)
 {
-  fmlog("Sending '%c' command to device (param=%d=0x%04x)",
-	cmd, param, param);
+  const int fd = self->fd;
+  if (fd > 0) {
+    fmlog("Sending '%c' command to device (param=%d=0x%04x)",
+	  cmd, param, param);
+  } else {
+    fmlog("Not sending '%c' command to closed device (param=%d=0x%04x)",
+	  cmd, param, param);
+    return;
+  }
   switch (cmd) {
   case FRAME_CMD_MEASURE:
     /* this is the only command with a parameter */
     if (1) {
-      checksum_reset();
+      checksum_t *cs = checksum_new();
       const uint8_t cmd8 = cmd;
       write(fd, &cmd8, 1);
-      checksum_update(cmd8);
+      checksum_update(cs, cmd8);
       const uint8_t byte0 = (param & 0xff);
-      checksum_update(byte0);
+      checksum_update(cs, byte0);
       const uint8_t byte1 = ((param>>8) & 0xff);
-      checksum_update(byte1);
+      checksum_update(cs, byte1);
       write(fd, &param, sizeof(param));
-      checksum_write(fd);
+      checksum_write(cs, fd);
+      checksum_unref(cs);
     }
     break;
   default:
@@ -153,8 +208,9 @@ void device_send_command(const int fd,
 
 
 /* documented in freemcan-device.h */
-void device_do_io(const int fd)
+void device_do_io(device_t *self)
 {
+    const int fd = self->fd;
     const int bytes_to_read = read_size(fd);
     if (bytes_to_read == 0) {
       fmlog("EOF via device fd %d", fd);
@@ -172,7 +228,7 @@ void device_do_io(const int fd)
       fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data(buf, read_bytes);
     }
-    frame_parse_bytes(buf, read_bytes);
+    frame_parser_bytes(self->frame_parser, buf, read_bytes);
 }
 
 

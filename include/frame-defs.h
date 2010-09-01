@@ -31,10 +31,22 @@
  * over the serial line, or a timeout happening (watchdog timeout, or
  * measurement duration has passed).
  *
- * Note1: The "booting" state is a hardware state.
+ * Note1: The "booting" state is a hardware state. The others are
+ *        software states.
  *
  * Note2: Entering an upper case state is always reported by a state
  *        packet.
+ *
+ * Note3: The bold black edges show the default way through the
+ *        state transition diagram.
+ *
+ * Note4: The red edge are error conditions.
+ *
+ * Note5: The green edges show the actions of the optional 's' (state)
+ *        command which just sends the current state and resumes
+ *        whatever it was doing at the time.
+ *
+ * Note6: The blue edges are reactions to the other optional commands.
  *
  * \section layer_model Layering model
  *
@@ -49,9 +61,9 @@
  *  <tr><th>4</th><td>application layer (process the packets' content)</td>
  *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
  *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
- *      <td>\ref packet_defs</td><td>\ref freemcan_packet</td><td>\ref firmware_comm</td></tr>
+ *      <td>\ref packet_defs</td><td>\ref freemcan_packet_parser</td><td>\ref firmware_comm</td></tr>
  *  <tr><th>2</th><td>frames of a certain size</td>
- *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame</td><td>\ref frame_comm</td></tr>
+ *      <td>\ref frame_emb_to_host</td><td>\ref freemcan_frame_parser</td><td>\ref frame_comm</td></tr>
  *  <tr><th>1</th><td>byte stream to/from serial port</td>
  *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
  *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>

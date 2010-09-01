@@ -42,33 +42,6 @@
 #define F_CPU 16000000UL		               //!< Pollin AVR Eval board
 #endif
 
-/** ADC prescaler selection for ADC clock source frequency
- *
- *  0: ADC clock divider=2
- *  1: ADC clock divider=2
- *  2: ADC clock divider=4
- *  3: ADC clock divider=8
- *  4: ADC clock divider=16
- *  5: ADC clock divider=32
- *  6: ADC clock divider=64
- *  7: ADC clock divider=128
- *
- *  Select a prescaler in order to set a resonable ADC clock frequency.
- *  For ATMEGA644P the nominal frequency range lies between 50 - 200kHz.
- *
- *  ADC clock division factor = F_CPU [Hz]/ADC clock source frequency [Hz]
- *  E.g. 16000kHz/64 = 250khz
- */
-#define ADC_PRESCALER (6)
-
-/** ADC resolution in bit
- *
- *  Put in here resonable value:
- *  E.g. 8 bit resolution at 500 kHz.
- *  (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V)
- */
-#define ADC_RESOLUTION (10)
-
 /** Timer prescaler selection (16Bit timer)
  *
  *  1: No prescaling
@@ -96,7 +69,7 @@
  * The code should support values of 2, 3, and 4, but we are focussing
  * on 3 from now on.
  */
-#define ELEMENT_SIZE_IN_BYTES 3
+#define ELEMENT_SIZE_IN_BYTES 2
 
 
 #if (ELEMENT_SIZE_IN_BYTES == 2)

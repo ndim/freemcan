@@ -93,6 +93,7 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 
+#include <util/delay.h>
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -119,9 +120,11 @@ FUSES = {
  *------------------------------------------------------------------------------
  */
 
+#define DELAY_BEEP 200
 
 /** Number of elements in the histogram table */
-#define MAX_COUNTER (1<<ADC_RESOLUTION)
+/* #define MAX_COUNTER (1<<10) */
+#define MAX_COUNTER 16
 
 
 /** Bit mask shortcut */
@@ -151,8 +154,10 @@ FUSES = {
  * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
  **/
 
-volatile histogram_element_t table[MAX_COUNTER];
-
+volatile uint16_t table[MAX_COUNTER];
+volatile uint16_t cnt=0;
+volatile uint16_t idx=0;
+volatile uint8_t timer_flag = 0;
 
 /** timer counter
  *
@@ -178,7 +183,7 @@ volatile uint16_t orig_timer_count;
  * loop. 8bit value, and thus accessible with atomic read/write
  * operations.
  */
-volatile uint8_t timer_flag;
+
 
 
 /*------------------------------------------------------------------------------
@@ -204,43 +209,33 @@ void wdt_init(void)
 }
 
 
-/** AD conversion complete interrupt entry point
- *
- * This function is called when an A/D conversion has completed.
- * Update histogram
- * Discharge peak hold capacitor
- */
-ISR(ADC_vect) {
+ISR(INT0_vect) {
 
-  /* pull pin to discharge peak hold capacitor                    */
-  /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= BIT(PD6);
+  PORTD ^= BIT(PD6);
 
-  /* Read analog value */
-  uint16_t result = ADCW;
+  PORTD |= BIT(PD7);
+  _delay_us(DELAY_BEEP);
+  PORTD &=~ BIT(PD7);
+  _delay_us(DELAY_BEEP);
+  PORTD |= BIT(PD7);
+  _delay_us(DELAY_BEEP);
+  PORTD &=~ BIT(PD7);
+  _delay_us(DELAY_BEEP);
+  PORTD |= BIT(PD7);
+  _delay_us(DELAY_BEEP);
+  PORTD &=~ BIT(PD7);
 
-  /* We are confident that the range of values the ADC gives us
-   * is within the specced 10bit range of 0..1023. */
+  /* without delay (200ns BEEP_DELAY): 59.53  +/- 2.36 CPMs */
+  /* _delay_ms(1); 54.94  +/- 2.27 CPMs */
+  /* _delay_ms(2); 62.25  +/- 2.42 CPMs (average is within 1 sigma) */
+  
+  _delay_ms(2);
+  
+  cnt++;
 
-  /* cut off 2, 1 or 0 LSB */
-  const uint16_t index = result >> (10-ADC_RESOLUTION);
-
-  /* For 24bit values, the source code looks a little more complicated
-   * than just table[index]++ (even though the generated machine
-   * instructions are not).  Anyway, we needed to move the increment
-   * into a properly defined _inc function.
-   */
-  volatile histogram_element_t *element = &(table[index]);
-  histogram_element_inc(element);
-
-  /* set pin to GND and release peak hold capacitor   */
-  PORTD &=~ BIT(PD6);
-
-  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
-   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
-   * not executed and therefore this flag is not reset automatically.
-   * To reset this flag the bit at position INTF0 must be set.
-   */
+  /* debounce any pending ints
+     - preller während schaltflanke
+     - mehrfachpulse durch alte zählrohre */
   EIFR |= BIT(INTF0);
 }
 
@@ -252,17 +247,18 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
-
-  if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
-    last_timer_count = timer_count;
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
-      timer_flag = 1;
+       table[idx]=cnt;
+       cnt=0;
+       idx++;
+       timer_count = orig_timer_count;
+       /*end of table reached -> stop command */
+       if (idx == MAX_COUNTER) {timer_flag = 1;};
     }
-  }
+
+
 }
 
 
@@ -280,7 +276,7 @@ void trigger_src_conf(void)
     /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
     DDRD &= ~(BIT(DDD2));
     /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
-    PORTD |= BIT(PD2);
+    PORTD &= ~BIT(PD2);
 
     /* Disable interrupt "INT0" (clear interrupt enable bit in
      * external interrupt mask register) otherwise an interrupt may
@@ -303,65 +299,12 @@ void trigger_src_conf(void)
     /* reenable interrupt INT0 (External interrupt mask
      * register). we do not want to jump to the ISR in case of an interrupt
      * so we do not set this bit  */
-    // EIMSK |= (BIT(INT0));
+    EIMSK |= (BIT(INT0));
 
 }
 
 
-/** ADC initialisation and configuration
- *
- * ADC configured as auto trigger
- * Trigger source INT0
- * Use external analog reference AREF at PIN 32
- * AD input channel on Pin 40 ADC0
- */
-inline static
-void adc_init(void)
-{
-  uint16_t result;
-
-  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
-  ADMUX = 0;
-
-  /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
-
-  /* clear ADC Control and Status Register A
-   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = BIT(ADEN);
-
-  /* ADC prescaler selection (ADC Prescaler Select Bits) */
-  /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*BIT(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*BIT(ADPS1)) |
-              ((ADC_PRESCALER & 0x01)*BIT(ADPS0)));
-
-  /* dummy read out (first conversion takes some time) */
-  /* software triggered AD-Conversion */
-  ADCSRA |= BIT(ADSC);
-
-  /* wait until conversion is complete */
-  loop_until_bit_is_clear(ADCSRA, ADSC);
-
-  /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
-
-  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
-   * (-> ADC interrupt enable) */
-  ADCSRA |= BIT(ADIE);
-
-   /* Configure ADC trigger source:
-    * Select external trigger "interrupt request 0"
-    * Interrupt on rising edge                         */
-  ADCSRB |= BIT(ADTS1);
-  ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
-
-  /* ADC auto trigger enable: ADC will be started by trigger signal */
-  ADCSRA |= BIT(ADATE);
-}
-
-
-/** Configure 16 bit timer to trigger an ISR every second         
+/** Configure 16 bit timer to trigger an ISR every second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
@@ -419,6 +362,12 @@ void timer_init_quick(void)
 inline static
 void io_init(void)
 {
+    /* configure pin 20 as an output                               */
+    DDRD |= (BIT(DDD7));
+    /* set pin 20 to ground                                        */
+    PORTD &= ~BIT(PD7);
+
+
     /* configure pin 20 as an output                               */
     DDRD |= (BIT(DDD6));
     /* set pin 20 to ground                                        */
@@ -490,12 +439,8 @@ void send_histogram(const packet_histogram_type_t type)
   /* pseudo synchronised reading of multi-byte variable being written
    * to by ISR */
   uint16_t a, b;
-  do {
-    a = timer_count;
-    b = last_timer_count;
-  } while ((b-a) != 1);
-  /* Now 'a' contains a valid value */
-  const uint16_t duration = orig_timer_count - a;
+
+  const uint16_t duration = 1;
 
 #ifdef INVENTED_HISTOGRAM
   invent_histogram(duration);
@@ -586,6 +531,10 @@ int main(void)
 
     /* ST_booting */
 
+    volatile uint8_t timer0=0;
+    volatile uint8_t timer1=0;
+
+
     /* configure USART0 for 8N1 */
     uart_init();
     send_text("Booting");
@@ -595,15 +544,6 @@ int main(void)
 
     /* configure INT0 pin 16 */
     trigger_src_conf();
-
-    /* configure AREF at pin 32 and single shot auto trigger over int0
-     * at pin 40 ADC0 */
-    adc_init();
-
-    /** Used while receiving "m" command */
-    uint8_t timer0 = 0;
-    /** Used while receiving "m" command */
-    uint8_t timer1 = 0;
 
     /** Firmware FSM state */
     firmware_state_t state = ST_READY;
@@ -664,12 +604,12 @@ int main(void)
 	next_state = ST_MEASURING_nomsg;
 	break;
       case ST_MEASURING_nomsg:
-	if (timer_flag) { /* done */
-	  cli();
-	  send_histogram(PACKET_HISTOGRAM_DONE);
-	  timer_init_quick();
-	  next_state = ST_DONE;
-	} else if (bit_is_set(UCSR0A, RXC0)) {
+          if (timer_flag) { /* done */
+          cli();
+          send_histogram(PACKET_HISTOGRAM_DONE);
+          timer_init_quick();
+          next_state = ST_DONE;
+        } else  if (bit_is_set(UCSR0A, RXC0)) {
 	  /* there is a character in the UART input buffer */
 	  cmd = ch = uart_getc();
 	  switch (cmd) {
@@ -697,6 +637,7 @@ int main(void)
 	     * had interrupts disabled and thus ISR(ADC_vect) could not
 	     * reset the peak hold capacitor.
 	     */
+	    	send_state("intermediate");
 	    send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
 	    next_state = ST_MEASURING;
 	    break;

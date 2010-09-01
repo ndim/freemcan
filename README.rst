@@ -119,11 +119,6 @@ Subdirectory Contents
            better word, we called it "hostware" to distinguish it from
            the "firmware".
 
-   emulator/
-           Simple attempt at emulating the device connected to a
-           device file by having an Erlang program connected to a
-           Unix domain socket.
-
 
 
 Ideas

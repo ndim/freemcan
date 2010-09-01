@@ -16,7 +16,7 @@ GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else ec
 
 CLEANFILES =
 
-SUBDIRS = . firmware hostware emulator
+SUBDIRS = . firmware hostware
 
 .PHONY: all clean ALL
 all clean ALL:
@@ -93,6 +93,6 @@ upload-dox: dox
 
 .PHONY: sloccount
 sloccount:
-	@$(SLOCCOUNT) emulator/ firmware/ hostware/ \
+	@$(SLOCCOUNT) firmware/ hostware/ \
 	| $(AWK) 'BEGIN { verb=0; } /^SLOCCount/ { verb=0; } /^SLOC/ { verb=1; } /^SLOCCount/ { verb=0; } (verb) { print; }'; \
 	echo; echo "Statistics generated using David A. Wheeler's 'SLOCCount'."

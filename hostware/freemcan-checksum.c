@@ -110,3 +110,11 @@ void checksum_update(checksum_t *self, const uint8_t value)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

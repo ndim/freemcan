@@ -46,8 +46,8 @@
  * \todo Use writev(2)?
  */
 static void default_fmlog_handler(void *data __attribute__ (( unused )),
-				  const char *message,
-				  const size_t length)
+                                  const char *message,
+                                  const size_t length)
 {
   ssize_t ret = write(STDERR_FILENO, (void *) message, length);
   assert(ret >= 0);
@@ -127,9 +127,9 @@ void fmlog_error(const char *format, ...)
 
 
 /** Print debug string */
-#define DEBUG(...)				\
-  do {						\
-    fprintf(stderr, __VA_ARGS__);		\
+#define DEBUG(...)                              \
+  do {                                          \
+    fprintf(stderr, __VA_ARGS__);               \
   } while (0)
 
 
@@ -155,18 +155,18 @@ void fmlog_data(const void *data, const size_t size)
     for (size_t x=0; x<16; x++) {
       const size_t i = x+y;
       if (i<size) {
-	idx += sprintf(&(buf[idx]), " %02x", b[i]);
+        idx += sprintf(&(buf[idx]), " %02x", b[i]);
       } else {
-	idx += sprintf(&(buf[idx]), "   ");
+        idx += sprintf(&(buf[idx]), "   ");
       }
     }
     idx += sprintf(&buf[idx], "  ");
     for (size_t x=0; x<16; x++) {
       const size_t i = x+y;
       if (i<size) {
-	idx += sprintf(&buf[idx], "%c", printable(b[i]));
+        idx += sprintf(&buf[idx], "%c", printable(b[i]));
       } else {
-	idx += sprintf(&buf[idx], " ");
+        idx += sprintf(&buf[idx], " ");
       }
     }
     fmlog("%s", buf);
@@ -184,10 +184,10 @@ void fmlog_data32(const void *data, const size_t size)
     for (size_t x=0; x<16; x+=4) {
       const size_t i = x+y;
       if (i<size) {
-	const uint32_t value = *((const uint32_t *)&b[i]);
-	idx += sprintf(&(buf[idx]), " %08x", value);
+        const uint32_t value = *((const uint32_t *)&b[i]);
+        idx += sprintf(&(buf[idx]), " %08x", value);
       } else {
-	idx += sprintf(&(buf[idx]), " " "    " "    ");
+        idx += sprintf(&(buf[idx]), " " "    " "    ");
       }
     }
     fmlog("%s", buf);
@@ -205,10 +205,10 @@ void fmlog_data16(const void *data, const size_t size)
     for (size_t x=0; x<16; x+=2) {
       const size_t i = x+y;
       if (i<size) {
-	const uint16_t value = *((const uint16_t *)&b[i]);
-	idx += sprintf(&(buf[idx]), " %04x", value);
+        const uint16_t value = *((const uint16_t *)&b[i]);
+        idx += sprintf(&(buf[idx]), " %04x", value);
       } else {
-	idx += sprintf(&(buf[idx]), " " "    ");
+        idx += sprintf(&(buf[idx]), " " "    ");
       }
     }
     fmlog("%s", buf);
@@ -226,13 +226,13 @@ void fmlog_data24(const void *data, const size_t size)
     for (size_t x=0; x<24; x+=3) {
       const size_t i = x+y;
       if (i<size) {
-	const uint32_t value =
-	  (((uint32_t)b[i])   <<  0) +
-	  (((uint32_t)b[i+1]) <<  8) +
-	  (((uint32_t)b[i+2]) << 16);
-	idx += sprintf(&(buf[idx]), " %06x", value);
+        const uint32_t value =
+          (((uint32_t)b[i])   <<  0) +
+          (((uint32_t)b[i+1]) <<  8) +
+          (((uint32_t)b[i+2]) << 16);
+        idx += sprintf(&(buf[idx]), " %06x", value);
       } else {
-	idx += sprintf(&(buf[idx]), " " "    " "  ");
+        idx += sprintf(&(buf[idx]), " " "    " "  ");
       }
     }
     fmlog("%s", buf);
@@ -274,7 +274,7 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
     ssize_t idx = sprintf(&(line[0]), "%4d:", y);
     for (int x=0; x<perline; x++) {
       if ((x&7) == 0) {
-	idx += sprintf(&(line[idx]), " ");
+        idx += sprintf(&(line[idx]), " ");
       }
       idx += sprintf(&(line[idx]), fmt, elements[y+x]);
     }
@@ -284,3 +284,11 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

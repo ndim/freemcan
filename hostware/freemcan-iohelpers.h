@@ -52,3 +52,11 @@ int read_size(const int in_fd);
 /** @} */
 
 #endif /* !FREEMCAN_IOHELPERS_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

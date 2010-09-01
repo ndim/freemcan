@@ -30,12 +30,20 @@
 #include "frame-defs.h"
 
 void frame_send(const frame_type_t frame_type,
-		const void *payload, const size_t payload_size);
+                const void *payload, const size_t payload_size);
 
 void frame_start(const frame_type_t frame_type,
-		 const size_t payload_size);
+                 const size_t payload_size);
 void frame_end(void);
 
 /** @} */
 
 #endif /* !FRAME_COMM_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

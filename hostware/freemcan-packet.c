@@ -38,12 +38,12 @@
 
 
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
-					 const time_t receive_time,
-					 const uint8_t element_size,
-					 const size_t element_count,
-					 const uint16_t duration,
-					 const uint16_t total_duration,
-					 const void *elements)
+                                         const time_t receive_time,
+                                         const uint8_t element_size,
+                                         const size_t element_count,
+                                         const uint16_t duration,
+                                         const uint16_t total_duration,
+                                         const void *elements)
 {
   packet_histogram_t *result =
     malloc(sizeof(packet_histogram_t)+element_count*sizeof(uint32_t));
@@ -73,40 +73,40 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
       const uint32_t v = e8[i];
       result->elements[i] = v;
       if ((i+1<element_count) && (v > max_value))
-	max_value = v;
+        max_value = v;
     }
     break;
   case 2:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
-	(((uint32_t)e8[2*i+0]) << 0) +
-	(((uint32_t)e8[2*i+1]) << 8);
+        (((uint32_t)e8[2*i+0]) << 0) +
+        (((uint32_t)e8[2*i+1]) << 8);
       result->elements[i] = v;
       if ((i+1<element_count) && (v > max_value))
-	max_value = v;
+        max_value = v;
     }
     break;
   case 3:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
-	(((uint32_t)e8[3*i+0]) << 0) +
-	(((uint32_t)e8[3*i+1]) << 8) +
-	(((uint32_t)e8[3*i+2]) << 16);
+        (((uint32_t)e8[3*i+0]) << 0) +
+        (((uint32_t)e8[3*i+1]) << 8) +
+        (((uint32_t)e8[3*i+2]) << 16);
       result->elements[i] = v;
       if ((i+1<element_count) && (v > max_value))
-	max_value = v;
+        max_value = v;
     }
     break;
   case 4:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
-	(((uint32_t)e8[4*i+0]) << 0) +
-	(((uint32_t)e8[4*i+1]) << 8) +
-	(((uint32_t)e8[4*i+2]) << 16) +
-	(((uint32_t)e8[4*i+3]) << 24);
+        (((uint32_t)e8[4*i+0]) << 0) +
+        (((uint32_t)e8[4*i+1]) << 8) +
+        (((uint32_t)e8[4*i+2]) << 16) +
+        (((uint32_t)e8[4*i+3]) << 24);
       result->elements[i] = v;
       if ((i+1<element_count) && (v > max_value))
-	max_value = v;
+        max_value = v;
     }
     break;
   default:
@@ -145,3 +145,11 @@ void packet_histogram_unref(packet_histogram_t *hist_pack)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

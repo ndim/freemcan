@@ -98,10 +98,10 @@ baud_t baud_table[] = {
 
 /* documented in serial-setup.h */
 void serial_setup(const int fd,
-		  const long baudrate,
-		  const int bits_per_byte,
-		  const serial_parity_t parity,
-		  const int stop_bits)
+                  const long baudrate,
+                  const int bits_per_byte,
+                  const serial_parity_t parity,
+                  const int stop_bits)
 {
   struct termios tio;
   /* Initialize memory to zero, as tcgetattr(2) does not write all
@@ -259,7 +259,7 @@ long serial_get_baudrate(const long baudconst)
     }
   }
   fprintf(stderr, "Baud const %ld=0%lo is not supported\n",
-	  baudconst, baudconst);
+          baudconst, baudconst);
   exit(1);
 }
 
@@ -275,3 +275,11 @@ int serial_open(const char *device_name)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

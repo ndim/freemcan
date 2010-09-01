@@ -36,3 +36,10 @@ void uprintf(const char *format, ...);
 
 #endif /* !UART_PRINTF_H */
 
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

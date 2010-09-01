@@ -49,9 +49,9 @@ struct _packet_parser_t {
 
 
 packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
-				   packet_handler_state_t state_packet_handler,
-				   packet_handler_text_t text_packet_handler,
-				   void *data)
+                                   packet_handler_state_t state_packet_handler,
+                                   packet_handler_text_t text_packet_handler,
+                                   void *data)
 {
   packet_parser_t *self = calloc(1, sizeof(packet_parser_t));
   assert(self);
@@ -88,31 +88,31 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
   case FRAME_TYPE_STATE:
     if (self->packet_handler_state) {
       self->packet_handler_state((const char *)frame->payload,
-				 self->packet_handler_data);
+                                 self->packet_handler_data);
     }
     return;
   case FRAME_TYPE_TEXT:
     if (self->packet_handler_text) {
       self->packet_handler_text((const char *)frame->payload,
-				self->packet_handler_data);
+                                self->packet_handler_data);
     }
     return;
   case FRAME_TYPE_HISTOGRAM:
     if (self->packet_handler_histogram) {
       const packet_histogram_header_t *header =
-	(const packet_histogram_header_t *)&(frame->payload[0]);
+        (const packet_histogram_header_t *)&(frame->payload[0]);
       /* We need to do endianness conversion on all multi-byte values
        * in header, i.e. on header->duration. */
       const size_t hist_size = frame->size - sizeof(*header);
       assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
       packet_histogram_t *hist = packet_histogram_new(header->type,
-						      time(NULL),
-						      header->element_size,
-						      element_count,
-						      letoh16(header->duration),
-						      letoh16(header->total_duration),
-						      &(frame->payload[sizeof(*header)]));
+                                                      time(NULL),
+                                                      header->element_size,
+                                                      element_count,
+                                                      letoh16(header->duration),
+                                                      letoh16(header->total_duration),
+                                                      &(frame->payload[sizeof(*header)]));
       self->packet_handler_histogram(hist, self->packet_handler_data);
       packet_histogram_unref(hist);
     }
@@ -123,7 +123,7 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
    * unhandled value from a remote system.) */
   }
   fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
-	frame->type, frame->type, frame->type, frame->size, frame->size);
+        frame->type, frame->type, frame->type, frame->size, frame->size);
   fmlog_data((void *)frame->payload, frame->size);
 }
 

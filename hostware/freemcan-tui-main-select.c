@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
     const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
-	fmlog_error("select(2)");
-	abort();
+        fmlog_error("select(2)");
+        abort();
       }
     } else if (0 == n) { /* timeout */
       fmlog("select(2) timeout");

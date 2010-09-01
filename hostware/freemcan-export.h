@@ -50,7 +50,7 @@ void export_histogram(const packet_histogram_t *histogram_packet);
  * \return The return value points to a global static buffer.
  */
 char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
-				    const char *extension);
+                                    const char *extension);
 
 /** @} */
 

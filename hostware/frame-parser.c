@@ -153,19 +153,19 @@ void step_fsm(frame_parser_t *ps, const char ch)
   case STATE_MAGIC:
     if (ch == magic[ps->offset]) {
       if (ps->offset == 0) {
-	/* beginning of magic and header and frame */
-	/* start new checksum */
-	checksum_reset(ps->checksum_input);
+        /* beginning of magic and header and frame */
+        /* start new checksum */
+        checksum_reset(ps->checksum_input);
       }
       checksum_update(ps->checksum_input, u);
       ps->offset++;
       if (ps->offset <= 3) {
-	ps->state = STATE_MAGIC;
-	return;
+        ps->state = STATE_MAGIC;
+        return;
       } else {
-	ps->offset = 0;
-	ps->state = STATE_SIZE;
-	return;
+        ps->offset = 0;
+        ps->state = STATE_SIZE;
+        return;
       }
     } else { /* start looking for beginning of magic again */
       ps->offset = 0;
@@ -220,23 +220,23 @@ void step_fsm(frame_parser_t *ps, const char ch)
     ps->frame_checksum = u;
     if (checksum_match(ps->checksum_input, ps->frame_checksum)) {
       if (ps->packet_parser) {
-	/* nul-terminate the payload buffer for convenience */
-	ps->frame_wip->payload[ps->offset] = '\0';
-	ps->frame_wip->type = ps->frame_type;
-	ps->frame_wip->size = ps->frame_size;
-	if (enable_layer2_dump) {
-	  const frame_type_t type = ps->frame_wip->type;
-	  const uint16_t size     = ps->frame_wip->size;
-	  if ((32<=type) && (type<127)) {
-	    fmlog("Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
-		  type, type, type, size, size);
-	  } else {
-	    fmlog("Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
-		  type, type, size, size);
-	  }
-	  fmlog_data(ps->frame_wip->payload, size);
-	}
-	packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
+        /* nul-terminate the payload buffer for convenience */
+        ps->frame_wip->payload[ps->offset] = '\0';
+        ps->frame_wip->type = ps->frame_type;
+        ps->frame_wip->size = ps->frame_size;
+        if (enable_layer2_dump) {
+          const frame_type_t type = ps->frame_wip->type;
+          const uint16_t size     = ps->frame_wip->size;
+          if ((32<=type) && (type<127)) {
+            fmlog("Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
+                  type, type, type, size, size);
+          } else {
+            fmlog("Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
+                  type, type, size, size);
+          }
+          fmlog_data(ps->frame_wip->payload, size);
+        }
+        packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
       }
       frame_unref(ps->frame_wip);
       ps->offset = 0;
@@ -263,7 +263,7 @@ bool enable_layer1_dump = false;
 
 /* documented in freemcan-frame.h */
 void frame_parser_bytes(frame_parser_t *self,
-			const void *buf, const size_t size)
+                        const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;
   if (enable_layer1_dump) {

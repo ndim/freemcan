@@ -34,7 +34,7 @@
 
 /** Start a data frame */
 void frame_start(const frame_type_t frame_type,
-		 const size_t payload_size)
+                 const size_t payload_size)
 {
   /* reset the checksum state */
   uart_checksum_reset();
@@ -64,7 +64,7 @@ void frame_end(void)
 
 /** Write a complete data frame */
 void frame_send(const frame_type_t frame_type,
-		const void *payload, const size_t payload_size)
+                const void *payload, const size_t payload_size)
 {
   frame_start(frame_type, payload_size);
   uart_putb(payload, payload_size);

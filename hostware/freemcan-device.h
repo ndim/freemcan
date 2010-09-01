@@ -75,7 +75,7 @@ int device_get_fd(device_t *self)
  *              Otherwise, it is ignored.
  */
 void device_send_command(device_t *self,
-			 const frame_cmd_t cmd, const uint16_t param)
+                         const frame_cmd_t cmd, const uint16_t param)
   __attribute__(( nonnull(1) ));
 
 

@@ -38,9 +38,9 @@ typedef struct _packet_parser_t packet_parser_t;
 
 
 packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
-				   packet_handler_state_t state_packet_handler,
-				   packet_handler_text_t text_packet_handler,
-				   void *data);
+                                   packet_handler_state_t state_packet_handler,
+                                   packet_handler_text_t text_packet_handler,
+                                   void *data);
 
 
 void packet_parser_ref(packet_parser_t *self)

@@ -36,7 +36,7 @@
 
 /* documented in freemcan-export.h */
 char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
-				    const char *extension)
+                                    const char *extension)
 {
   const struct tm *tm_ = localtime(&histogram_packet->receive_time);
   assert(tm_);
@@ -84,10 +84,10 @@ void export_histogram(const packet_histogram_t *histogram_packet)
   }
   fprintf(histfile, "# type:\t'%c' (%s)\n", histogram_packet->type, type_str);
   fprintf(histfile, "# receive_time:\t%lu (%s)\n",
-	  histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
+          histogram_packet->receive_time, time_rfc_3339(histogram_packet->receive_time));
   fprintf(histfile, "# element_count:\t%d\n", histogram_packet->element_count);
   fprintf(histfile, "# orig_element_size:\t%d (%d bit)\n",
-	  histogram_packet->orig_element_size, 8*histogram_packet->orig_element_size);
+          histogram_packet->orig_element_size, 8*histogram_packet->orig_element_size);
   fprintf(histfile, "# duration:\t%d\n", histogram_packet->duration);
   fprintf(histfile, "# total_duration:\t%d\n", histogram_packet->total_duration);
   fprintf(histfile, "# max_value:\t%d\n", histogram_packet->max_value);

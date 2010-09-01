@@ -80,12 +80,12 @@ typedef struct {
  * counted.
  */
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
-					 const time_t receive_time,
-					 const uint8_t element_size,
-					 const size_t element_count,
-					 const uint16_t duration,
-					 const uint16_t total_duration,
-					 const void *elements)
+                                         const time_t receive_time,
+                                         const uint8_t element_size,
+                                         const size_t element_count,
+                                         const uint16_t duration,
+                                         const uint16_t total_duration,
+                                         const void *elements)
   __attribute__((malloc));
 
 
@@ -104,7 +104,7 @@ void packet_histogram_unref(packet_histogram_t *hist);
  * calling #packet_histogram_unref when it has finished accessing it.
  */
 typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
-					   void *data);
+                                           void *data);
 
 /** Callback function type called when state packet arrives */
 typedef void (*packet_handler_state_t)(const char *state, void *data);

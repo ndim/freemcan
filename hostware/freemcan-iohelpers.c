@@ -43,3 +43,11 @@ int read_size(const int in_fd)
 }
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

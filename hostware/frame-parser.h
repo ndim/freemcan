@@ -75,3 +75,11 @@ extern bool enable_layer2_dump;
 /** @} */
 
 #endif /* !FREEMCAN_FRAME_PARSER_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

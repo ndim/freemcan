@@ -39,3 +39,11 @@ void frame_end(void);
 /** @} */
 
 #endif /* !FRAME_COMM_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

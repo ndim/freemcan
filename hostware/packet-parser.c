@@ -129,3 +129,11 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

@@ -66,3 +66,11 @@ void packet_parser_reset_handlers(packet_parser_t *self);
 /** @} */
 
 #endif /* !FREEMCAN_PACKET_PARSER_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

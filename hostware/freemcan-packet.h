@@ -116,3 +116,11 @@ typedef void (*packet_handler_text_t)(const char *status, void *data);
 /** @} */
 
 #endif /* !FREEMCAN_PACKET_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

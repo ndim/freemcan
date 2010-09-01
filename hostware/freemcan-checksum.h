@@ -59,3 +59,11 @@ bool checksum_match(checksum_t *self, const uint8_t value);
 /** @} */
 
 #endif /* !FREEMCAN_CHECKSUM_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

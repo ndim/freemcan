@@ -275,3 +275,11 @@ int serial_open(const char *device_name)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

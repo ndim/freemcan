@@ -55,3 +55,11 @@ char *export_histogram_get_filename(const packet_histogram_t *histogram_packet,
 /** @} */
 
 #endif /* !FREEMCAN_EXPORT_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

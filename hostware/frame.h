@@ -64,3 +64,11 @@ void frame_unref(frame_t *self)
 /** @} */
 
 #endif /* !FREEMCAN_FRAME_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

@@ -233,3 +233,11 @@ void device_do_io(device_t *self)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

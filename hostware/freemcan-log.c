@@ -283,3 +283,11 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

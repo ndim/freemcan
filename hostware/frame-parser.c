@@ -277,3 +277,11 @@ void frame_parser_bytes(frame_parser_t *self,
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

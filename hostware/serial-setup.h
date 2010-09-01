@@ -81,3 +81,11 @@ long serial_get_baudrate(const long baudconst);
 /** @} */
 
 #endif /* !SERIAL_SETUP_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

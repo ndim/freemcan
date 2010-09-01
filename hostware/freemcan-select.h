@@ -53,3 +53,11 @@ typedef void (*select_do_io_t)(fd_set *in_fdset);
 /** @} */
 
 #endif /* !FREEMCAN_SELECT_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

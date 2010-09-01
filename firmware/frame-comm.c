@@ -72,3 +72,11 @@ void frame_send(const frame_type_t frame_type,
 }
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

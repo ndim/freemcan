@@ -91,3 +91,11 @@ void device_do_io(device_t *self)
 /** @} */
 
 #endif /* !FREEMCAN_DEVICE_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

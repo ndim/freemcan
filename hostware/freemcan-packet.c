@@ -145,3 +145,11 @@ void packet_histogram_unref(packet_histogram_t *hist_pack)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

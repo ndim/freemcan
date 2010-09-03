@@ -37,8 +37,8 @@
  * case of error.
  */
 typedef void (*fmlog_handler_t)(void *data,
-				const char *message,
-				const size_t length);
+                                const char *message,
+                                const size_t length);
 
 /** Reset fmlog message handler to the default handler */
 void fmlog_reset_handler(void);
@@ -49,12 +49,12 @@ void fmlog_set_handler(fmlog_handler_t the_fmlog_handler, void *the_data);
 /** Log a message */
 void fmlog(const char *format, ...)
   __attribute__(( format(printf,1,2),
-		  nonnull(1) ));
+                  nonnull(1) ));
 
 /** Log a message with strerror(errno) */
 void fmlog_error(const char *format, ...)
   __attribute__(( format(printf,1,2),
-		  nonnull(1) ));
+                  nonnull(1) ));
 
 /** Log a block of data as bytes */
 void fmlog_data(const void *data, const size_t size);
@@ -74,3 +74,11 @@ void fmlog_hist(const uint32_t *elements, const size_t count);
 /** @} */
 
 #endif
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

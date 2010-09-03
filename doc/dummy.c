@@ -29,3 +29,11 @@
  * Definitions common to \ref firmware and \ref hostware.
  */
 
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

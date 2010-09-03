@@ -52,10 +52,10 @@ int serial_open(const char *device_name);
  *
  */
 void serial_setup(const int fd,
-		  const long baudconst,
-		  const int bits_per_byte,
-		  const serial_parity_t parity,
-		  const int stop_bits);
+                  const long baudconst,
+                  const int bits_per_byte,
+                  const serial_parity_t parity,
+                  const int stop_bits);
 
 
 /** Determine baud rate constant from baud rate number.
@@ -81,3 +81,11 @@ long serial_get_baudrate(const long baudconst);
 /** @} */
 
 #endif /* !SERIAL_SETUP_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

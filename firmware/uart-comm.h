@@ -40,3 +40,11 @@ char uart_checksum_recv(void);
 /** @} */
 
 #endif /* !UART_COMM_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

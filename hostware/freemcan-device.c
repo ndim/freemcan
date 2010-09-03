@@ -171,15 +171,15 @@ void device_close(device_t *self)
 
 
 void device_send_command(device_t *self,
-			 const frame_cmd_t cmd, const uint16_t param)
+                         const frame_cmd_t cmd, const uint16_t param)
 {
   const int fd = self->fd;
   if (fd > 0) {
     fmlog("Sending '%c' command to device (param=%d=0x%04x)",
-	  cmd, param, param);
+          cmd, param, param);
   } else {
     fmlog("Not sending '%c' command to closed device (param=%d=0x%04x)",
-	  cmd, param, param);
+          cmd, param, param);
     return;
   }
   switch (cmd) {
@@ -233,3 +233,11 @@ void device_do_io(device_t *self)
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

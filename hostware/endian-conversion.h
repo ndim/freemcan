@@ -61,3 +61,11 @@ static inline uint16_t htole16(const uint16_t value)
 /** \} */
 
 #endif /* !ENDIAN_CONVERSION_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

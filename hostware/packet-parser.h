@@ -38,9 +38,9 @@ typedef struct _packet_parser_t packet_parser_t;
 
 
 packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
-				   packet_handler_state_t state_packet_handler,
-				   packet_handler_text_t text_packet_handler,
-				   void *data);
+                                   packet_handler_state_t state_packet_handler,
+                                   packet_handler_text_t text_packet_handler,
+                                   void *data);
 
 
 void packet_parser_ref(packet_parser_t *self)
@@ -66,3 +66,11 @@ void packet_parser_reset_handlers(packet_parser_t *self);
 /** @} */
 
 #endif /* !FREEMCAN_PACKET_PARSER_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

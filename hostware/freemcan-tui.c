@@ -187,8 +187,8 @@ FILE *stdlog = NULL;
 /** TUI specific message logger for #fmlog() & Co. */
 static void
 tui_log_handler(void *data __attribute__ (( unused )),
-		const char *message,
-		const size_t length __attribute__ (( unused )))
+                const char *message,
+                const size_t length __attribute__ (( unused )))
 {
   fprintf(stdout, "%s\r\n", message);
   fflush(stdout);
@@ -212,9 +212,9 @@ void tui_init()
   fmlog_set_handler(tui_log_handler, NULL);
 
   tui_packet_parser = packet_parser_new(packet_handler_histogram,
-					packet_handler_status,
-					packet_handler_text,
-					NULL);
+                                        packet_handler_status,
+                                        packet_handler_text,
+                                        NULL);
 
   fmlog("Text user interface (TUI) set up");
 }
@@ -264,20 +264,20 @@ void tui_do_io(void)
       case 'Q':
       case 'x':
       case 'X':
-	quit_flag = true;
-	break;
+        quit_flag = true;
+        break;
       case '1':
-	enable_layer1_dump = !enable_layer1_dump;
-	fmlog("Layer 1 data dump now %s", enable_layer1_dump?"enabled":"disabled");
-	break;
+        enable_layer1_dump = !enable_layer1_dump;
+        fmlog("Layer 1 data dump now %s", enable_layer1_dump?"enabled":"disabled");
+        break;
       case '2':
-	enable_layer2_dump = !enable_layer2_dump;
-	fmlog("Layer 2 data dump now %s", enable_layer2_dump?"enabled":"disabled");
-	break;
+        enable_layer2_dump = !enable_layer2_dump;
+        fmlog("Layer 2 data dump now %s", enable_layer2_dump?"enabled":"disabled");
+        break;
       case '?':
       case 'h':
       case 'H':
-	fmlog("Key                     Action");
+        fmlog("Key                     Action");
         fmlog("C-c, esc, q, Q, x, X    quit program");
         fmlog("h, H, ?                 show this help message");
         fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
@@ -287,22 +287,22 @@ void tui_do_io(void)
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");
         fmlog("M                       send command \"start (m)easurement\" (long runtime)");
         fmlog("r                       send command \"(r)eset\"");
-	break;
+        break;
       case FRAME_CMD_MEASURE: /* 'm' */
-	/* "SHORT" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 10);
-	break;
+        /* "SHORT" measurement */
+        tui_device_send_command(FRAME_CMD_MEASURE, 10);
+        break;
       case 'M': /* 'm' */
-	/* "LONG" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 30);
-	break;
+        /* "LONG" measurement */
+        tui_device_send_command(FRAME_CMD_MEASURE, 30);
+        break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
       case ' ':
-	tui_device_send_command(buf[i], 0);
-	break;
+        tui_device_send_command(buf[i], 0);
+        break;
       /* No "default:" case as we ignore all other characters. */
       }
     }
@@ -352,7 +352,7 @@ static void packet_handler_text(const char *text, void *UP(data))
 
 /** Histogram data packet handler (TUI specific) */
 static void packet_handler_histogram(packet_histogram_t *histogram_packet,
-				     void *UP(data))
+                                     void *UP(data))
 {
   packet_histogram_ref(histogram_packet);
 
@@ -361,12 +361,12 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
   char buf[128];
   if ((type>=32)&&(type<127)) {
     snprintf(buf, sizeof(buf),
-	     "Received '%c' type histogram: %%d elements, %%d seconds:",
-	     type);
+             "Received '%c' type histogram: %%d elements, %%d seconds:",
+             type);
   } else {
     snprintf(buf, sizeof(buf),
-	     "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
-	     type, type);
+             "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
+             type, type);
   }
   fmlog(buf, element_count, histogram_packet->duration);
   fmlog_hist(histogram_packet->elements, element_count);
@@ -389,10 +389,10 @@ const char *main_init(int argc, char *argv[])
   assert(argv[0]);
   if (argc != 2) {
     fmlog("Fatal: Wrong command line parameter count.\n"
-	  "\n"
-	  "Synopsis:\n"
-	  "    %s <serial-port-device>\n",
-	  argv[0]);
+          "\n"
+          "Synopsis:\n"
+          "    %s <serial-port-device>\n",
+          argv[0]);
     abort();
   }
   assert(argc == 2);
@@ -410,3 +410,11 @@ const char *main_init(int argc, char *argv[])
 
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

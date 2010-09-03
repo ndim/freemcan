@@ -46,3 +46,11 @@ void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param);
 #endif /* !FREEMCAN_TUI_H */
 
 /** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

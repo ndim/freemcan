@@ -39,7 +39,7 @@
 /** XTAL frequency */
 #ifndef F_CPU
 /* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
-#define F_CPU 16000000UL		               //!< Pollin AVR Eval board
+#define F_CPU 16000000UL                               //!< Pollin AVR Eval board
 #endif
 
 /** ADC prescaler selection for ADC clock source frequency
@@ -139,7 +139,7 @@ void histogram_element_inc(volatile freemcan_uint24_t *element)
       "st  Z, r24\n\t"                      /* 2 cycles */
       : /* output operands */
       : /* input operands */
-	"z" (element)
+        "z" (element)
       : "r24", "r25"
       );
 }
@@ -164,3 +164,11 @@ register uint8_t sreg_save asm("r7");
 #endif /* __ASSEMBLER__ */
 
 #endif /* !GLOBAL_H */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

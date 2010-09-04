@@ -2,9 +2,6 @@
 
 # Notes:
 #   * A default firmware is between 1700 and 1800 bytes.
-#   * Run "make BUILD_FREEMCAN_INVENTED_HISTOGRAM=yes" to build the
-#     histogram inventor into the firmware
-#     CAUTION: This adds about 3200 byte to the firmware.
 #   * Run "make BUILD_FREEMCAN_PRINTF=yes" to build the printf code
 #     into the firmware.
 #     CAUTION: This adds about 1500 byte to the firmware.
@@ -39,10 +36,6 @@ SRC = main.c uart-comm.c frame-comm.c packet-comm.c firmware-version.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
 BSRC =
-ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-BSRC += invented-histogram.bin
-CFLAGS += -DINVENTED_HISTOGRAM
-endif
 
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
 SRC += uart-printf.c
@@ -314,15 +307,6 @@ check-avr-size: $(TARGET).elf
 .S.o:
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
-CLEANFILES += invented-histogram.bin
-invented-histogram.bin: ../emulator/histogram_emulator.erl
-	$(MAKE) -C ../emulator histogram_emulator.beam
-	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
-
-invented-histogram.o: invented-histogram.bin
-	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
-		--rename-section .data=.text,contents,alloc,load,readonly,code \
-		"$<" "$@"
 
 # Target: clean project.
 clean:

@@ -408,37 +408,6 @@ void io_init(void)
  */
 
 
-#ifdef INVENTED_HISTOGRAM
-
-/** created from binary via objcopy */
-extern uint8_t invented_histogram[] asm("_binary_invented_histogram_bin_start") PROGMEM;
-/** created from binary via objcopy */
-extern uint8_t invented_histogram_size[] asm("_binary_invented_histogram_bin_size") PROGMEM;
-/** created from binary via objcopy */
-extern uint8_t invented_histogram_end[] asm("_binary_invented_histogram_bin_end") PROGMEM;
-
-#if (ELEMENT_SIZE_IN_BYTES == 3)
-/** Simulate a histogram based on the invented histogram data */
-static
-void invent_histogram(const uint16_t duration)
-{
-  uint8_t *t8 = (uint8_t *)table;
-  for (size_t j=0; j<3*MAX_COUNTER; j+=3) {
-    const uint32_t v =
-      (((uint32_t)pgm_read_byte(&(invented_histogram[j+0])))<< 0) +
-      (((uint32_t)pgm_read_byte(&(invented_histogram[j+1])))<< 8) +
-      (((uint32_t)pgm_read_byte(&(invented_histogram[j+2])))<<16);
-    const uint32_t r = (v*duration) >> 8;
-    t8[j+0] = (r>> 0) & 0xff;
-    t8[j+1] = (r>> 8) & 0xff;
-    t8[j+2] = (r>>16) & 0xff;
-  }
-}
-#endif
-
-#endif
-
-
 /** Send histogram packet to controller via serial port (layer 3).
  *
  * \param type The type of histogram we are sending
@@ -464,10 +433,6 @@ void send_histogram(const packet_histogram_type_t type)
   uint16_t a, b;
 
   const uint16_t duration = 1;
-
-#ifdef INVENTED_HISTOGRAM
-  invent_histogram(duration);
-#endif
 
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,

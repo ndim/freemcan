@@ -63,6 +63,8 @@
 #include "freemcan-log.h"
 #include "freemcan-tui.h"
 
+#include "git-version.h"
+
 
 /* Forward declaration */
 static void packet_handler_status(const char *status, void *data);
@@ -216,6 +218,7 @@ void tui_init()
                                         packet_handler_text,
                                         NULL);
 
+  fmlog("freemcan TUI " GIT_VERSION);
   fmlog("Text user interface (TUI) set up");
 }
 

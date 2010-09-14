@@ -18,6 +18,8 @@ CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buf
 LDLIBS += -lm
 
 
+include ../common.mk
+
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
 

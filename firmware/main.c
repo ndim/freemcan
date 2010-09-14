@@ -93,6 +93,7 @@
 #include "packet-comm.h"
 #include "frame-defs.h"
 #include "packet-defs.h"
+#include "firmware-version.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -559,6 +560,7 @@ int main(void)
     /* configure USART0 for 8N1 */
     uart_init();
     send_text("Booting");
+    send_version();
 
     /* initialize peripherals */
     io_init();

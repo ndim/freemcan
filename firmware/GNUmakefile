@@ -23,6 +23,7 @@
 CFLAGS =
 CLEANFILES =
 
+include ../common.mk
 
 # Override settings by defining them in settings.mk Things not defined
 # in settings.mk will be later defined with ?= later in this Makefile.
@@ -34,7 +35,7 @@ CLEANFILES =
 MCU ?= atmega644p
 FORMAT = ihex
 TARGET = firmware
-SRC = main.c uart-comm.c frame-comm.c packet-comm.c
+SRC = main.c uart-comm.c frame-comm.c packet-comm.c firmware-version.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
 BSRC =

@@ -95,8 +95,10 @@
 
 #include "uart-comm.h"
 #include "frame-comm.h"
+#include "packet-comm.h"
 #include "frame-defs.h"
 #include "packet-defs.h"
+#include "firmware-version.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -497,15 +499,7 @@ void io_init(void)
 }
 
 
-/** \defgroup firmware_comm Packet Communication
- * \ingroup firmware
- *
- * Implement packet part of the communication protocol (Layer 3).
- *
- * As all multi-byte values sent or received are little-endian, we can
- * just send and receive native values on the AVR and forget about
- * endianness altogether.
- *
+/** \addtogroup firmware_comm
  * @{
  */
 
@@ -554,6 +548,8 @@ void invent_histogram(const uint16_t duration)
  *
  */
 static
+void send_histogram(const packet_histogram_type_t type);
+static
 void send_histogram(const packet_histogram_type_t type)
 {
   /* pseudo synchronised reading of multi-byte variable being written
@@ -580,31 +576,6 @@ void send_histogram(const packet_histogram_type_t type)
   uart_putb((const void *)&header, sizeof(header));
   uart_putb((const void *)table, sizeof(table));
   frame_end();
-}
-
-
-/** Send state message packet to host (layer 3).
- *
- * State messages are constant strings describing the FSM state we are
- * currently in.
- */
-static
-void send_state(const char *msg)
-{
-  const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_STATE, msg, len);
-}
-
-
-/** Send text message packet to host (layer 3).
- *
- * If you need to send more than static text, use uprintf().
- */
-static
-void send_text(const char *msg)
-{
-  const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_TEXT, msg, len);
 }
 
 
@@ -658,6 +629,7 @@ int main(void)
     /* configure USART0 for 8N1 */
     uart_init();
     send_text("Booting");
+    send_version();
 
     /* initialize peripherals */
     io_init();

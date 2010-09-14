@@ -16,6 +16,8 @@ CFLAGS += -g
 CFLAGS += -I../include
 CFLAGS += -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
 
+include ../common.mk
+
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
 

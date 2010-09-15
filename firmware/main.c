@@ -399,7 +399,15 @@ void send_histogram(const packet_histogram_type_t type);
 static
 void send_histogram(const packet_histogram_type_t type)
 {
-  const uint16_t duration = 0xffff;
+  /* pseudo synchronised reading of multi-byte variable being written
+   * to by ISR */
+  uint16_t a, b;
+  do {
+    a = timer_count;
+    b = last_timer_count;
+  } while ((b-a) != 1);
+  /* Now 'a' contains a valid value */
+  const uint16_t duration = orig_timer_count - a;
 
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,

@@ -67,7 +67,7 @@
 
 
 /* Forward declaration */
-static void packet_handler_status(const char *status, void *data);
+static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
 static void packet_handler_histogram(packet_histogram_t *histogram_packet, void *data);
 
@@ -214,7 +214,7 @@ void tui_init()
   fmlog_set_handler(tui_log_handler, NULL);
 
   tui_packet_parser = packet_parser_new(packet_handler_histogram,
-                                        packet_handler_status,
+                                        packet_handler_state,
                                         packet_handler_text,
                                         NULL);
 
@@ -339,10 +339,10 @@ void atexit_func(void)
 /************************************************************************/
 
 
-/** Status data packet handler (TUI specific) */
-static void packet_handler_status(const char *status, void *UP(data))
+/** State data packet handler (TUI specific) */
+static void packet_handler_state(const char *state, void *UP(data))
 {
-  fmlog("STATUS: %s", status);
+  fmlog("STATE: %s", state);
 }
 
 

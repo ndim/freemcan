@@ -73,6 +73,7 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
 
 
 bool is_measuring = false;
+int waiting_for = 0;
 
 
 /** Quit flag for the main loop. */
@@ -323,6 +324,10 @@ void tui_fini()
 
 void tui_do_timeout(void)
 {
+  if (waiting_for > 2) {
+    /* Not connected, apparently. Implies not measuring, either. */
+    is_measuring = false;
+  }
   if (is_measuring) {
     tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
   }
@@ -459,6 +464,9 @@ void atexit_func(void)
 /** State data packet handler (TUI specific) */
 static void packet_handler_state(const char *state, void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   fmlog("STATE: %s", state);
   bool new_is_measuring = (strcmp("MEASURING", state) == 0);
   if (new_is_measuring != is_measuring) {
@@ -473,6 +481,9 @@ static void packet_handler_state(const char *state, void *UP(data))
 /** Text data packet handler (TUI specific) */
 static void packet_handler_text(const char *text, void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   fmlog("TEXT: %s", text);
 }
 
@@ -481,6 +492,9 @@ static void packet_handler_text(const char *text, void *UP(data))
 static void packet_handler_value_table(packet_value_table_t *value_table_packet,
                                        void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   packet_value_table_ref(value_table_packet);
 
   const size_t element_count = value_table_packet->element_count;

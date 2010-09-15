@@ -72,6 +72,9 @@ static void packet_handler_text(const char *text, void *data);
 static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
 
 
+bool is_measuring = false;
+
+
 /** Quit flag for the main loop. */
 bool quit_flag = false;
 
@@ -317,6 +320,15 @@ void tui_fini()
  * @{
  */
 
+
+void tui_do_timeout(void)
+{
+  if (is_measuring) {
+    tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+  }
+}
+
+
 /** Do TUI's IO stuff if necessary (from select or poll loop)
  */
 void tui_do_io(void)
@@ -448,6 +460,13 @@ void atexit_func(void)
 static void packet_handler_state(const char *state, void *UP(data))
 {
   fmlog("STATE: %s", state);
+  bool new_is_measuring = (strcmp("MEASURING", state) == 0);
+  if (new_is_measuring != is_measuring) {
+    if (new_is_measuring) {
+    } else {
+    }
+    is_measuring = new_is_measuring;
+  }
 }
 
 

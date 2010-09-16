@@ -252,7 +252,7 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
   }
 
   /* Lookup table for places per number, and numbers per line */
-  int places, perline;
+  unsigned int places, perline;
   if      (max >= 1000000000) { places = 10; perline =  4; }
   else if (max >=  100000000) { places =  9; perline =  4; }
   else if (max >=   10000000) { places =  8; perline =  8; }
@@ -271,7 +271,8 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
   for (size_t y=0; y<count; y+=perline) {
     char line[80] = "";
     ssize_t idx = sprintf(&(line[0]), "%4d:", y);
-    for (int x=0; x<perline; x++) {
+    const int xmax = (y+perline<count) ? (perline) : (count%perline);
+    for (int x=0; x<xmax; x++) {
       if ((x&7) == 0) {
         idx += sprintf(&(line[idx]), " ");
       }

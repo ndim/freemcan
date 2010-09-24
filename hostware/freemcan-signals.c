@@ -34,6 +34,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include "compiler.h"
+
 #include "freemcan-log.h"
 #include "freemcan-signals.h"
 
@@ -43,7 +45,7 @@ bool sigint = false;
 
 
 /** our SIGINT handler */
-void sigint_handler(int i __attribute__((unused)))
+void sigint_handler(int UP(i))
 {
   sigint = true;
 }
@@ -54,23 +56,23 @@ bool sigterm = false;
 
 
 /** our SIGTERM handler */
-void sigterm_handler(int i __attribute__((unused)))
+void sigterm_handler(int UP(i))
 {
   sigterm = true;
 }
 
+
 /** set up our special signal handling */
 static void signals_init(void);
+
 
 /** set up our special signal handling */
 static void signals_init(void)
 {
-  sighandler_t int_handler __attribute__((unused)) 
-    = signal(SIGINT, sigint_handler);
-  sighandler_t term_handler __attribute__((unused)) 
-    = signal(SIGTERM, sigterm_handler);
+  sighandler_t UV(int_handler)  = signal(SIGINT,  sigint_handler);
+  sighandler_t UV(term_handler) = signal(SIGTERM, sigterm_handler);
   /* linux will try and restart an interrupted system call by default */
-  siginterrupt(SIGINT, 1); /* stop system calls on SIGINT */
+  siginterrupt(SIGINT,  1); /* stop system calls on SIGINT */
   siginterrupt(SIGTERM, 1); /* stop system calls on SIGTERM */
 }
 

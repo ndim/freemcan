@@ -68,7 +68,7 @@
  * The code should support values of 2, 3, and 4, but we are focussing
  * on 3 from now on.
  */
-#define ELEMENT_SIZE_IN_BYTES 2
+#define ELEMENT_SIZE_IN_BYTES 4
 
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)
@@ -99,6 +99,44 @@ typedef
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)
 /** Increment 24bit unsigned integer */
+inline static
+void histogram_element_zero(volatile freemcan_uint24_t *dest)
+{
+  asm("\n\t"
+      /* store 24 bit value zero */
+      "std %a[preg]+2, __zero_reg__\n\t"                    /* 2 cycles */
+      "std %a[preg]+1, __zero_reg__\n\t"                    /* 2 cycles */
+      "st  %a[preg], __zero_reg__\n\t"                      /* 2 cycles */
+      : /* output operands */
+      : /* input operands */
+        [preg] "b" (dest)
+        /* no clobber */
+      );
+}
+
+
+inline static
+void histogram_element_copy(volatile freemcan_uint24_t *dest,
+                            volatile freemcan_uint24_t *source)
+{
+  asm("\n\t"
+      /* load 24 bit value */
+      "ld  r24, %a[src]\n\t"                      /* 2 cycles */
+      "ldd r25, %a[src]+1\n\t"                    /* 2 cycles */
+      "ldd __tmp_reg__, %a[src]+2\n\t"            /* 2 cycles */
+      /* store 24 bit value */
+      "std %a[dst]+2, __tmp_reg__\n\t"            /* 2 cycles */
+      "std %a[dst]+1, r25\n\t"                    /* 2 cycles */
+      "st  %a[dst], r24\n\t"                      /* 2 cycles */
+      : /* output operands */
+      : /* input operands */
+        [dst] "b" (dest),
+        [src] "b" (source)
+      : "r24", "r25"
+      );
+}
+
+
 inline static
 void histogram_element_inc(volatile freemcan_uint24_t *element)
 {

@@ -54,21 +54,6 @@
  * initialized or uninitialized, we do not need to initialize anything
  * at the start of main().
  *
- * Also note that the ATmega644 has 4K of SRAM. With an ADC resolution
- * of 10 bit, we need to store 2^10 = 1024 = 1K values in our
- * histogram table. This results in the following memory sizes for the
- * histogram table:
- *
- *    uint16_t: 2K
- *    uint24_t: 3K
- *    uint32_t: 4K
- *
- * We could fit the global variables into otherwise unused registers
- * to free some more SRAM, but we cannot move the stack into register
- * space. This means we cannot use uint32_t counters in the table -
- * the absolute maximum sized integer we can use is our self-defined
- * "uint24_t" type.
- *
  * \addtogroup firmware
  * @{
  */
@@ -149,25 +134,11 @@ FUSES = {
  */
 
 
-/** \var table
- * \brief histogram table
+/** GM event counter
  *
- * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
- * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
- **/
-volatile uint16_t table[MAX_COUNTER];
-
-
-/** Count radioactive events */
-volatile uint16_t cnt=0;
-
-
-/** Index into table where we write cnt value to */
-volatile uint16_t idx=0;
-
-
-/** Flag to signal that the timer has elapsed */
-volatile uint8_t timer_flag = 0;
+ * We count the events from the GM tube in this variable.
+ */
+volatile histogram_element_t counter;
 
 
 /** timer counter
@@ -209,6 +180,7 @@ volatile uint16_t orig_timer_count;
  * loop. 8bit value, and thus accessible with atomic read/write
  * operations.
  */
+volatile uint8_t timer_flag;
 
 
 
@@ -257,7 +229,7 @@ ISR(INT0_vect) {
   
   _delay_ms(2);
   
-  cnt++;
+  histogram_element_inc(&counter);
 
   /* debounce any pending ints
      - preller während schaltflanke
@@ -273,18 +245,17 @@ ISR(INT0_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
+  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
+  if (!timer_flag) {
+    /* We do not touch the timer_flag ever again after setting it */
+    last_timer_count = timer_count;
     timer_count--;
     if (timer_count == 0) {
-      /* timer has elapsed, set the flag to signal the main program */
-       table[idx]=cnt;
-       cnt=0;
-       idx++;
-       timer_count = orig_timer_count;
-       /*end of table reached -> stop command */
-       if (idx == MAX_COUNTER) {timer_flag = 1;};
+      /* The timer has elapsed. Set the flag to signal the main
+       * program that the measurement has finished. */
+      timer_flag = 1;
     }
-
-
+  }
 }
 
 
@@ -428,11 +399,7 @@ void send_histogram(const packet_histogram_type_t type);
 static
 void send_histogram(const packet_histogram_type_t type)
 {
-  /* pseudo synchronised reading of multi-byte variable being written
-   * to by ISR */
-  uint16_t a, b;
-
-  const uint16_t duration = 1;
+  const uint16_t duration = 0xffff;
 
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
@@ -440,9 +407,9 @@ void send_histogram(const packet_histogram_type_t type)
     duration,
     orig_timer_count
   };
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
-  uart_putb((const void *)&header, sizeof(header));
-  uart_putb((const void *)table, sizeof(table));
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(counter));
+  uart_putb((const void *)&header,  sizeof(header));
+  uart_putb((const void *)&counter, sizeof(counter));
   frame_end();
 }
 

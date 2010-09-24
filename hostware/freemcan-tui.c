@@ -376,20 +376,18 @@ void tui_do_io(void)
         break;
       case FRAME_CMD_MEASURE: /* 'm' */
         /* "SHORT" measurement */
-        tui_device_send_command(FRAME_CMD_MEASURE,
-                                duration_list[duration_index].short_duration);
+        tui_device_send_measure_command(duration_list[duration_index].short_duration);
         break;
       case 'M': /* 'm' */
         /* "LONG" measurement */
-        tui_device_send_command(FRAME_CMD_MEASURE,
-                                duration_list[duration_index].long_duration);
+        tui_device_send_measure_command(duration_list[duration_index].long_duration);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
       case ' ':
-        tui_device_send_command(buf[i], 0);
+        tui_device_send_simple_command(buf[i]);
         break;
       /* No "default:" case as we ignore all other characters. */
       }

@@ -112,9 +112,15 @@ void device_select_do_io(fd_set *in_fdset)
 }
 
 
-void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param)
+void tui_device_send_simple_command(const frame_cmd_t cmd)
 {
-  device_send_command(device, cmd, param);
+  device_send_command(device, cmd);
+}
+
+
+void tui_device_send_measure_command(const uint16_t param)
+{
+  device_send_command_u16(device, FRAME_CMD_MEASURE, param);
 }
 
 

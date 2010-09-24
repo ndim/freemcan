@@ -67,15 +67,24 @@ int device_get_fd(device_t *self)
   __attribute__(( nonnull(1) ));
 
 
-/** Write a command to the device.
+/** Write a simple command to the device (without parameter)
  *
  * \param self The device object
  * \param cmd The #frame_cmd_t to send.
- * \param param The param is only used if cmd is #FRAME_CMD_MEASURE.
- *              Otherwise, it is ignored.
  */
 void device_send_command(device_t *self,
-                         const frame_cmd_t cmd, const uint16_t param)
+                         const frame_cmd_t cmd)
+  __attribute__(( nonnull(1) ));
+
+
+/** Write a command with uint16_t parameter to the device.
+ *
+ * \param self The device object
+ * \param cmd The #frame_cmd_t to send.
+ * \param param The uint16_t parameter.
+ */
+void device_send_command_u16(device_t *self,
+                             const frame_cmd_t cmd, const uint16_t param)
   __attribute__(( nonnull(1) ));
 
 

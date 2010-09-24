@@ -171,7 +171,22 @@ void device_close(device_t *self)
 
 
 void device_send_command(device_t *self,
-                         const frame_cmd_t cmd, const uint16_t param)
+                         const frame_cmd_t cmd)
+{
+  const int fd = self->fd;
+  if (fd > 0) {
+    fmlog("Sending '%c' command to device", cmd);
+  } else {
+    fmlog("Not sending '%c' command to closed device", cmd);
+    return;
+  }
+
+  write(fd, &cmd, 1);
+}
+
+
+void device_send_command_u16(device_t *self,
+                             const frame_cmd_t cmd, const uint16_t param)
 {
   const int fd = self->fd;
   if (fd > 0) {
@@ -182,28 +197,18 @@ void device_send_command(device_t *self,
           cmd, param, param);
     return;
   }
-  switch (cmd) {
-  case FRAME_CMD_MEASURE:
-    /* this is the only command with a parameter */
-    if (1) {
-      checksum_t *cs = checksum_new();
-      const uint8_t cmd8 = cmd;
-      write(fd, &cmd8, 1);
-      checksum_update(cs, cmd8);
-      const uint8_t byte0 = (param & 0xff);
-      checksum_update(cs, byte0);
-      const uint8_t byte1 = ((param>>8) & 0xff);
-      checksum_update(cs, byte1);
-      write(fd, &param, sizeof(param));
-      checksum_write(cs, fd);
-      checksum_unref(cs);
-    }
-    break;
-  default:
-    /* all other commands are without parameters */
-    write(fd, &cmd, 1);
-    break;
-  }
+
+  checksum_t *cs = checksum_new();
+  const uint8_t cmd8 = cmd;
+  write(fd, &cmd8, 1);
+  checksum_update(cs, cmd8);
+  const uint8_t byte0 = (param & 0xff);
+  checksum_update(cs, byte0);
+  const uint8_t byte1 = ((param>>8) & 0xff);
+  checksum_update(cs, byte1);
+  write(fd, &param, sizeof(param));
+  checksum_write(cs, fd);
+  checksum_unref(cs);
 }
 
 

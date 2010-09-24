@@ -268,12 +268,17 @@ void tui_init()
 
 void tui_fini()
 {
-  packet_parser_unref(tui_packet_parser);
-  tty_reset();
-  fmlog_reset_handler();
-  if (stdlog) {
-    fclose(stdlog);
-    stdlog = NULL;
+  /** \bug: Hack: Avoid running tui_fini() twice using a flag. */
+  static volatile bool tui_fini_run = false;
+  if (!tui_fini_run) {
+    packet_parser_unref(tui_packet_parser);
+    tty_reset();
+    fmlog_reset_handler();
+    if (stdlog) {
+      fclose(stdlog);
+      stdlog = NULL;
+    }
+    tui_fini_run = true;
   }
 }
 

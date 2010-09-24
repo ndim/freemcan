@@ -80,7 +80,7 @@ static void signals_init(void)
 static void common_init(void) __attribute__((constructor));
 static void common_init(void)
 {
-  fmlog("freemcan-signals.c: common_init()");
+  /* fmlog("freemcan-signals.c: common_init()"); */
   signals_init();
 }
 
@@ -88,7 +88,7 @@ static void common_init(void)
 static void common_done(void) __attribute__((destructor));
 static void common_done(void)
 {
-  fmlog("freemcan-signals.c: common_done()");
+  /* fmlog("freemcan-signals.c: common_done()"); */
 }
 
 

@@ -80,6 +80,44 @@ bool quit_flag = false;
 bool enable_user_input_dump = false;
 
 
+/** \section tui_durations TUI Measurement Duration handling
+ * @{
+ */
+
+
+/** Entry for a list of measurement durations */
+typedef struct {
+  uint16_t short_duration;
+  uint16_t long_duration;
+} duration_T;
+
+
+/** List of measurement durations */
+const duration_T duration_list[] = {
+  { 10, 30},
+  { 60, 600},
+  { 600, 3600},
+  { 3600, 3*3600},
+  { 0, 0 }
+};
+
+
+/** Index into list of measurement durations */
+unsigned int duration_index = 0;
+
+
+/** Log current measurement durations */
+void fmlog_durations(void)
+{
+  fmlog("Measurement durations in seconds: short=%u, long=%u",
+        duration_list[duration_index].short_duration,
+        duration_list[duration_index].long_duration);
+}
+
+
+/** @} */
+
+
 /************************************************************************/
 /** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal
  * @{
@@ -224,6 +262,7 @@ void tui_init()
 
   fmlog("freemcan TUI " GIT_VERSION);
   fmlog("Text user interface (TUI) set up");
+  fmlog_durations();
 }
 
 
@@ -296,19 +335,34 @@ void tui_do_io(void)
         fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
         fmlog("2                       toggle hexdump of received layer 2 data (frames)");
         fmlog("9                       toggle dump of user input (typed characters)");
+        fmlog("+/-                     increase/decrease measurement duration of 'm/M' command");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");
         fmlog("M                       send command \"start (m)easurement\" (long runtime)");
         fmlog("r                       send command \"(r)eset\"");
         break;
+      case '+':
+        if (duration_list[duration_index+1].short_duration != 0) {
+          ++duration_index;
+          fmlog_durations();
+        }
+        break;
+      case '-':
+        if (duration_index > 0) {
+          --duration_index;
+          fmlog_durations();
+        }
+        break;
       case FRAME_CMD_MEASURE: /* 'm' */
         /* "SHORT" measurement */
-        tui_device_send_command(FRAME_CMD_MEASURE, 10);
+        tui_device_send_command(FRAME_CMD_MEASURE,
+                                duration_list[duration_index].short_duration);
         break;
       case 'M': /* 'm' */
         /* "LONG" measurement */
-        tui_device_send_command(FRAME_CMD_MEASURE, 30);
+        tui_device_send_command(FRAME_CMD_MEASURE,
+                                duration_list[duration_index].long_duration);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:

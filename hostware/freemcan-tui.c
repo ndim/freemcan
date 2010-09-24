@@ -67,13 +67,55 @@
 
 
 /* Forward declaration */
-static void packet_handler_status(const char *status, void *data);
+static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
 static void packet_handler_histogram(packet_histogram_t *histogram_packet, void *data);
 
 
 /** Quit flag for the main loop. */
 bool quit_flag = false;
+
+
+/** Whether to dump the user input into log */
+bool enable_user_input_dump = false;
+
+
+/** \section tui_durations TUI Measurement Duration handling
+ * @{
+ */
+
+
+/** Entry for a list of measurement durations */
+typedef struct {
+  uint16_t short_duration;
+  uint16_t long_duration;
+} duration_T;
+
+
+/** List of measurement durations */
+const duration_T duration_list[] = {
+  { 10, 30},
+  { 60, 600},
+  { 600, 3600},
+  { 3600, 3*3600},
+  { 0, 0 }
+};
+
+
+/** Index into list of measurement durations */
+unsigned int duration_index = 0;
+
+
+/** Log current measurement durations */
+void fmlog_durations(void)
+{
+  fmlog("Measurement durations in seconds: short=%u, long=%u",
+        duration_list[duration_index].short_duration,
+        duration_list[duration_index].long_duration);
+}
+
+
+/** @} */
 
 
 /************************************************************************/
@@ -214,23 +256,29 @@ void tui_init()
   fmlog_set_handler(tui_log_handler, NULL);
 
   tui_packet_parser = packet_parser_new(packet_handler_histogram,
-                                        packet_handler_status,
+                                        packet_handler_state,
                                         packet_handler_text,
                                         NULL);
 
   fmlog("freemcan TUI " GIT_VERSION);
   fmlog("Text user interface (TUI) set up");
+  fmlog_durations();
 }
 
 
 void tui_fini()
 {
-  packet_parser_unref(tui_packet_parser);
-  tty_reset();
-  fmlog_reset_handler();
-  if (stdlog) {
-    fclose(stdlog);
-    stdlog = NULL;
+  /** \bug: Hack: Avoid running tui_fini() twice using a flag. */
+  static volatile bool tui_fini_run = false;
+  if (!tui_fini_run) {
+    packet_parser_unref(tui_packet_parser);
+    tty_reset();
+    fmlog_reset_handler();
+    if (stdlog) {
+      fclose(stdlog);
+      stdlog = NULL;
+    }
+    tui_fini_run = true;
   }
 }
 
@@ -256,8 +304,10 @@ void tui_do_io(void)
     const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
-    fmlog_data(buf, read_bytes);
+    if (enable_user_input_dump) {
+      fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
+      fmlog_data(buf, read_bytes);
+    }
     for (ssize_t i=0; i<read_bytes; i++) {
       /* handle a few key input things internally */
       switch (buf[i]) {
@@ -277,6 +327,10 @@ void tui_do_io(void)
         enable_layer2_dump = !enable_layer2_dump;
         fmlog("Layer 2 data dump now %s", enable_layer2_dump?"enabled":"disabled");
         break;
+      case '9':
+        enable_user_input_dump = !enable_user_input_dump;
+        fmlog("User input dump now %s", enable_user_input_dump?"enabled":"disabled");
+        break;
       case '?':
       case 'h':
       case 'H':
@@ -285,20 +339,36 @@ void tui_do_io(void)
         fmlog("h, H, ?                 show this help message");
         fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
         fmlog("2                       toggle hexdump of received layer 2 data (frames)");
+        fmlog("9                       toggle dump of user input (typed characters)");
+        fmlog("+/-                     increase/decrease measurement duration of 'm/M' command");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");
         fmlog("M                       send command \"start (m)easurement\" (long runtime)");
         fmlog("r                       send command \"(r)eset\"");
         break;
+      case '+':
+        if (duration_list[duration_index+1].short_duration != 0) {
+          ++duration_index;
+          fmlog_durations();
+        }
+        break;
+      case '-':
+        if (duration_index > 0) {
+          --duration_index;
+          fmlog_durations();
+        }
+        break;
       case FRAME_CMD_MEASURE: /* 'm' */
-	/* "SHORT" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 5);
-	break;
+        /* "SHORT" measurement */
+        tui_device_send_command(FRAME_CMD_MEASURE,
+                                duration_list[duration_index].short_duration);
+        break;
       case 'M': /* 'm' */
-	/* "LONG" measurement */
-	tui_device_send_command(FRAME_CMD_MEASURE, 40);
-	break;
+        /* "LONG" measurement */
+        tui_device_send_command(FRAME_CMD_MEASURE,
+                                duration_list[duration_index].long_duration);
+        break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
@@ -339,10 +409,10 @@ void atexit_func(void)
 /************************************************************************/
 
 
-/** Status data packet handler (TUI specific) */
-static void packet_handler_status(const char *status, void *UP(data))
+/** State data packet handler (TUI specific) */
+static void packet_handler_state(const char *state, void *UP(data))
 {
-  fmlog("STATUS: %s", status);
+  fmlog("STATE: %s", state);
 }
 
 

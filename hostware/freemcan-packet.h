@@ -110,7 +110,7 @@ typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
 typedef void (*packet_handler_state_t)(const char *state, void *data);
 
 /** Callback function type called when text packet arrives */
-typedef void (*packet_handler_text_t)(const char *status, void *data);
+typedef void (*packet_handler_text_t)(const char *text, void *data);
 
 
 /** @} */

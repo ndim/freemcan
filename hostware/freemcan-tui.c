@@ -76,6 +76,10 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet, void 
 bool quit_flag = false;
 
 
+/** Whether to dump the user input into log */
+bool enable_user_input_dump = false;
+
+
 /************************************************************************/
 /** \section tui_tty TTY Setup (And Cleanup!) For The Local Interactive Terminal
  * @{
@@ -256,8 +260,10 @@ void tui_do_io(void)
     const ssize_t read_bytes = read(STDIN_FILENO, buf, sizeof(buf));
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
-    fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
-    fmlog_data(buf, read_bytes);
+    if (enable_user_input_dump) {
+      fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
+      fmlog_data(buf, read_bytes);
+    }
     for (ssize_t i=0; i<read_bytes; i++) {
       /* handle a few key input things internally */
       switch (buf[i]) {
@@ -277,6 +283,10 @@ void tui_do_io(void)
         enable_layer2_dump = !enable_layer2_dump;
         fmlog("Layer 2 data dump now %s", enable_layer2_dump?"enabled":"disabled");
         break;
+      case '9':
+        enable_user_input_dump = !enable_user_input_dump;
+        fmlog("User input dump now %s", enable_user_input_dump?"enabled":"disabled");
+        break;
       case '?':
       case 'h':
       case 'H':
@@ -285,6 +295,7 @@ void tui_do_io(void)
         fmlog("h, H, ?                 show this help message");
         fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
         fmlog("2                       toggle hexdump of received layer 2 data (frames)");
+        fmlog("9                       toggle dump of user input (typed characters)");
         fmlog("a                       send command \"(a)bort\"");
         fmlog("i                       send command \"(i)ntermediate result\"");
         fmlog("m                       send command \"start (m)easurement\" (short runtime)");

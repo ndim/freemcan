@@ -343,8 +343,10 @@ void tui_do_io(void)
         fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
         fmlog("a           send command \"(a)bort\"");
         fmlog("i           send command \"(i)ntermediate result\"");
-        fmlog("m           send command \"start (m)easurement\" (short runtime)");
-        fmlog("M           send command \"start (m)easurement\" (long runtime)");
+        fmlog("m           send command \"start (m)easurement\" (short duration: %u seconds)",
+              duration_list[duration_index].short_duration);
+        fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
+              duration_list[duration_index].long_duration);
         fmlog("r           send command \"(r)eset\"");
         break;
       case '+':

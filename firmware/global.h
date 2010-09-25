@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup global_constants Global Constants
+ * \defgroup global_constants Global Constants And Definitions
  * \ingroup firmware
  * @{
  */
@@ -95,27 +95,34 @@
 #define ELEMENT_SIZE_IN_BYTES 3
 
 
-#if (ELEMENT_SIZE_IN_BYTES == 2)
+#if (ELEMENT_SIZE_IN_BYTES == 3)
 
-typedef uint16_t histogram_element_t;
-
-#elif (ELEMENT_SIZE_IN_BYTES == 3)
-
-/* This could be called a uint24_t... but we do not want to intrude on
- * that namespace. */
+/** Unsigned 24bit integer type
+ *
+ * This could be called a uint24_t, but we do not want to intrude on
+ * that namespace.
+ */
 typedef uint8_t freemcan_uint24_t[3];
-typedef freemcan_uint24_t histogram_element_t;
 
-#elif (ELEMENT_SIZE_IN_BYTES == 4)
-
-typedef uint32_t histogram_element_t;
-
-#else
-# error Unsupported ELEMENT_SIZE_IN_BYTES
 #endif
 
 
+/** Histogram element type */
+typedef
+#if (ELEMENT_SIZE_IN_BYTES == 2)
+  uint16_t
+#elif (ELEMENT_SIZE_IN_BYTES == 3)
+  freemcan_uint24_t
+#elif (ELEMENT_SIZE_IN_BYTES == 4)
+  uint32_t
+#else
+# error Unsupported ELEMENT_SIZE_IN_BYTES
+#endif
+  histogram_element_t;
+
+
 #if (ELEMENT_SIZE_IN_BYTES == 3)
+/** Increment 24bit unsigned integer */
 inline static
 void histogram_element_inc(volatile freemcan_uint24_t *element)
 {
@@ -146,6 +153,7 @@ void histogram_element_inc(volatile freemcan_uint24_t *element)
                );
 }
 #else
+/** Increment 8bit, 16bit, or 32bit unsigned integer */
 inline static
 void histogram_element_inc(volatile histogram_element_t *element)
 {

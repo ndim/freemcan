@@ -43,6 +43,9 @@ extern packet_parser_t *tui_packet_parser;
 void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param);
 
 
+void tui_startup_messages(void);
+
+
 #endif /* !FREEMCAN_TUI_H */
 
 /** @} */

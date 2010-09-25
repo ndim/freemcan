@@ -89,18 +89,13 @@ typedef struct {
 void print_stats(FILE *file, const char *prefix, const char *eol,
                  const statistics_t *s)
 {
-  fprintf(file, "%sduration:\t%.1f seconds = %.2f minutes = %.4f hours%s",
+  fprintf(file, "%sduration:           %.1f seconds = %.2f minutes = %.4f hours%s",
           prefix, s->duration, s->duration/60.0, s->duration/3600.0, eol);
-
-  fprintf(file, "%scounts:\t%.0f%s", prefix, s->counts, eol);
-  fprintf(file, "%s       \t+/- %1.2f CNTs (average is within 1 sigma)%s",
-          prefix, s->counts_error, eol);
-
-  fprintf(file, "%scounts per minute:\t%1.2f%s", prefix, s->avg_cpm, eol);
-  fprintf(file, "%s                  \t+/- %1.2f CPMs (average is within 1 sigma)%s",
-          prefix, s->avg_cpm_error, eol);
-
-  fprintf(file, "%sstatistical error:\t%1.1f %%%s",
+  fprintf(file, "%scounts:             %.0f +- %1.2f counts (avg is within 1 sigma)%s",
+          prefix, s->counts, s->counts_error, eol);
+  fprintf(file, "%scounts per minute:  %1.2f +- %1.2f cpm (avg is within 1 sigma)%s",
+          prefix, s->avg_cpm, s->avg_cpm_error, eol);
+  fprintf(file, "%sstatistical error:  %1.1f %%%s",
           prefix, s->statistical_error, eol);
 }
 

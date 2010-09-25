@@ -119,25 +119,31 @@ typedef uint32_t histogram_element_t;
 inline static
 void histogram_element_inc(volatile freemcan_uint24_t *element)
 {
-  asm("\n\t"
-      /* load 24 bit value */
-      "ld  r24, %a[elem]\n\t"                      /* 2 cycles */
-      "ldd r25, %a[elem]+1\n\t"                    /* 2 cycles */
-      "ldd __tmp_reg__, %a[elem]+2\n\t"            /* 2 cycles */
+  uint16_t accu;
+  asm volatile("\n\t"
+               /* load 24 bit value */
+               "ld  %A[accu],    %a[elem]\n\t"             /* 2 cycles */
+               "ldd %B[accu],    %a[elem]+1\n\t"           /* 2 cycles */
+               "ldd __tmp_reg__, %a[elem]+2\n\t"           /* 2 cycles */
 
-      /* increase 24 bit value by one */
-      "adiw r24, 1\n\t"                     /* 2 cycles for word (r25:r24) */
-      "adc  __tmp_reg__, __zero_reg__\n\t"  /* 1 cycle */
+               /* increment 24 bit value */
+               "adiw %[accu], 1\n\t"                       /* 2 cycles for word */
+               "adc  __tmp_reg__, __zero_reg__\n\t"        /* 1 cycle */
 
-      /* store 24 bit value */
-      "std %a[elem]+2, __tmp_reg__\n\t"            /* 2 cycles */
-      "std %a[elem]+1, r25\n\t"                    /* 2 cycles */
-      "st  %a[elem], r24\n\t"                      /* 2 cycles */
-      : /* output operands */
-      : /* input operands */
-        [elem] "b" (element)
-      : "r24", "r25"
-      );
+               /* store 24 bit value */
+               "st  %a[elem],   %A[accu]\n\t"              /* 2 cycles */
+               "std %a[elem]+1, %B[accu]\n\t"              /* 2 cycles */
+               "std %a[elem]+2, __tmp_reg__\n\t"           /* 2 cycles */
+
+               : /* output operands */
+                 /* let compiler decide which registers to clobber */
+                 [accu] "=&r" (accu)
+
+               : /* input operands */
+                 [elem] "b" (element)
+
+               : /* let compiler decide which regs to clobber via register var accu var */
+               );
 }
 #else
 inline static

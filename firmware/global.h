@@ -19,10 +19,6 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \note global.h MUST be included by ALL firmware *.c files, due to
- *       its globally reserving registers for certain global
- *       variables.
- *
  * \defgroup global_constants Global Constants
  * \ingroup firmware
  * @{
@@ -154,12 +150,7 @@ void histogram_element_inc(volatile histogram_element_t *element)
 
 /** @} */
 
-/* reserve a few registers for ISR */
-register uint8_t sreg_save asm("r7");
-
 #else /* ifdef __ASSEMBLER__ */
-
-# define sreg_save r7
 
 #endif /* __ASSEMBLER__ */
 

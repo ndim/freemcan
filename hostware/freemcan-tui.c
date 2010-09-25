@@ -244,6 +244,12 @@ tui_log_handler(void *data __attribute__ (( unused )),
 }
 
 
+void tui_startup_messages(void)
+{
+  fmlog_durations();
+}
+
+
 packet_parser_t *tui_packet_parser = NULL;
 
 
@@ -262,7 +268,6 @@ void tui_init()
 
   fmlog("freemcan TUI " GIT_VERSION);
   fmlog("Text user interface (TUI) set up");
-  fmlog_durations();
 }
 
 

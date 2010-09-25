@@ -19,11 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \note global.h MUST be included by ALL firmware *.c files, due to
- *       its globally reserving registers for certain global
- *       variables.
- *
- * \defgroup global_constants Global Constants
+ * \defgroup global_constants Global Constants And Definitions
  * \ingroup firmware
  * @{
  */
@@ -36,6 +32,7 @@
 
 #include <stdint.h>
 
+
 /** XTAL frequency */
 #ifndef F_CPU
 /* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
@@ -43,20 +40,25 @@
 #define F_CPU 18432000UL
 #endif
 
+
 /** Sample & hold capacitor control: PORT configuration */
 #define SHRST_IO_PORT PORTD
+
 
 /** Sample & hold capacitor control: DDR configuration */
 #define SHRST_IO_DDR DDRD
 
+
 /** Sample & hold capacitor control: Pseudonym configuration */
 #define SHRST_IO_CTRL_BIT PD6
+
 
 /** ADC resolution in bit
  *
  *  Put in a reasonable value (e.g. 10 bit ADC -> 9 bit)
  */
 #define ADC_RESOLUTION (9)
+
 
 /** Timer prescaler selection (16Bit timer)
  *
@@ -70,6 +72,7 @@
  */
 #define TIMER_PRESCALER (5)
 
+
 /** Timer compare match value for 16Bit timer
  *
  *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
@@ -79,6 +82,7 @@
  */
 #define TIMER_COMPARE_MATCH_VAL 17999
 
+
 /** Histogram element size in bytes
  *
  * The code should support values of 2, 3, and 4, but we are focussing
@@ -87,51 +91,65 @@
 #define ELEMENT_SIZE_IN_BYTES 3
 
 
-#if (ELEMENT_SIZE_IN_BYTES == 2)
+#if (ELEMENT_SIZE_IN_BYTES == 3)
 
-typedef uint16_t histogram_element_t;
-
-#elif (ELEMENT_SIZE_IN_BYTES == 3)
-
-/* This could be called a uint24_t... but we do not want to intrude on
- * that namespace. */
+/** Unsigned 24bit integer type
+ *
+ * This could be called a uint24_t, but we do not want to intrude on
+ * that namespace.
+ */
 typedef uint8_t freemcan_uint24_t[3];
-typedef freemcan_uint24_t histogram_element_t;
 
-#elif (ELEMENT_SIZE_IN_BYTES == 4)
-
-typedef uint32_t histogram_element_t;
-
-#else
-# error Unsupported ELEMENT_SIZE_IN_BYTES
 #endif
 
 
+/** Histogram element type */
+typedef
+#if (ELEMENT_SIZE_IN_BYTES == 2)
+  uint16_t
+#elif (ELEMENT_SIZE_IN_BYTES == 3)
+  freemcan_uint24_t
+#elif (ELEMENT_SIZE_IN_BYTES == 4)
+  uint32_t
+#else
+# error Unsupported ELEMENT_SIZE_IN_BYTES
+#endif
+  histogram_element_t;
+
+
 #if (ELEMENT_SIZE_IN_BYTES == 3)
+/** Increment 24bit unsigned integer */
 inline static
 void histogram_element_inc(volatile freemcan_uint24_t *element)
 {
-  asm("\n\t"
-      /* load 24 bit value */
-      "ld  r24, Z\n\t"                      /* 2 cycles */
-      "ldd r25, Z+1\n\t"                    /* 2 cycles */
-      "ldd __tmp_reg__, Z+2\n\t"            /* 2 cycles */
+  uint16_t accu;
+  asm volatile("\n\t"
+               /* load 24 bit value */
+               "ld  %A[accu],    %a[elem]\n\t"             /* 2 cycles */
+               "ldd %B[accu],    %a[elem]+1\n\t"           /* 2 cycles */
+               "ldd __tmp_reg__, %a[elem]+2\n\t"           /* 2 cycles */
 
-      /* increase 24 bit value by one */
-      "adiw r24, 1\n\t"                     /* 2 cycles for word (r25:r24) */
-      "adc  __tmp_reg__, __zero_reg__\n\t"  /* 1 cycle */
+               /* increment 24 bit value */
+               "adiw %[accu], 1\n\t"                       /* 2 cycles for word */
+               "adc  __tmp_reg__, __zero_reg__\n\t"        /* 1 cycle */
 
-      /* store 24 bit value */
-      "std Z+2, __tmp_reg__\n\t"            /* 2 cycles */
-      "std Z+1, r25\n\t"                    /* 2 cycles */
-      "st  Z, r24\n\t"                      /* 2 cycles */
-      : /* output operands */
-      : /* input operands */
-        "z" (element)
-      : "r24", "r25"
-      );
+               /* store 24 bit value */
+               "st  %a[elem],   %A[accu]\n\t"              /* 2 cycles */
+               "std %a[elem]+1, %B[accu]\n\t"              /* 2 cycles */
+               "std %a[elem]+2, __tmp_reg__\n\t"           /* 2 cycles */
+
+               : /* output operands */
+                 /* let compiler decide which registers to clobber */
+                 [accu] "=&r" (accu)
+
+               : /* input operands */
+                 [elem] "b" (element)
+
+               : /* let compiler decide which regs to clobber via register var accu var */
+               );
 }
 #else
+/** Increment 8bit, 16bit, or 32bit unsigned integer */
 inline static
 void histogram_element_inc(volatile histogram_element_t *element)
 {
@@ -142,12 +160,7 @@ void histogram_element_inc(volatile histogram_element_t *element)
 
 /** @} */
 
-/* reserve a few registers for ISR */
-register uint8_t sreg_save asm("r7");
-
 #else /* ifdef __ASSEMBLER__ */
-
-# define sreg_save r7
 
 #endif /* __ASSEMBLER__ */
 

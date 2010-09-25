@@ -107,6 +107,7 @@ unsigned int duration_index = 0;
 
 
 /** Log current measurement durations */
+static
 void fmlog_durations(void)
 {
   fmlog("Measurement durations in seconds: short=%u, long=%u",
@@ -244,9 +245,29 @@ tui_log_handler(void *data __attribute__ (( unused )),
 }
 
 
+static
+void tui_fmlog_help(void)
+{
+  fmlog("Key         Action");
+  fmlog("q, Q, x, X  quit program (other keys: C-c, esc)");
+  fmlog("h, H, ?     show this help message");
+  fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
+  fmlog("2           toggle hexdump of received layer 2 data (frames)");
+  fmlog("9           toggle dump of user input (typed characters)");
+  fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
+  fmlog("a           send command \"(a)bort\"");
+  fmlog("i           send command \"(i)ntermediate result\"");
+  fmlog("m           send command \"start (m)easurement\" (short duration: %u seconds)",
+        duration_list[duration_index].short_duration);
+  fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
+        duration_list[duration_index].long_duration);
+  fmlog("r           send command \"(r)eset\"");
+}
+
+
 void tui_startup_messages(void)
 {
-  fmlog_durations();
+  tui_fmlog_help();
 }
 
 
@@ -339,20 +360,7 @@ void tui_do_io(void)
       case '?':
       case 'h':
       case 'H':
-        fmlog("Key         Action");
-        fmlog("q, Q, x, X  quit program (other keys: C-c, esc)");
-        fmlog("h, H, ?     show this help message");
-        fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
-        fmlog("2           toggle hexdump of received layer 2 data (frames)");
-        fmlog("9           toggle dump of user input (typed characters)");
-        fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
-        fmlog("a           send command \"(a)bort\"");
-        fmlog("i           send command \"(i)ntermediate result\"");
-        fmlog("m           send command \"start (m)easurement\" (short duration: %u seconds)",
-              duration_list[duration_index].short_duration);
-        fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
-              duration_list[duration_index].long_duration);
-        fmlog("r           send command \"(r)eset\"");
+        tui_fmlog_help();
         break;
       case '+':
         if (duration_list[duration_index+1].short_duration != 0) {

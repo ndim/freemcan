@@ -143,6 +143,9 @@ int main(int argc, char *argv[])
   device_open(device, device_name);
   assert(device_get_fd(device) >= 0);
 
+  /** startup messages */
+  tui_startup_messages();
+
   /** main loop */
   while (1) {
     fd_set in_fdset;

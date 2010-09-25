@@ -394,7 +394,17 @@ void tui_do_io(void)
       case ' ':
         tui_device_send_simple_command(buf[i]);
         break;
-      /* No "default:" case as we ignore all other characters. */
+      default:
+        /* Ignore all other input characters, but print a warning. */
+        if (1) {
+          const uint8_t u = buf[i];
+          if ((u >= 32) && (u < 127)) {
+            fmlog("Ignoring input byte 0x%02x=%u='%c'", u, u, (char)u);
+          } else {
+            fmlog("Ignoring input byte 0x%02x=%u", u, u);
+          }
+        }
+        break;
       }
     }
 }

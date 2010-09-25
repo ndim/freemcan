@@ -32,11 +32,13 @@
 
 #include <stdint.h>
 
+
 /** XTAL frequency */
 #ifndef F_CPU
 /* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
 #define F_CPU 16000000UL                               //!< Pollin AVR Eval board
 #endif
+
 
 /** ADC prescaler selection for ADC clock source frequency
  *
@@ -57,6 +59,7 @@
  */
 #define ADC_PRESCALER (6)
 
+
 /** ADC resolution in bit
  *
  *  Put in here resonable value:
@@ -64,6 +67,7 @@
  *  (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V)
  */
 #define ADC_RESOLUTION (10)
+
 
 /** Timer prescaler selection (16Bit timer)
  *
@@ -76,6 +80,7 @@
  *  Select a prescaler to have an compare match value as integer
  */
 #define TIMER_PRESCALER (5)
+
 
 /** Timer compare match value for 16Bit timer
  *

@@ -334,18 +334,18 @@ void tui_do_io(void)
       case '?':
       case 'h':
       case 'H':
-        fmlog("Key                     Action");
-        fmlog("C-c, esc, q, Q, x, X    quit program");
-        fmlog("h, H, ?                 show this help message");
-        fmlog("1                       toggle hexdump of received layer 1 data (byte stream)");
-        fmlog("2                       toggle hexdump of received layer 2 data (frames)");
-        fmlog("9                       toggle dump of user input (typed characters)");
-        fmlog("+/-                     increase/decrease measurement duration of 'm/M' command");
-        fmlog("a                       send command \"(a)bort\"");
-        fmlog("i                       send command \"(i)ntermediate result\"");
-        fmlog("m                       send command \"start (m)easurement\" (short runtime)");
-        fmlog("M                       send command \"start (m)easurement\" (long runtime)");
-        fmlog("r                       send command \"(r)eset\"");
+        fmlog("Key         Action");
+        fmlog("q, Q, x, X  quit program (other keys: C-c, esc)");
+        fmlog("h, H, ?     show this help message");
+        fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
+        fmlog("2           toggle hexdump of received layer 2 data (frames)");
+        fmlog("9           toggle dump of user input (typed characters)");
+        fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
+        fmlog("a           send command \"(a)bort\"");
+        fmlog("i           send command \"(i)ntermediate result\"");
+        fmlog("m           send command \"start (m)easurement\" (short runtime)");
+        fmlog("M           send command \"start (m)easurement\" (long runtime)");
+        fmlog("r           send command \"(r)eset\"");
         break;
       case '+':
         if (duration_list[duration_index+1].short_duration != 0) {

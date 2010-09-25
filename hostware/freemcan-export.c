@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -108,67 +109,82 @@ void print_stats(FILE *file, const char *prefix, const char *eol,
 void export_value_table(const packet_value_table_t *value_table_packet)
 {
   const size_t element_count = value_table_packet->element_count;
-  const char *fname = export_value_table_get_filename(value_table_packet, "dat");
-  FILE *datfile = fopen(fname, "w");
-  assert(datfile);
-  fmlog("Writing value table to file %s", fname);
-  const char *reason_str = "unknown type";
-  switch (value_table_packet->reason) {
-  case PACKET_VALUE_TABLE_DONE: reason_str = "measurement completed"; break;
-  case PACKET_VALUE_TABLE_RESEND: reason_str = "resent value table after measurement completed"; break;
-  case PACKET_VALUE_TABLE_ABORTED: reason_str = "measurement aborted"; break;
-  case PACKET_VALUE_TABLE_INTERMEDIATE: reason_str = "intermediate result"; break;
+  FILE *datfile = NULL;
+  if ((value_table_packet->reason == PACKET_VALUE_TABLE_INTERMEDIATE) &&
+      (value_table_packet->type == VALUE_TABLE_TYPE_HISTOGRAM)) {
+    /* Hack to avoid spamming the filesystem with intermediate results */
+    const char *fname = export_value_table_get_filename(value_table_packet, "dat");
+    datfile = fopen(fname, "w");
+    assert(datfile);
+    fmlog("Writing value table to file %s", fname);
+    const char *reason_str = "unknown type";
+    switch (value_table_packet->reason) {
+    case PACKET_VALUE_TABLE_DONE: reason_str = "measurement completed"; break;
+    case PACKET_VALUE_TABLE_RESEND: reason_str = "resent value table after measurement completed"; break;
+    case PACKET_VALUE_TABLE_ABORTED: reason_str = "measurement aborted"; break;
+    case PACKET_VALUE_TABLE_INTERMEDIATE: reason_str = "intermediate result"; break;
+    }
+    fprintf(datfile, "# type:\t'%c' (%s)\n", value_table_packet->reason, reason_str);
   }
-  fprintf(datfile, "# type:\t'%c' (%s)\n", value_table_packet->reason, reason_str);
-  /** \todo We need a better way to distinguish between histogram data
-   *        and counter/time series data.
-   */
   switch (value_table_packet->type) {
   case VALUE_TABLE_TYPE_HISTOGRAM: /* histogram data */
-    fprintf(datfile, "# receive_time:\t%lu (%s)\n",
-            value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
-    fprintf(datfile, "# element_count:\t%d\n", value_table_packet->element_count);
-    fprintf(datfile, "# orig_element_size:\t%d (%d bit)\n",
-            value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
-    fprintf(datfile, "# duration:\t%d\n", value_table_packet->duration);
-    fprintf(datfile, "# total_duration:\t%d\n", value_table_packet->total_duration);
-    fprintf(datfile, "# max_value:\t%d\n", value_table_packet->max_value);
+    if (datfile) {
+      fprintf(datfile, "# receive_time:\t%lu (%s)\n",
+              value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
+      fprintf(datfile, "# element_count:\t%d\n", value_table_packet->element_count);
+      fprintf(datfile, "# orig_element_size:\t%d (%d bit)\n",
+              value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
+      fprintf(datfile, "# duration:\t%d\n", value_table_packet->duration);
+      fprintf(datfile, "# total_duration:\t%d\n", value_table_packet->total_duration);
+      fprintf(datfile, "# max_value:\t%d\n", value_table_packet->max_value);
 
-    for (size_t i=0; i<element_count; i++) {
-      fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
+      for (size_t i=0; i<element_count; i++) {
+        fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
+      }
     }
     break;
   case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
-    fprintf(datfile, "# number of intervals:    %d\n",     value_table_packet->element_count);
-    fprintf(datfile, "# duration per interval:  %d sec\n", value_table_packet->total_duration);
+    if (1) {
+      const uint32_t elapsed_time = value_table_packet->duration +
+        (value_table_packet->total_duration * (value_table_packet->element_count - 1));
 
-    fprintf(datfile, "# receive_time:           %lu (%s)\n",
-            value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
-    fprintf(datfile, "# orig_element_size:      %d byte (%d bit)\n",
-            value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
-    fprintf(datfile, "# duration per value:     %u\n", value_table_packet->total_duration);
-    fprintf(datfile, "# duration of last value: %u\n", value_table_packet->duration);
-    const uint32_t elapsed_time = value_table_packet->duration +
-      (value_table_packet->total_duration * (value_table_packet->element_count-1));
-    fprintf(datfile, "# elapsed time:           %u sec\n", elapsed_time);
+      if (datfile) {
+        fprintf(datfile, "# number of intervals:    %d\n",     value_table_packet->element_count);
+        fprintf(datfile, "# duration per interval:  %d sec\n", value_table_packet->total_duration);
 
-    unsigned long total_count = 0;
-    for (size_t i=0; i<element_count; i++) {
-      total_count += value_table_packet->elements[i];
+        fprintf(datfile, "# receive_time:           %lu (%s)\n",
+                value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
+        fprintf(datfile, "# orig_element_size:      %d byte (%d bit)\n",
+                value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
+        fprintf(datfile, "# duration per value:     %u\n", value_table_packet->total_duration);
+        fprintf(datfile, "# duration of last value: %u\n", value_table_packet->duration);
+        fprintf(datfile, "# elapsed time:           %u sec\n", elapsed_time);
+      }
+
+      uint_least32_t total_count = 0;
+      for (size_t i=0; i<element_count; i++) {
+        total_count += value_table_packet->elements[i];
+      }
+
+      statistics_t s;
+      s.counts = total_count;
+      s.counts_error = sqrt(s.counts);
+      s.duration = (double)(elapsed_time);
+      s.avg_cpm = 60.0*s.counts/s.duration;
+      s.avg_cpm_error = s.avg_cpm*s.counts_error/s.counts;
+      s.statistical_error = 100.0 * s.avg_cpm_error / s.avg_cpm;
+
+      print_stats(stdout,  "     ", "\r\n", &s);
+      if (datfile) {
+        print_stats(datfile, "# ",    "\n",   &s);
+      }
     }
-
-    statistics_t s;
-    s.counts = total_count;
-    s.counts_error = sqrt(s.counts);
-    s.duration = (double)(elapsed_time);
-    s.avg_cpm = 60.0*s.counts/s.duration;
-    s.avg_cpm_error = s.avg_cpm*s.counts_error/s.counts;
-    s.statistical_error = 100.0 * s.avg_cpm_error / s.avg_cpm;
-
-    print_stats(datfile, "# ",    "\n",   &s);
-    print_stats(stdout,  "     ", "\r\n", &s);
+    break;
   }
-  fclose(datfile);
+
+  if (datfile) {
+    fclose(datfile);
+  }
 }
 
 

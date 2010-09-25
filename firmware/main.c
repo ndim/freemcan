@@ -155,11 +155,20 @@ FUSES = {
  * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
  * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
  **/
-
 volatile uint16_t table[MAX_COUNTER];
+
+
+/** Count radioactive events */
 volatile uint16_t cnt=0;
+
+
+/** Index into table where we write cnt value to */
 volatile uint16_t idx=0;
+
+
+/** Flag to signal that the timer has elapsed */
 volatile uint8_t timer_flag = 0;
+
 
 /** timer counter
  *
@@ -171,7 +180,22 @@ volatile uint8_t timer_flag = 0;
  * timer_count to decrement, once the timer ISR has been enabled.
  */
 volatile uint16_t timer_count;
+
+
+/** Last value of timer counter
+ *
+ * Used for pseudo synchronized reading of the timer_count multi-byte
+ * variable in the main program, while timer_count may be written to
+ * by the timer ISR.
+ */
 volatile uint16_t last_timer_count = 1;
+
+
+/** Original timer count received in the command.
+ *
+ * Used later for determining how much time has elapsed yet. Written
+ * once only, when the command has been received.
+ */
 volatile uint16_t orig_timer_count;
 
 
@@ -388,10 +412,13 @@ void io_init(void)
 
 /** created from binary via objcopy */
 extern uint8_t invented_histogram[] asm("_binary_invented_histogram_bin_start") PROGMEM;
+/** created from binary via objcopy */
 extern uint8_t invented_histogram_size[] asm("_binary_invented_histogram_bin_size") PROGMEM;
+/** created from binary via objcopy */
 extern uint8_t invented_histogram_end[] asm("_binary_invented_histogram_bin_end") PROGMEM;
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)
+/** Simulate a histogram based on the invented histogram data */
 static
 void invent_histogram(const uint16_t duration)
 {
@@ -458,6 +485,10 @@ void send_histogram(const packet_histogram_type_t type)
 /** @} */
 
 
+/** List of states for firmware state machine
+ *
+ * \see communication_protocol
+ */
 typedef enum {
   ST_READY,
   ST_timer0,

@@ -47,7 +47,10 @@
 .extern	table
 
 /* Rename to ADC_vect if you want to actually link this
- * version into the firmware
+ * version into the firmware.
+ *
+ * Also, DO re-introdurce the sreg_save definition and register reservation
+ * to global.h before linking this ISR into the firmware image.
  */
 .global moo_ADC_vect
 moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */

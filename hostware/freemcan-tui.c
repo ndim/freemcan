@@ -347,6 +347,7 @@ void tui_do_io(void)
       case 'Q':
       case 'x':
       case 'X':
+        fmlog("Quitting the program.");
         quit_flag = true;
         break;
       case '1':

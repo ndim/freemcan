@@ -32,7 +32,7 @@
  * \{
  */
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__x86_64__)
 # define ENDIANNESS_IS_LE
 #elif defined(__ppc__)
 # define ENDIANNESS_IS_BE

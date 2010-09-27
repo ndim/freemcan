@@ -224,8 +224,8 @@ void wdt_init(void)
  * Update histogram
  * Discharge peak hold capacitor
  */
-ISR(ADC_vect) {
-
+ISR(ADC_vect)
+{
   /* pull pin to discharge peak hold capacitor                    */
   /** \todo worst case calculation: runtime & R7010 */
   PORTD |= _BV(PD6);

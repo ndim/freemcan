@@ -28,13 +28,28 @@
  * @{
  */
 
+
+#include <avr/pgmspace.h>
+
+
 #include "firmware-version.h"
 #include "packet-comm.h"
 #include "git-version.h"
 
+
+/** Static constant version string.
+ *
+ * We do not store this in program space as that would require us to
+ * include more code which whould in the end cause even more bytes to
+ * be put into the firmware image than we could save by putting this
+ * into program space.
+ */
+static const char version_string[] = "freemcan " GIT_VERSION;
+
+
 void send_version(void)
 {
-  send_text("freemcan " GIT_VERSION);
+  send_text(version_string);
 }
 
 /** @} */

@@ -114,10 +114,6 @@ FUSES = {
 #define MAX_COUNTER 16
 
 
-/** Bit mask shortcut */
-#define BIT(NO) (1<<(NO))
-
-
 /** Trigger AVR reset via watchdog device. */
 #define soft_reset()                                            \
   do {                                                          \
@@ -158,6 +154,8 @@ volatile uint16_t timer_count;
  * Used for pseudo synchronized reading of the timer_count multi-byte
  * variable in the main program, while timer_count may be written to
  * by the timer ISR.
+ *
+ * \see get_duration, ISR(TIMER1_COMPA_vect)
  */
 volatile uint16_t last_timer_count = 1;
 
@@ -207,21 +205,22 @@ void wdt_init(void)
 }
 
 
-ISR(INT0_vect) {
+ISR(INT0_vect)
+{
 
-  PORTD ^= BIT(PD6);
+  PORTD ^= _BV(PD6);
 
-  PORTD |= BIT(PD7);
+  PORTD |= _BV(PD7);
   _delay_us(DELAY_BEEP);
-  PORTD &=~ BIT(PD7);
+  PORTD &=~ _BV(PD7);
   _delay_us(DELAY_BEEP);
-  PORTD |= BIT(PD7);
+  PORTD |= _BV(PD7);
   _delay_us(DELAY_BEEP);
-  PORTD &=~ BIT(PD7);
+  PORTD &=~ _BV(PD7);
   _delay_us(DELAY_BEEP);
-  PORTD |= BIT(PD7);
+  PORTD |= _BV(PD7);
   _delay_us(DELAY_BEEP);
-  PORTD &=~ BIT(PD7);
+  PORTD &=~ _BV(PD7);
 
   /* without delay (200ns BEEP_DELAY): 59.53  +/- 2.36 CPMs */
   /* _delay_ms(1); 54.94  +/- 2.27 CPMs */
@@ -234,7 +233,7 @@ ISR(INT0_vect) {
   /* debounce any pending ints
      - preller während schaltflanke
      - mehrfachpulse durch alte zählrohre */
-  EIFR |= BIT(INTF0);
+  EIFR |= _BV(INTF0);
 }
 
 
@@ -242,10 +241,16 @@ ISR(INT0_vect) {
  *
  * When timer has elapsed, the global #timer_flag (8bit, therefore
  * atomic read/writes) is set.
+ *
+ * Note that we are counting down the timer_count, so it will start
+ * with its maximum value and count down to zero.
+ *
+ * \see last_timer_count, get_duration
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
+  /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
+
   if (!timer_flag) {
     /* We do not touch the timer_flag ever again after setting it */
     last_timer_count = timer_count;
@@ -256,6 +261,73 @@ ISR(TIMER1_COMPA_vect)
       timer_flag = 1;
     }
   }
+}
+
+
+
+/** Get elapsed time in the currently running or finished measurement
+ *
+ * We do synchronized reading of the multi-byte variable timer_count
+ * here (which is being written to by the ISR(TIMER1_COMPA_vect) while
+ * send_histogram() is being executed for 'I' histograms). For all other
+ * types of histograms, this busy sync loop will still work, but is not
+ * required as all interrupts will be disabled.
+ *
+ * Reading both #timer_count and #last_timer_count consists basically of
+ * the following four steps:
+ *
+ *   a) read lo8(#timer_count)
+ *
+ *   b) read hi8(#timer_count)
+ *
+ *   c) read lo8(#last_timer_count)
+ *
+ *   d) read hi8(#last_timer_count)
+ *
+ * Now we have a finite set of sequences in which those instructions
+ * and ISR(TIMER1_COMPA_vect) can be executed in relation to each
+ * other (keep in mind that the #timer_count is counted backwards):
+ *
+ *  1. ISR before a): No problem whatsoever.  #last_timer_count will
+ *     be 1 more than #timer_count.  The while loop will finish.
+ *
+ *  2. ISR between a) and b): #timer_count will differ from
+ *     #last_timer_count by two, or a lot more in the case of a 8bit
+ *     overflow happening.  The while loop will continue.
+ *
+ *  3. ISR between b) and c): #timer_count will be the same as
+ *     #last_timer_count.  The while loop will continue.
+ *
+ *  4. ISR between c) and d): #timer_count will be the same as
+ *     #last_timer_count (just like case 3), or a lot more in the case
+ *     of a 8bit overflow happening.  The while loop will continue.
+ *
+ *  5. ISR after d): No problem whatsoever.  #last_timer_count will be
+ *     1 more than #timer_count.  The while loop will finish.
+ *
+ * As the ISR runs only every second, and we can reasonably presume
+ * that the while loop can repeats a number of times during that
+ * second, this will terminate quite quickly with a useful result.
+ *
+ * The result may be off by one for the 'I' histograms but not by
+ * more, and for 'I' results we can tolerate that kind of inaccuracy.
+ *
+ * Durations for finished measurements will always be accurate, as
+ * that will trigger case 1.
+ *
+ * \see last_timer_count, ISR(TIMER1_COMPA_vect)
+ */
+inline static
+uint16_t get_duration(void)
+{
+  uint16_t a, b;
+  do {
+    a = timer_count;
+    b = last_timer_count;
+  } while ((b-a) != 1);
+  /* Now 'a' contains a valid value. Use it. */
+  const uint16_t duration = orig_timer_count - a;
+  return duration;
 }
 
 
@@ -271,33 +343,32 @@ void trigger_src_conf(void)
 
     /* Configure INT0 pin 16 as input */
     /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
-    DDRD &= ~(BIT(DDD2));
+    DDRD &= ~(_BV(DDD2));
     /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
-    PORTD &= ~BIT(PD2);
+    PORTD &= ~_BV(PD2);
 
     /* Disable interrupt "INT0" (clear interrupt enable bit in
      * external interrupt mask register) otherwise an interrupt may
      * occur during level and edge configuration (EICRA)  */
-    EIMSK &= ~(BIT(INT0));
+    EIMSK &= ~(_BV(INT0));
     /* Level and edges on the external pin that activates INT0
      * is configured now (interrupt sense control bits in external
      * interrupt control register A). Disable everything.  */
-    EICRA &= ~(BIT(ISC01) | BIT(ISC00));
+    EICRA &= ~(_BV(ISC01) | _BV(ISC00));
     /* Now enable interrupt on falling edge.
      * [ 10 = interrupt on rising edge
      *   11 = interrupt on falling edge ] */
-    EICRA |=  BIT(ISC01);
+    EICRA |=  _BV(ISC01);
     /* Clear interrupt flag by writing a locical one to INTFn in the
      * external interrupt flag register.  The flag is set when a
      * interrupt occurs. if the I-flag in the sreg is set and the
      * corresponding flag in the EIFR the program counter jumps to the
      * vector table  */
-    EIFR |= BIT(INTF0);
+    EIFR |= _BV(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
      * register). we do not want to jump to the ISR in case of an interrupt
      * so we do not set this bit  */
-    EIMSK |= (BIT(INT0));
-
+    EIMSK |= (_BV(INT0));
 }
 
 
@@ -306,29 +377,51 @@ void trigger_src_conf(void)
  * Configure "measurement in progress toggle LED-signal"
  */
 inline static
-void timer_init(void){
+void timer_init(const uint8_t timer0, const uint8_t timer1)
+{
+  /** Set up timer with the combined value we just got the bytes of.
+   *
+   * For some reasons, the following line triggers a bug with
+   * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
+   * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
+   * does not exhibit the buggy behaviour, BTW. So we do the
+   * assignments manually here.
+   *
+   * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
+   * timer_count = orig_timer_count;
+   */
+  asm("\n\t"
+      "sts orig_timer_count,   %[timer0]\n\t"
+      "sts orig_timer_count+1, %[timer1]\n\t"
+      "sts timer_count,   %[timer0]\n\t"
+      "sts timer_count+1, %[timer1]\n\t"
+      : /* output operands */
+      : /* input operands */
+        [timer0] "r" (timer0),
+        [timer1] "r" (timer1)
+      );
 
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;
-  TCCR1B =  BIT(WGM12);
+  TCCR1B =  _BV(WGM12);
 
   /* Configure "measurement in progress LED"                      */
   /* configure pin 19 as an output */
-  DDRD |= (BIT(DDD5));
+  DDRD |= (_BV(DDD5));
   /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= BIT(COM1A0);
+  TCCR1A |= _BV(COM1A0);
 
   /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*BIT(CS10)));
+  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
+              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
+              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
 
   /* Compare match value into output compare reg. A               */
   OCR1A = TIMER_COMPARE_MATCH_VAL;
 
   /* output compare match A interrupt enable                      */
-  TIMSK1 |= BIT(OCIE1A);
+  TIMSK1 |= _BV(OCIE1A);
 }
 
 
@@ -341,7 +434,7 @@ void timer_init_quick(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
-  TCCR1B &= ~(BIT(CS12) | BIT(CS11) | BIT(CS10));
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
   /* faster blinking */
   OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
   /* start counting from 0, needs clock to be paused */
@@ -359,16 +452,16 @@ void timer_init_quick(void)
 inline static
 void io_init(void)
 {
-    /* configure pin 20 as an output                               */
-    DDRD |= (BIT(DDD7));
-    /* set pin 20 to ground                                        */
-    PORTD &= ~BIT(PD7);
+    /* configure pin 21 as an output                               */
+    DDRD |= (_BV(DDD7));
+    /* set pin 21 to ground                                        */
+    PORTD &= ~_BV(PD7);
 
 
     /* configure pin 20 as an output                               */
-    DDRD |= (BIT(DDD6));
+    DDRD |= (_BV(DDD6));
     /* set pin 20 to ground                                        */
-    PORTD &= ~BIT(PD6);
+    PORTD &= ~_BV(PD6);
 
     /** \todo configure unused pins */
 }
@@ -393,21 +486,15 @@ void io_init(void)
  * the timer.  We are currently keeping interrupts enabled if we
  * continue measuring, which avoids this issue.
  *
+ * Note that for 'I' histograms it is possible that we send fluked
+ * values due to overflows.
  */
 static
 void send_histogram(const packet_histogram_type_t type);
 static
 void send_histogram(const packet_histogram_type_t type)
 {
-  /* pseudo synchronised reading of multi-byte variable being written
-   * to by ISR */
-  uint16_t a, b;
-  do {
-    a = timer_count;
-    b = last_timer_count;
-  } while ((b-a) != 1);
-  /* Now 'a' contains a valid value */
-  const uint16_t duration = orig_timer_count - a;
+  const uint16_t duration = get_duration();
 
   packet_histogram_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
@@ -530,29 +617,8 @@ int main(void)
         break;
       case ST_checksum:
         if (uart_checksum_recv()) { /* checksum successful */
-          /* Set up timer with the combined value we just got the bytes of.
-           *
-           * For some reasons, the following line triggers a bug with
-           * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
-           * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
-           * does not exhibit the buggy behaviour, BTW. So we do the
-           * assignments manually here.
-           *
-           * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
-           * timer_count = orig_timer_count;
-           */
-          asm("\n\t"
-              "sts orig_timer_count,   %[timer0]\n\t"
-              "sts orig_timer_count+1, %[timer1]\n\t"
-              "sts timer_count,   %[timer0]\n\t"
-              "sts timer_count+1, %[timer1]\n\t"
-              : /* output operands */
-              : /* input operands */
-                [timer0] "r" (timer0),
-                [timer1] "r" (timer1)
-              );
           /* begin measurement */
-          timer_init();
+          timer_init(timer0, timer1);
           sei();
           next_state = ST_MEASURING;
         } else { /* checksum fail */

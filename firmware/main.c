@@ -126,10 +126,6 @@ FUSES = {
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
 
 
-/** Bit mask shortcut */
-#define BIT(NO) (1<<(NO))
-
-
 /** Trigger AVR reset via watchdog device. */
 #define soft_reset()                                            \
   do {                                                          \
@@ -232,7 +228,7 @@ ISR(ADC_vect) {
 
   /* pull pin to discharge peak hold capacitor                    */
   /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= BIT(PD6);
+  PORTD |= _BV(PD6);
 
   /* Read analog value */
   uint16_t result = ADCW;
@@ -252,14 +248,14 @@ ISR(ADC_vect) {
   histogram_element_inc(element);
 
   /* set pin to GND and release peak hold capacitor   */
-  PORTD &=~ BIT(PD6);
+  PORTD &=~ _BV(PD6);
 
   /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
    * Since int0 is only configured but not enabled ISR(INT0_vect){} is
    * not executed and therefore this flag is not reset automatically.
    * To reset this flag the bit at position INTF0 must be set.
    */
-  EIFR |= BIT(INTF0);
+  EIFR |= _BV(INTF0);
 }
 
 
@@ -275,7 +271,7 @@ ISR(ADC_vect) {
  */
 ISR(TIMER1_COMPA_vect)
 {
-  /* toggle a sign PORTD ^= BIT(PD5); (done automatically) */
+  /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
   if (!timer_flag) {
     /* We do not touch the timer_flag ever again after setting it */
@@ -368,32 +364,32 @@ void trigger_src_conf(void)
 
     /* Configure INT0 pin 16 as input */
     /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
-    DDRD &= ~(BIT(DDD2));
+    DDRD &= ~(_BV(DDD2));
     /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
-    PORTD |= BIT(PD2);
+    PORTD |= _BV(PD2);
 
     /* Disable interrupt "INT0" (clear interrupt enable bit in
      * external interrupt mask register) otherwise an interrupt may
      * occur during level and edge configuration (EICRA)  */
-    EIMSK &= ~(BIT(INT0));
+    EIMSK &= ~(_BV(INT0));
     /* Level and edges on the external pin that activates INT0
      * is configured now (interrupt sense control bits in external
      * interrupt control register A). Disable everything.  */
-    EICRA &= ~(BIT(ISC01) | BIT(ISC00));
+    EICRA &= ~(_BV(ISC01) | _BV(ISC00));
     /* Now enable interrupt on falling edge.
      * [ 10 = interrupt on rising edge
      *   11 = interrupt on falling edge ] */
-    EICRA |=  BIT(ISC01);
+    EICRA |=  _BV(ISC01);
     /* Clear interrupt flag by writing a locical one to INTFn in the
      * external interrupt flag register.  The flag is set when a
      * interrupt occurs. if the I-flag in the sreg is set and the
      * corresponding flag in the EIFR the program counter jumps to the
      * vector table  */
-    EIFR |= BIT(INTF0);
+    EIFR |= _BV(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
      * register). we do not want to jump to the ISR in case of an interrupt
      * so we do not set this bit  */
-    // EIMSK |= (BIT(INT0));
+    // EIMSK |= (_BV(INT0));
 
 }
 
@@ -414,21 +410,21 @@ void adc_init(void)
   ADMUX = 0;
 
   /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(BIT(REFS1) | BIT(REFS0));
+  ADMUX &= ~(_BV(REFS1) | _BV(REFS0));
 
   /* clear ADC Control and Status Register A
    * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = BIT(ADEN);
+  ADCSRA = _BV(ADEN);
 
   /* ADC prescaler selection (ADC Prescaler Select Bits) */
   /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*BIT(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*BIT(ADPS1)) |
-              ((ADC_PRESCALER & 0x01)*BIT(ADPS0)));
+  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
+             (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
+              ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */
   /* software triggered AD-Conversion */
-  ADCSRA |= BIT(ADSC);
+  ADCSRA |= _BV(ADSC);
 
   /* wait until conversion is complete */
   loop_until_bit_is_clear(ADCSRA, ADSC);
@@ -438,16 +434,16 @@ void adc_init(void)
 
   /* Enable AD conversion complete interrupt if I-Flag in sreg is set
    * (-> ADC interrupt enable) */
-  ADCSRA |= BIT(ADIE);
+  ADCSRA |= _BV(ADIE);
 
    /* Configure ADC trigger source:
     * Select external trigger "interrupt request 0"
     * Interrupt on rising edge                         */
-  ADCSRB |= BIT(ADTS1);
-  ADCSRB &= ~(BIT(ADTS0) | BIT(ADTS2));
+  ADCSRB |= _BV(ADTS1);
+  ADCSRB &= ~(_BV(ADTS0) | _BV(ADTS2));
 
   /* ADC auto trigger enable: ADC will be started by trigger signal */
-  ADCSRA |= BIT(ADATE);
+  ADCSRA |= _BV(ADATE);
 }
 
 
@@ -461,24 +457,24 @@ void timer_init(void){
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;
-  TCCR1B =  BIT(WGM12);
+  TCCR1B =  _BV(WGM12);
 
   /* Configure "measurement in progress LED"                      */
   /* configure pin 19 as an output */
-  DDRD |= (BIT(DDD5));
+  DDRD |= (_BV(DDD5));
   /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= BIT(COM1A0);
+  TCCR1A |= _BV(COM1A0);
 
   /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*BIT(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*BIT(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*BIT(CS10)));
+  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
+              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
+              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
 
   /* Compare match value into output compare reg. A               */
   OCR1A = TIMER_COMPARE_MATCH_VAL;
 
   /* output compare match A interrupt enable                      */
-  TIMSK1 |= BIT(OCIE1A);
+  TIMSK1 |= _BV(OCIE1A);
 }
 
 
@@ -491,7 +487,7 @@ void timer_init_quick(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
-  TCCR1B &= ~(BIT(CS12) | BIT(CS11) | BIT(CS10));
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
   /* faster blinking */
   OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
   /* start counting from 0, needs clock to be paused */
@@ -510,9 +506,9 @@ inline static
 void io_init(void)
 {
     /* configure pin 20 as an output                               */
-    DDRD |= (BIT(DDD6));
+    DDRD |= (_BV(DDD6));
     /* set pin 20 to ground                                        */
-    PORTD &= ~BIT(PD6);
+    PORTD &= ~_BV(PD6);
 
     /** \todo configure unused pins */
 }

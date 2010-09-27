@@ -24,6 +24,8 @@
 #ifndef AD7813_H
 #define AD7813_H
 
+#include <avr/io.h>
+
 /* AD7813 input/output-peripherals */
 
 /** AD7813 input control "READ" for data acquisistion:
@@ -66,7 +68,7 @@
 /** AD7813 databus output: PIN configuration */
 #define AD7813_IO_DATA_PIN PINA
 /** AD7813 databus output: IO - BUS configuration as pseudonym */
-#define AD7813_IO_DATA_CTRL_VALUE (BIT(PA0) | BIT(PA1) | BIT(PA2) | BIT(PA3) | BIT(PA4) | BIT(PA5) | BIT(PA6) | BIT(PA7))
+#define AD7813_IO_DATA_CTRL_VALUE (_BV(PA0) | _BV(PA1) | _BV(PA2) | _BV(PA3) | _BV(PA4) | _BV(PA5) | _BV(PA6) | _BV(PA7))
 
 /* AD7813 timings in [ns] */
 // #define AD7813_T_PWR_UP_AFTR_RISING_EDGE_ON_CONVST 1500                      //tPOWER-UP

@@ -452,7 +452,29 @@ void adc_init(void)
  * Configure "measurement in progress toggle LED-signal"
  */
 inline static
-void timer_init(void){
+void timer_init(const uint8_t timer0, const uint8_t timer1)
+{
+  /** Set up timer with the combined value we just got the bytes of.
+   *
+   * For some reasons, the following line triggers a bug with
+   * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
+   * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
+   * does not exhibit the buggy behaviour, BTW. So we do the
+   * assignments manually here.
+   *
+   * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
+   * timer_count = orig_timer_count;
+   */
+  asm("\n\t"
+      "sts orig_timer_count,   %[timer0]\n\t"
+      "sts orig_timer_count+1, %[timer1]\n\t"
+      "sts timer_count,   %[timer0]\n\t"
+      "sts timer_count+1, %[timer1]\n\t"
+      : /* output operands */
+      : /* input operands */
+        [timer0] "r" (timer0),
+        [timer1] "r" (timer1)
+      );
 
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
@@ -703,29 +725,8 @@ int main(void)
         break;
       case ST_checksum:
         if (uart_checksum_recv()) { /* checksum successful */
-          /* Set up timer with the combined value we just got the bytes of.
-           *
-           * For some reasons, the following line triggers a bug with
-           * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
-           * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
-           * does not exhibit the buggy behaviour, BTW. So we do the
-           * assignments manually here.
-           *
-           * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
-           * timer_count = orig_timer_count;
-           */
-          asm("\n\t"
-              "sts orig_timer_count,   %[timer0]\n\t"
-              "sts orig_timer_count+1, %[timer1]\n\t"
-              "sts timer_count,   %[timer0]\n\t"
-              "sts timer_count+1, %[timer1]\n\t"
-              : /* output operands */
-              : /* input operands */
-                [timer0] "r" (timer0),
-                [timer1] "r" (timer1)
-              );
           /* begin measurement */
-          timer_init();
+          timer_init(timer0, timer1);
           sei();
           next_state = ST_MEASURING;
         } else { /* checksum fail */

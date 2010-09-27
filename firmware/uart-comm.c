@@ -37,9 +37,6 @@
 #include "uart-defs.h"
 
 
-#define BIT(NO) (1<<(NO))
-
-
 /* We want to avoid switching to double speed mode as long as
  * possible, as in normal speed mode the receiver will sample more
  * often than in double speed mode.
@@ -99,10 +96,10 @@ void uart_init(void)
 
   /* Asynchronous (no clock is used); 8 databit with no parity bit (8N1
    * frame format) */
-  UCSR0C = (BIT(UCSZ01) | BIT(UCSZ00));
+  UCSR0C = (_BV(UCSZ01) | _BV(UCSZ00));
 
   /* Enable transmit and receive */
-  UCSR0B = (BIT(TXEN0) | BIT(RXEN0));
+  UCSR0B = (_BV(TXEN0) | _BV(RXEN0));
 
   /* Clear or set U2X0 baudrate doubling bit, depending on
    * UART_BAUDRATE. Also disable multi device mode, and do not clear

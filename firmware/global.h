@@ -145,7 +145,7 @@ void histogram_element_inc(volatile freemcan_uint24_t *element)
                : /* input operands */
                  [elem] "b" (element)
 
-               : /* let compiler decide which regs to clobber via register var accu var */
+                 /* : let compiler decide which regs to clobber via register var accu var */
                );
 }
 #else

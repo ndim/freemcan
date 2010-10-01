@@ -313,7 +313,7 @@ uint16_t get_duration(void)
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
 inline static
-void trigger_src_conf(void)
+void adc_int_trigger_src_conf(void)
 {
 
     /* Configure INT0 pin 16 as input */
@@ -356,7 +356,7 @@ void trigger_src_conf(void)
  * AD input channel on Pin 40 ADC0
  */
 inline static
-void adc_init(void)
+void adc_int_init(void)
 {
   uint16_t result;
 
@@ -398,6 +398,21 @@ void adc_init(void)
 
   /* ADC auto trigger enable: ADC will be started by trigger signal */
   ADCSRA |= _BV(ADATE);
+}
+
+
+/** ADC subsystem and trigger setup */
+void adc_init(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init7")));
+void adc_init(void)
+{
+  /** configure INT0 pin 16 */
+  adc_int_trigger_src_conf();
+
+  /** configure AREF at pin 32 and single shot auto trigger over int0
+   * at pin 40 ADC0 */
+  adc_int_init();
 }
 
 
@@ -627,13 +642,6 @@ int main(void)
      * functions as ((naked)) and put them in the ".initN" sections so
      * they are called automatically before main() is run.
      */
-
-    /* configure INT0 pin 16 */
-    trigger_src_conf();
-
-    /* configure AREF at pin 32 and single shot auto trigger over int0
-     * at pin 40 ADC0 */
-    adc_init();
 
     /** Used while receiving "m" command */
     register uint8_t timer0 = 0;

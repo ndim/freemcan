@@ -78,7 +78,6 @@
 #include "packet-comm.h"
 #include "frame-defs.h"
 #include "packet-defs.h"
-#include "firmware-version.h"
 #include "wdt-softreset.h"
 
 #include <util/delay.h>
@@ -538,10 +537,11 @@ int main(void)
 
     /* ST_booting */
 
-    /* configure USART0 for 8N1 */
-    uart_init();
-    send_text("Booting");
-    send_version();
+    /** We try not to explicitly call initialization functions at the
+     * start of main().  The idea is to implement the initialization
+     * functions as ((naked)) and put them in the ".initN" sections so
+     * they are called automatically before main() is run.
+     */
 
     /* initialize peripherals */
     io_init();

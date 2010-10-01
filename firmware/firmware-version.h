@@ -26,8 +26,6 @@
 #ifndef FIRMWARE_VERSION_H
 #define FIRMWARE_VERSION_H
 
-void send_version(void);
-
 #endif /* FIRMWARE_VERSION_H */
 
 /** @} */

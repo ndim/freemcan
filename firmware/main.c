@@ -478,7 +478,9 @@ void timer_init_quick(void)
  * Configure peak hold capacitor reset pin
  * Configure unused pins
  */
-inline static
+void io_init(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init5")));
 void io_init(void)
 {
     /* configure pin 20 as an output                               */
@@ -625,9 +627,6 @@ int main(void)
      * functions as ((naked)) and put them in the ".initN" sections so
      * they are called automatically before main() is run.
      */
-
-    /* initialize peripherals */
-    io_init();
 
     /* configure INT0 pin 16 */
     trigger_src_conf();

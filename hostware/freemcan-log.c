@@ -270,8 +270,8 @@ void fmlog_hist(const uint32_t *elements, const size_t count)
 
   for (size_t y=0; y<count; y+=perline) {
     char line[80] = "";
-    ssize_t idx = sprintf(&(line[0]), "%4d:", y);
-    const int xmax = (y+perline<count) ? (perline) : (count%perline);
+    ssize_t idx = sprintf(&(line[0]), "%4u:", y);
+    const int xmax = (y+perline<=count) ? (perline) : (count%perline);
     for (int x=0; x<xmax; x++) {
       if ((x&7) == 0) {
         idx += sprintf(&(line[idx]), " ");

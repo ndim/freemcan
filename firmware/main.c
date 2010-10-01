@@ -94,6 +94,7 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 #include "firmware-version.h"
+#include "wdt-softreset.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -124,16 +125,6 @@ FUSES = {
 
 /** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
-
-
-/** Trigger AVR reset via watchdog device. */
-#define soft_reset()                                            \
-  do {                                                          \
-    wdt_enable(WDTO_15MS);                                      \
-    while (1) {                                                 \
-      /* wait until watchdog has caused a system reset */       \
-    }                                                           \
-  } while(0)
 
 
 /*------------------------------------------------------------------------------
@@ -203,23 +194,6 @@ volatile uint8_t timer_flag;
  * Local prototypes (not visible in other modules)
  *------------------------------------------------------------------------------
  */
-
-
-/** Disable watchdog on device reset.
- *
- * Newer AVRs do not disable the watchdog on reset, so we need to
- * disable it manually early in the startup sequence. "Newer" AVRs
- * include the 164P/324P/644P we are using.
- *
- * See http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_softreset
- */
-void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
-void wdt_init(void)
-{
-  MCUSR = 0;
-  wdt_disable();
-  return;
-}
 
 
 /** AD conversion complete interrupt entry point
@@ -811,7 +785,7 @@ int main(void)
         break;
       case ST_RESET:
         send_state("RESET");
-        soft_reset();
+        wdt_soft_reset();
         break;
       } /* switch (state) */
       state = next_state;

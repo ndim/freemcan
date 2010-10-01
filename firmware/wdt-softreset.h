@@ -31,13 +31,16 @@
 
 
 /** Trigger AVR reset via watchdog device. */
-#define wdt_soft_reset()                                        \
-  do {                                                          \
-    wdt_enable(WDTO_15MS);                                      \
-    while (1) {                                                 \
-      /* wait until watchdog has caused a system reset */       \
-    }                                                           \
-  } while(0)
+static inline
+void wdt_soft_reset(void)
+{
+  do {
+    wdt_enable(WDTO_15MS);
+    while (1) {
+      /* wait until watchdog has caused a system reset */
+    }
+  } while(0);
+}
 
 
 /** @} */

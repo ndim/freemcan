@@ -48,6 +48,9 @@ static const char version_string[] = "freemcan " GIT_VERSION;
 
 
 void send_version(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init8")));
+void send_version(void)
 {
   send_text(version_string);
 }

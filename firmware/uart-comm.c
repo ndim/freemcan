@@ -88,6 +88,9 @@
  *
  */
 void uart_init(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init5")));
+void uart_init(void)
 {
   /* set baud rate */
 

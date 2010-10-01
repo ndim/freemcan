@@ -533,7 +533,9 @@ typedef enum {
  */
 int main(void)
 {
-    /** No need to initialize global variables here. See \ref firmware_memories. */
+    /** No need to initialize global variables here. See \ref
+     *  firmware_memories.
+     */
 
     /* ST_booting */
 

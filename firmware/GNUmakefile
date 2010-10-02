@@ -34,7 +34,7 @@ include ../common.mk
 
 MCU ?= atmega644p
 FORMAT = ihex
-TARGET = firmware
+TARGET = firmware-adc-int-mca
 SRC = \
 	main.c \
 	uart-comm.c \

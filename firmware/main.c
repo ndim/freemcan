@@ -278,8 +278,7 @@ void adc_init(void)
 
 /** Initialize peripherals
  *
- * Configure peak hold capacitor reset pin
- * Configure unused pins
+ * Configure peak hold capacitor reset pin.
  */
 void io_init(void)
   __attribute__ ((naked))
@@ -290,7 +289,16 @@ void io_init(void)
     DDRD |= (_BV(DDD6));
     /* set pin 20 to ground                                        */
     PORTD &= ~_BV(PD6);
+}
 
+
+/** Configure unused pins
+ */
+void io_init_unused_pins(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init5")));
+void io_init_unused_pins(void)
+{
     /** \todo configure unused pins */
 }
 

@@ -42,6 +42,7 @@ SRC = \
 	packet-comm.c \
 	wdt-softreset.c \
 	measurement-timer.c \
+	adc-int.c \
 	firmware-version.c
 ASRC = # ISR-ADC_vect.S
 OPT = s

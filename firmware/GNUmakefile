@@ -49,9 +49,6 @@ SRC += uart-printf.c
 CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
-# Name of this Makefile (used for "make depend").
-MAKEFILE = GNUmakefile
-
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.

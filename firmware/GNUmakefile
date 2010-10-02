@@ -31,7 +31,7 @@ include ../common.mk
 
 MCU ?= atmega644p
 FORMAT = ihex
-TARGET = firmware
+TARGET = firmware-geiger-counter
 SRC = \
 	main.c \
 	uart-comm.c \

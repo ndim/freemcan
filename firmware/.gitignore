@@ -6,4 +6,4 @@
 /.depend.mk
 /invented-histogram.bin
 /settings.mk
-/firmware.*
+/firmware-geiger-counter.*

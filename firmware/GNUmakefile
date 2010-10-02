@@ -35,7 +35,14 @@ include ../common.mk
 MCU ?= atmega644p
 FORMAT = ihex
 TARGET = firmware
-SRC = main.c uart-comm.c frame-comm.c packet-comm.c wdt-softreset.c firmware-version.c
+SRC = \
+	main.c \
+	uart-comm.c \
+	frame-comm.c \
+	packet-comm.c \
+	wdt-softreset.c \
+	measurement-timer.c \
+	firmware-version.c
 ASRC = # ISR-ADC_vect.S
 OPT = s
 BSRC =

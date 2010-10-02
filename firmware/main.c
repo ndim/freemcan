@@ -147,8 +147,12 @@ volatile uint16_t timer_count;
  * by the timer ISR.
  *
  * \see get_duration, ISR(TIMER1_COMPA_vect)
+ *
+ * The initial default value of last_timer_count was 1
+ * originally. However, a last_timer_count value of 0 should not make
+ * a difference, so we now rely on the implicit initialization to 0.
  */
-volatile uint16_t last_timer_count = 1;
+volatile uint16_t last_timer_count;
 
 
 /** Original timer count received in the command.

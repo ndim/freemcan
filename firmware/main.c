@@ -291,7 +291,9 @@ uint16_t get_duration(void)
  * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
-inline static
+void trigger_src_conf(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init7")));
 void trigger_src_conf(void)
 {
 

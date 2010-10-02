@@ -33,6 +33,7 @@
 
 #include "global.h"
 #include "adc-int.h"
+#include "histogram.h"
 
 
 /** Initialize peripherals

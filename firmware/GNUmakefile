@@ -43,6 +43,7 @@ SRC = \
 	wdt-softreset.c \
 	measurement-timer.c \
 	adc-int.c \
+	histogram.c \
 	firmware-version.c
 ASRC = # ISR-ADC_vect.S
 OPT = s

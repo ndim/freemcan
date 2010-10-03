@@ -1,5 +1,5 @@
-/** \file firmware/histogram.h
- * \brief Histogram
+/** \file firmware/data-table.h
+ * \brief Data table interface between MCA/time series and send_histogram()
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,24 +19,34 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup histogram
+ * \defgroup data_table Data table interface between MCA/time series and send_histogram()
+ * \ingroup firmware
+ *
  * @{
  */
 
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
+#ifndef DATA_TABLE_H
+#define DATA_TABLE_H
 
 
-#include "packet-comm.h"
+#include <stdlib.h>
 
 
-/* documented in histogram.c */
-void send_histogram(const packet_histogram_type_t type);
+/** The data table as an opaque array of bytes
+ *
+ * The actual structure of the bytes in the table is undefined for the
+ * purpose of this interface.
+ */
+extern uint8_t table[];
+
+
+/** The size of the data #table in bytes */
+extern size_t sizeof_table;
 
 
 /** @} */
 
-#endif /* HISTOGRAM_H */
+#endif /* DATA_TABLE_H */
 
 
 /*

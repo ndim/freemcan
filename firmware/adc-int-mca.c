@@ -1,5 +1,5 @@
-/** \file firmware/adc-int.c
- * \brief Internal ADC
+/** \file firmware/adc-int-mca.c
+ * \brief Internal ADC based MCA
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_int Internal ADC
+ * \defgroup adc_int_mca Internal ADC based MCA
  * \ingroup firmware
  *
  * Internal ADC code.
@@ -32,8 +32,8 @@
 #include <avr/interrupt.h>
 
 #include "global.h"
-#include "adc-int.h"
 #include "histogram.h"
+#include "adc-int-histogram.h"
 
 
 /** Initialize peripherals

@@ -257,7 +257,7 @@ firmware-%.sym: firmware-%.elf
 
 # Link: create ELF output file from object files.
 firmware-% : TARGET = $*
-firmware-adc-int-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int.o histogram.o
+firmware-adc-int-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
 	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) --output $@ $(LDFLAGS)
 
 

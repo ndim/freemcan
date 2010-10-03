@@ -33,6 +33,7 @@
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "measurement-timer.h"
+#include "data-table.h"
 
 
 /** \addtogroup firmware_comm
@@ -102,9 +103,9 @@ void send_histogram(const packet_histogram_type_t type)
     duration,
     orig_timer_count
   };
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof(table));
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof_table);
   uart_putb((const void *)&header, sizeof(header));
-  uart_putb((const void *)table, sizeof(table));
+  uart_putb((const void *)table, sizeof_table);
   frame_end();
 }
 

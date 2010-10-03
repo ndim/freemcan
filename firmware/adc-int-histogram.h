@@ -1,5 +1,5 @@
-/** \file firmware/histogram.h
- * \brief Histogram
+/** \file firmware/adc-int-histogram.h
+ * \brief Histogram table for use with internal ADC
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,24 +19,37 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup histogram
+ * \addtogroup adc_int_histogram
  * @{
  */
 
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
+#ifndef ADC_INT_HISTOGRAM_H
+#define ADC_INT_HISTOGRAM_H
 
 
-#include "packet-comm.h"
+#include <stdlib.h>
+
+#include "global.h"
+
+/** Number of elements in the histogram table */
+#define MAX_COUNTER (1<<ADC_RESOLUTION)
 
 
-/* documented in histogram.c */
-void send_histogram(const packet_histogram_type_t type);
+/** Histogram table
+ *
+ * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
+ * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
+ *
+ * For the definition of sizeof_table, see adc-int-histogram.c.
+ *
+ * \see data_table
+ */
+volatile histogram_element_t table[MAX_COUNTER];
 
 
 /** @} */
 
-#endif /* HISTOGRAM_H */
+#endif /* ADC_INT_HISTOGRAM_H */
 
 
 /*

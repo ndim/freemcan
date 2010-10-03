@@ -1,5 +1,5 @@
-/** \file firmware/adc-int.h
- * \brief Internal ADC
+/** \file firmware/adc-int-histogram.c
+ * \brief Histogram table for use with internal ADC
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,18 +19,31 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup adc_int
+ * \defgroup adc_int_histogram Histogram table for use with internal ADC
+ * \ingroup firmware
+ *
+ * Histogram table for use with internal ADC.
+ *
  * @{
  */
 
-#ifndef ADC_INT_H
-#define ADC_INT_H
+
+#include "adc-int-histogram.h"
+
+
+/** Actual size of #table in bytes
+ *
+ * Unfortunately, we need to define this variable and use it.  It
+ * would be so nice if we could just use the ELF symbol size of
+ * table[] to determine the size, but, alas, we do not know how to do
+ * that.
+ *
+ * \see data_table
+ */
+const size_t sizeof_table = sizeof(table);
 
 
 /** @} */
-
-#endif /* ADC_INT_H */
-
 
 /*
  * Local Variables:

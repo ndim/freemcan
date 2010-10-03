@@ -115,6 +115,11 @@ FUSES = {
   /* 0xfc = extended */ (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
 };
 
+/*------------------------------------------------------------------------------
+ * Prototypes
+ *------------------------------------------------------------------------------
+ */
+inline static void timer_reconf(void);
 
 /*------------------------------------------------------------------------------
  * Defines
@@ -226,9 +231,6 @@ void wdt_init(void)
  */
 ISR(ADC_vect)
 {
-  /* pull pin to discharge peak hold capacitor                    */
-  /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= _BV(PD6);
 
   /* Read analog value */
   uint16_t result = ADCW;
@@ -247,15 +249,9 @@ ISR(ADC_vect)
   volatile histogram_element_t *element = &(table[index]);
   histogram_element_inc(element);
 
-  /* set pin to GND and release peak hold capacitor   */
-  PORTD &=~ _BV(PD6);
-
-  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
-   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
-   * not executed and therefore this flag is not reset automatically.
-   * To reset this flag the bit at position INTF0 must be set.
-   */
-  EIFR |= _BV(INTF0);
+  /* Clear interrupt flag of timer1 compare match B manually since there is no
+     TIMER1_COMPB_vect executed */
+  TIFR1 |= _BV(OCF1B);
 }
 
 
@@ -271,6 +267,8 @@ ISR(ADC_vect)
  */
 ISR(TIMER1_COMPA_vect)
 {
+    /* runs open end */
+
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
   if (!timer_flag) {
@@ -278,6 +276,9 @@ ISR(TIMER1_COMPA_vect)
     last_timer_count = timer_count;
     timer_count--;
     if (timer_count == 0) {
+      /* switch off any compare matches on B to stop sampling
+         reconfigure compare register A to toggle a sign            */
+      timer_reconf();
       /* timer has elapsed, set the flag to signal the main program */
       timer_flag = 1;
     }
@@ -352,48 +353,6 @@ uint16_t get_duration(void)
 }
 
 
-/** Setup of INT0
- *
- * INT0 via pin 16 is configured but not enabled
- * Trigger on falling edge
- * Enable pull up resistor on Pin 16 (20-50kOhm)
- */
-inline static
-void trigger_src_conf(void)
-{
-
-    /* Configure INT0 pin 16 as input */
-    /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
-    DDRD &= ~(_BV(DDD2));
-    /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
-    PORTD |= _BV(PD2);
-
-    /* Disable interrupt "INT0" (clear interrupt enable bit in
-     * external interrupt mask register) otherwise an interrupt may
-     * occur during level and edge configuration (EICRA)  */
-    EIMSK &= ~(_BV(INT0));
-    /* Level and edges on the external pin that activates INT0
-     * is configured now (interrupt sense control bits in external
-     * interrupt control register A). Disable everything.  */
-    EICRA &= ~(_BV(ISC01) | _BV(ISC00));
-    /* Now enable interrupt on falling edge.
-     * [ 10 = interrupt on rising edge
-     *   11 = interrupt on falling edge ] */
-    EICRA |=  _BV(ISC01);
-    /* Clear interrupt flag by writing a locical one to INTFn in the
-     * external interrupt flag register.  The flag is set when a
-     * interrupt occurs. if the I-flag in the sreg is set and the
-     * corresponding flag in the EIFR the program counter jumps to the
-     * vector table  */
-    EIFR |= _BV(INTF0);
-    /* reenable interrupt INT0 (External interrupt mask
-     * register). we do not want to jump to the ISR in case of an interrupt
-     * so we do not set this bit  */
-    // EIMSK |= (_BV(INT0));
-
-}
-
-
 /** ADC initialisation and configuration
  *
  * ADC configured as auto trigger
@@ -436,11 +395,9 @@ void adc_init(void)
    * (-> ADC interrupt enable) */
   ADCSRA |= _BV(ADIE);
 
-   /* Configure ADC trigger source:
-    * Select external trigger "interrupt request 0"
-    * Interrupt on rising edge                         */
-  ADCSRB |= _BV(ADTS1);
-  ADCSRB &= ~(_BV(ADTS0) | _BV(ADTS2));
+  /* Configure ADC trigger source:
+   * Select external trigger trigger ADC on Compare Match B of Timer1 */
+  ADCSRB = (_BV(ADTS2)|_BV(ADTS0));
 
   /* ADC auto trigger enable: ADC will be started by trigger signal */
   ADCSRA |= _BV(ADATE);
@@ -487,6 +444,10 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
   /* toggle LED pin 19 on compare match automatically             */
   TCCR1A |= _BV(COM1A0);
 
+  /* toggle pin on port PD4 in case of a compare match B  */
+  DDRD |= (_BV(DDD4));
+  TCCR1A |= _BV(COM1B0);
+
   /* Prescaler settings on timer conrtrol reg. B                  */
   TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
               (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
@@ -495,9 +456,18 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
   /* Compare match value into output compare reg. A               */
   OCR1A = TIMER_COMPARE_MATCH_VAL;
 
+  /* The ADC can only be triggered via compare register B.
+     Set the trigger point (compare match B) to 50% of
+     compare match A                                              */
+  OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
+
+  /* Prohibit ISR execution on compare match B */
+  //TIMSK1 |= BIT(OCIE1B);
+
   /* output compare match A interrupt enable                      */
   TIMSK1 |= _BV(OCIE1A);
 }
+
 
 
 /** Configure 16bit timer to trigger an ISR four times as fast ast timer_init() does.
@@ -505,13 +475,15 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
  * You MUST have run timer_init() some time before running timer_init_quick().
  */
 inline static
-void timer_init_quick(void)
+void timer_reconf(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
   TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
-  /* faster blinking */
-  OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
+  /* Switch off trigger B to avoid an additional sampling of data */
+  OCR1B = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER+1;
+  /* blinking for measurement is over */
+  OCR1A = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER;
   /* start counting from 0, needs clock to be paused */
   TCNT1 = 0;
   /* unpause the clock */
@@ -527,12 +499,7 @@ void timer_init_quick(void)
 inline static
 void io_init(void)
 {
-    /* configure pin 20 as an output                               */
-    DDRD |= (_BV(DDD6));
-    /* set pin 20 to ground                                        */
-    PORTD &= ~_BV(PD6);
 
-    /** \todo configure unused pins */
 }
 
 
@@ -672,8 +639,7 @@ int main(void)
     /* initialize peripherals */
     io_init();
 
-    /* configure INT0 pin 16 */
-    trigger_src_conf();
+
 
     /* configure AREF at pin 32 and single shot auto trigger over int0
      * at pin 40 ADC0 */
@@ -744,7 +710,6 @@ int main(void)
         if (timer_flag) { /* done */
           cli();
           send_histogram(PACKET_HISTOGRAM_DONE);
-          timer_init_quick();
           next_state = ST_DONE;
         } else if (bit_is_set(UCSR0A, RXC0)) {
           /* there is a character in the UART input buffer */

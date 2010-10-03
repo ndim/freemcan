@@ -79,21 +79,21 @@
  *
  *  Select a prescaler to have an compare match value as integer
  */
-#define TIMER_PRESCALER (5)
+#define TIMER_PRESCALER (4)
 
 
-/** Timer compare match value for 16Bit timer sampling timer equivalent to 1 sec
+/** Timer compare match value for 16Bit timer sampling timer equivalent to 0.1 sec
  *
  *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
- *  E.g. (1sec*16000000Hz/1024) - 1 = 15624
+ *  E.g. (0.1sec*16000000Hz/256) - 1 = 6249
  *
  *  The data measurement is carried out in multiples of time_elapsed.
  */
 
-#define TIMER_COMPARE_MATCH_VAL (15624)
+#define TIMER_COMPARE_MATCH_VAL (6249)
 
 /* toggle a sign if the measurement is over */
-#define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (15624)
+#define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (62490)
 
 
 /** Histogram element size in bytes

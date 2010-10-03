@@ -167,6 +167,8 @@ volatile histogram_element_t table[MAX_COUNTER];
  */
 volatile uint16_t timer_count;
 
+volatile uint16_t timer_multiples = 0;
+
 
 /** Last value of timer counter
  *
@@ -231,23 +233,28 @@ void wdt_init(void)
  */
 ISR(ADC_vect)
 {
+  if (orig_timer_count == timer_multiples){
+      /* Read analog value */
+      uint16_t result = ADCW;
 
-  /* Read analog value */
-  uint16_t result = ADCW;
+      /* We are confident that the range of values the ADC gives us
+       * is within the specced 10bit range of 0..1023. */
 
-  /* We are confident that the range of values the ADC gives us
-   * is within the specced 10bit range of 0..1023. */
+      /* cut off 2, 1 or 0 LSB */
+      const uint16_t index = result >> (10-ADC_RESOLUTION);
 
-  /* cut off 2, 1 or 0 LSB */
-  const uint16_t index = result >> (10-ADC_RESOLUTION);
+      /* For 24bit values, the source code looks a little more complicated
+       * than just table[index]++ (even though the generated machine
+       * instructions are not).  Anyway, we needed to move the increment
+       * into a properly defined _inc function.
+       */
+       volatile histogram_element_t *element = &(table[index]);
+       histogram_element_inc(element);
 
-  /* For 24bit values, the source code looks a little more complicated
-   * than just table[index]++ (even though the generated machine
-   * instructions are not).  Anyway, we needed to move the increment
-   * into a properly defined _inc function.
-   */
-  volatile histogram_element_t *element = &(table[index]);
-  histogram_element_inc(element);
+       timer_multiples = 0;
+  } else {
+       timer_multiples++;
+  }
 
   /* Clear interrupt flag of timer1 compare match B manually since there is no
      TIMER1_COMPB_vect executed */
@@ -265,25 +272,12 @@ ISR(ADC_vect)
  *
  * \see last_timer_count, get_duration
  */
-ISR(TIMER1_COMPA_vect)
+
+/* runs open end */
+
+/*ISR(TIMER1_COMPA_vect)
 {
-    /* runs open end */
-
-  /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
-
-  if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
-    last_timer_count = timer_count;
-    timer_count--;
-    if (timer_count == 0) {
-      /* switch off any compare matches on B to stop sampling
-         reconfigure compare register A to toggle a sign            */
-      timer_reconf();
-      /* timer has elapsed, set the flag to signal the main program */
-      timer_flag = 1;
-    }
-  }
-}
+}*/
 
 
 
@@ -339,17 +333,12 @@ ISR(TIMER1_COMPA_vect)
  *
  * \see last_timer_count, ISR(TIMER1_COMPA_vect)
  */
+
+/* just return the sample rate */
 inline static
 uint16_t get_duration(void)
 {
-  uint16_t a, b;
-  do {
-    a = timer_count;
-    b = last_timer_count;
-  } while ((b-a) != 1);
-  /* Now 'a' contains a valid value. Use it. */
-  const uint16_t duration = orig_timer_count - a;
-  return duration;
+  return orig_timer_count;
 }
 
 
@@ -453,8 +442,10 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
               (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
               ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
 
-  /* Compare match value into output compare reg. A               */
-  OCR1A = TIMER_COMPARE_MATCH_VAL;
+  /* Derive sample rate (time base) as a multiple of the base
+     compare match value for 0.1sec. Write to output compare
+     reg. A                                                       */
+  OCR1A = (TIMER_COMPARE_MATCH_VAL);
 
   /* The ADC can only be triggered via compare register B.
      Set the trigger point (compare match B) to 50% of
@@ -465,7 +456,7 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
   //TIMSK1 |= BIT(OCIE1B);
 
   /* output compare match A interrupt enable                      */
-  TIMSK1 |= _BV(OCIE1A);
+  //TIMSK1 |= _BV(OCIE1A);
 }
 
 

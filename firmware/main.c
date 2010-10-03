@@ -115,11 +115,6 @@ FUSES = {
   /* 0xfc = extended */ (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
 };
 
-/*------------------------------------------------------------------------------
- * Prototypes
- *------------------------------------------------------------------------------
- */
-inline static void timer_reconf(void);
 
 /*------------------------------------------------------------------------------
  * Defines
@@ -167,7 +162,13 @@ volatile histogram_element_t table[MAX_COUNTER];
  */
 volatile uint16_t timer_count;
 
-volatile uint16_t timer_multiples = 0;
+
+/** timer multiple
+  *
+  * Is send by hostware. Number of dropped analog samples (downsampling of
+  * analog signal sampled with timer1 time base)
+  */
+volatile uint16_t timer_multiple;
 
 
 /** Last value of timer counter
@@ -224,25 +225,21 @@ void wdt_init(void)
   return;
 }
 
-
 /** AD conversion complete interrupt entry point
- *
- * This function is called when an A/D conversion has completed.
- * Update histogram
- * Discharge peak hold capacitor
- */
+  *
+  * This function is called when an A/D conversion has completed.
+  * Downsampling of base analog samples and update of histogram table.
+  * Actually one could implement a low pass filter here before
+  * downsampling to fullfill shannons sample theoreme
+  */
 ISR(ADC_vect)
 {
-  if (orig_timer_count == timer_multiples){
+  /* downsampling of analog data as a multiple of timer_multiple      */
+  if (orig_timer_count == timer_multiple){
       /* Read analog value */
       uint16_t result = ADCW;
-
-      /* We are confident that the range of values the ADC gives us
-       * is within the specced 10bit range of 0..1023. */
-
       /* cut off 2, 1 or 0 LSB */
       const uint16_t index = result >> (10-ADC_RESOLUTION);
-
       /* For 24bit values, the source code looks a little more complicated
        * than just table[index]++ (even though the generated machine
        * instructions are not).  Anyway, we needed to move the increment
@@ -250,89 +247,26 @@ ISR(ADC_vect)
        */
        volatile histogram_element_t *element = &(table[index]);
        histogram_element_inc(element);
-
-       timer_multiples = 0;
+       timer_multiple = 0;
   } else {
-       timer_multiples++;
+       timer_multiple++;
   }
 
-  /* Clear interrupt flag of timer1 compare match B manually since there is no
-     TIMER1_COMPB_vect executed */
+  /** \todo really necessary? */
+  /* Clear interrupt flag of timer1 compare match A & B manually since there is no
+     TIMER1_COMPB_vect ISR executed                                      */
   TIFR1 |= _BV(OCF1B);
+  //TIFR1 |= _BV(OCF1A);
 }
 
 
-/** 16 Bit timer ISR
- *
- * When timer has elapsed, the global #timer_flag (8bit, therefore
- * atomic read/writes) is set.
- *
- * Note that we are counting down the timer_count, so it will start
- * with its maximum value and count down to zero.
- *
- * \see last_timer_count, get_duration
- */
-
 /* runs open end */
-
-/*ISR(TIMER1_COMPA_vect)
+/*
+ISR(TIMER1_COMPA_vect)
 {
-}*/
+}
+*/
 
-
-
-/** Get elapsed time in the currently running or finished measurement
- *
- * We do synchronized reading of the multi-byte variable timer_count
- * here (which is being written to by the ISR(TIMER1_COMPA_vect) while
- * send_histogram() is being executed for 'I' histograms). For all other
- * types of histograms, this busy sync loop will still work, but is not
- * required as all interrupts will be disabled.
- *
- * Reading both #timer_count and #last_timer_count consists basically of
- * the following four steps:
- *
- *   a) read lo8(#timer_count)
- *
- *   b) read hi8(#timer_count)
- *
- *   c) read lo8(#last_timer_count)
- *
- *   d) read hi8(#last_timer_count)
- *
- * Now we have a finite set of sequences in which those instructions
- * and ISR(TIMER1_COMPA_vect) can be executed in relation to each
- * other (keep in mind that the #timer_count is counted backwards):
- *
- *  1. ISR before a): No problem whatsoever.  #last_timer_count will
- *     be 1 more than #timer_count.  The while loop will finish.
- *
- *  2. ISR between a) and b): #timer_count will differ from
- *     #last_timer_count by two, or a lot more in the case of a 8bit
- *     overflow happening.  The while loop will continue.
- *
- *  3. ISR between b) and c): #timer_count will be the same as
- *     #last_timer_count.  The while loop will continue.
- *
- *  4. ISR between c) and d): #timer_count will be the same as
- *     #last_timer_count (just like case 3), or a lot more in the case
- *     of a 8bit overflow happening.  The while loop will continue.
- *
- *  5. ISR after d): No problem whatsoever.  #last_timer_count will be
- *     1 more than #timer_count.  The while loop will finish.
- *
- * As the ISR runs only every second, and we can reasonably presume
- * that the while loop can repeats a number of times during that
- * second, this will terminate quite quickly with a useful result.
- *
- * The result may be off by one for the 'I' histograms but not by
- * more, and for 'I' results we can tolerate that kind of inaccuracy.
- *
- * Durations for finished measurements will always be accurate, as
- * that will trigger case 1.
- *
- * \see last_timer_count, ISR(TIMER1_COMPA_vect)
- */
 
 /* just return the sample rate */
 inline static
@@ -345,7 +279,7 @@ uint16_t get_duration(void)
 /** ADC initialisation and configuration
  *
  * ADC configured as auto trigger
- * Trigger source INT0
+ * Trigger source compare register B
  * Use external analog reference AREF at PIN 32
  * AD input channel on Pin 40 ADC0
  */
@@ -393,7 +327,7 @@ void adc_init(void)
 }
 
 
-/** Configure 16 bit timer to trigger an ISR every second
+/** Configure 16 bit timer to trigger an ISR every 0.1 second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
@@ -452,33 +386,14 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
      compare match A                                              */
   OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
 
-  /* Prohibit ISR execution on compare match B */
+  /* we do not need to jump to any ISRs since we do everything
+     inside the ADC callback function                             */
+
+  /* output compare match B interrupt enable                      */
   //TIMSK1 |= BIT(OCIE1B);
 
   /* output compare match A interrupt enable                      */
   //TIMSK1 |= _BV(OCIE1A);
-}
-
-
-
-/** Configure 16bit timer to trigger an ISR four times as fast ast timer_init() does.
- *
- * You MUST have run timer_init() some time before running timer_init_quick().
- */
-inline static
-void timer_reconf(void)
-{
-  const uint8_t old_tccr1b = TCCR1B;
-  /* pause the clock */
-  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
-  /* Switch off trigger B to avoid an additional sampling of data */
-  OCR1B = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER+1;
-  /* blinking for measurement is over */
-  OCR1A = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER;
-  /* start counting from 0, needs clock to be paused */
-  TCNT1 = 0;
-  /* unpause the clock */
-  TCCR1B = old_tccr1b;
 }
 
 
@@ -629,8 +544,6 @@ int main(void)
 
     /* initialize peripherals */
     io_init();
-
-
 
     /* configure AREF at pin 32 and single shot auto trigger over int0
      * at pin 40 ADC0 */

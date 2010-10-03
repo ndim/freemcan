@@ -165,7 +165,6 @@ COMMON_OBJ += uart-comm.o
 COMMON_OBJ += frame-comm.o
 COMMON_OBJ += packet-comm.o
 COMMON_OBJ += wdt-softreset.o
-COMMON_OBJ += measurement-timer.o
 COMMON_OBJ += firmware-version.o
 
 # Combine all necessary flags and optional flags.
@@ -258,7 +257,7 @@ firmware-%.sym: firmware-%.elf
 
 # Link: create ELF output file from object files.
 firmware-% : TARGET = $*
-firmware-adc-int-mca.elf : depend $(COMMON_OBJ) adc-int.o histogram.o
+firmware-adc-int-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int.o histogram.o
 	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) --output $@ $(LDFLAGS)
 
 

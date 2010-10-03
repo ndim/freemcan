@@ -1,5 +1,5 @@
-/** \file firmware/measurement-timer.c
- * \brief Measurement timer
+/** \file firmware/measurement-timer-ISR-countdown-and-stop.c
+ * \brief Measurement timer ISR: Count down to zero then stop
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,10 +19,10 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup measurement_timer Measurement Timer
+ * \defgroup measurement_timer_ISR_countdown Measurement Timer ISR: Count down to zero then stop
  * \ingroup firmware
  *
- * Reset the AVR processor via the watchdog timer.
+ * Measurement timer ISR: Count down to zero then stop
  *
  * @{
  */

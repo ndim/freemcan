@@ -93,8 +93,9 @@
 
 #define TIMER_COMPARE_MATCH_VAL (6249)
 
-/* toggle a sign if the measurement is over */
-#define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (62490)
+
+/** Toggle a sign if the measurement is over               */
+#define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (62490 >> 2)
 
 
 /** Histogram element size in bytes

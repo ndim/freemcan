@@ -167,19 +167,20 @@ volatile histogram_element_t table[MAX_COUNTER];
  */
 volatile uint16_t timer_count;
 
-volatile uint16_t timer_multiples = 0;
 
-volatile uint16_t num=0;
-
-/** Last value of timer counter
+/** timer multiple
  *
- * Used for pseudo synchronized reading of the timer_count multi-byte
- * variable in the main program, while timer_count may be written to
- * by the timer ISR.
- *
- * \see get_duration, ISR(TIMER1_COMPA_vect)
+ * Is send by hostware. Number of dropped analog samples (downsampling of
+ * analog signal sampled with timer1 time base)
  */
-volatile uint16_t last_timer_count = 1;
+volatile uint16_t timer_multiple;
+
+
+/** num sample
+ *
+ * Number of the current sample in the table (index)
+ */
+volatile uint16_t num_sample;
 
 
 /** Original timer count received in the command.
@@ -229,46 +230,49 @@ void wdt_init(void)
 /** AD conversion complete interrupt entry point
  *
  * This function is called when an A/D conversion has completed.
- * Update histogram
- * Discharge peak hold capacitor
+ * Downsampling of base analog samples and update of sample table.
+ * Actually one could implement a low pass filter here before
+ * downsampling to fullfill shannons sample theoreme
  */
 ISR(ADC_vect)
-{
-    if (orig_timer_count == timer_multiples){
+{   /* downsampling of analog data as a multiple of timer_multiple      */
+    if (orig_timer_count == timer_multiple){
+        timer_multiple = 0;
         /* Read analog value */
         uint16_t result = ADCW;
-        table[num] = result >> (10-ADC_RESOLUTION);
-        num++;
-        if (num == MAX_COUNTER){
-            /* switch off any compare matches on B to stop sampling
-               reconfigure compare register A to toggle a sign            */
+        /* Write to current position in table */
+        table[num_sample] = result >> (10-ADC_RESOLUTION);
+        num_sample++;
+        /* if the sample table is full                                  */
+        if (num_sample == MAX_COUNTER){
+            /* switch off any compare matches on B to stop sampling     */
             timer_halt();
+            /* tell main() that measurement is over                     */
             timer_flag = 1;
         }
-
-        timer_multiples = 0;
     } else {
-        timer_multiples++;
+        timer_multiple++;
     }
 
-    /* Clear interrupt flag of timer1 compare match B manually since there is no
-       TIMER1_COMPB_vect executed */
+    /** \todo really necessary? */
+    /* Clear interrupt flag of timer1 compare match A & B manually since there is no
+       TIMER1_COMPB_vect ISR executed                                      */
     TIFR1 |= _BV(OCF1B);
     TIFR1 |= _BV(OCF1A);
 }
 
 
-/* just return the sample rate */
+/** Return position of last written sample in table */
 inline static
 uint16_t get_duration(void)
 {
-  return orig_timer_count;
+  return num_sample;
 }
 
 /** ADC initialisation and configuration
  *
  * ADC configured as auto trigger
- * Trigger source INT0
+ * Trigger source compare register B
  * Use external analog reference AREF at PIN 32
  * AD input channel on Pin 40 ADC0
  */
@@ -316,7 +320,7 @@ void adc_init(void)
 }
 
 
-/** Configure 16 bit timer to trigger an ISR every second
+/** Configure 16 bit timer to trigger an ISR every 0.1 second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
@@ -373,21 +377,44 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
      compare match A                                              */
   OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
 
-  /* Prohibit ISR execution on compare match B */
-  //TIMSK1 |= BIT(OCIE1B);
+  /* we do not need to jump to any ISRs since we do everything
+     inside the ADC callback function                             */
 
+  /* output compare match B interrupt enable                      */
+  //TIMSK1 |= BIT(OCIE1B);
   /* output compare match A interrupt enable                      */
   //TIMSK1 |= _BV(OCIE1A);
 }
 
 
 
-/** Configure 16bit timer to trigger an ISR four times as fast ast timer_init() does.
+/** Switch off trigger B to stop any sampling of the analog signal
  *
- * You MUST have run timer_init() some time before running timer_init_quick().
+ *
  */
 inline static
 void timer_halt(void)
+{
+  const uint8_t old_tccr1b = TCCR1B;
+  /* pause the clock */
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+  /* Switch off trigger B to avoid an additional sampling of data */
+  OCR1B = TIMER_COMPARE_MATCH_VAL+1;
+  /* blinking for measurement is over */
+  OCR1A = TIMER_COMPARE_MATCH_VAL;
+  /* start counting from 0, needs clock to be paused */
+  TCNT1 = 0;
+  /* unpause the clock */
+  TCCR1B = old_tccr1b;
+}
+
+
+/** Reconfigure Timer to show the user that the measurement has been finished
+ *
+ *
+ */
+inline static
+void timer_init_quick(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
@@ -551,10 +578,7 @@ int main(void)
     /* initialize peripherals */
     io_init();
 
-
-
-    /* configure AREF at pin 32 and single shot auto trigger over int0
-     * at pin 40 ADC0 */
+    /* initializie the ADC and its trigger source */
     adc_init();
 
     /** Used while receiving "m" command */
@@ -603,7 +627,7 @@ int main(void)
         break;
       case ST_checksum:
         if (uart_checksum_recv()) { /* checksum successful */
-          /* begin measurement */
+          /* initialize the sample timer */
           timer_init(timer0, timer1);
           sei();
           next_state = ST_MEASURING;
@@ -622,6 +646,7 @@ int main(void)
         if (timer_flag) { /* done */
           cli();
           send_histogram(PACKET_HISTOGRAM_DONE);
+          timer_init_quick();
           next_state = ST_DONE;
         } else if (bit_is_set(UCSR0A, RXC0)) {
           /* there is a character in the UART input buffer */

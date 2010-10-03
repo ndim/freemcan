@@ -1,5 +1,5 @@
-/** \file firmware/adc-int-histogram.h
- * \brief Histogram table for use with internal ADC
+/** \file firmware/adc-ext-histogram.h
+ * \brief Histogram table for use with external ADC
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,18 +19,18 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup adc_int_histogram
+ * \addtogroup adc_ext_histogram
  * @{
  */
 
-#ifndef ADC_INT_HISTOGRAM_H
-#define ADC_INT_HISTOGRAM_H
+#ifndef ADC_EXT_HISTOGRAM_H
+#define ADC_EXT_HISTOGRAM_H
 
 
 #include <stdlib.h>
 
 #include "global.h"
-#include "adc-int-global.h"
+#include "adc-ext-global.h"
 
 
 /** Number of elements in the histogram table */
@@ -51,7 +51,7 @@ volatile histogram_element_t table[MAX_COUNTER];
 
 /** @} */
 
-#endif /* ADC_INT_HISTOGRAM_H */
+#endif /* ADC_EXT_HISTOGRAM_H */
 
 
 /*

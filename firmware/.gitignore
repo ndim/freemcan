@@ -6,4 +6,5 @@
 /.depend.mk
 /invented-histogram.bin
 /settings.mk
+/firmware-adc-ext-mca.*
 /firmware-adc-int-mca.*

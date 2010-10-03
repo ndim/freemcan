@@ -1,5 +1,5 @@
-/** \file firmware/adc-int-histogram.h
- * \brief Histogram table for use with internal ADC
+/** \file firmware/adc-ext-histogram.c
+ * \brief Histogram table for use with external ADC
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,40 +19,31 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup adc_int_histogram
+ * \defgroup adc_ext_histogram Histogram table for use with external ADC
+ * \ingroup firmware
+ *
+ * Histogram table for use with external ADC.
+ *
  * @{
  */
 
-#ifndef ADC_INT_HISTOGRAM_H
-#define ADC_INT_HISTOGRAM_H
+
+#include "adc-ext-histogram.h"
 
 
-#include <stdlib.h>
-
-#include "global.h"
-#include "adc-int-global.h"
-
-
-/** Number of elements in the histogram table */
-#define MAX_COUNTER (1<<ADC_RESOLUTION)
-
-
-/** Histogram table
+/** Actual size of #table in bytes
  *
- * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
- * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
- *
- * For the definition of sizeof_table, see adc-int-histogram.c.
+ * Unfortunately, we need to define this variable and use it.  It
+ * would be so nice if we could just use the ELF symbol size of
+ * table[] to determine the size, but, alas, we do not know how to do
+ * that.
  *
  * \see data_table
  */
-volatile histogram_element_t table[MAX_COUNTER];
+const size_t sizeof_table = sizeof(table);
 
 
 /** @} */
-
-#endif /* ADC_INT_HISTOGRAM_H */
-
 
 /*
  * Local Variables:

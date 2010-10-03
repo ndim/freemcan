@@ -1,5 +1,5 @@
-/** \file firmware/adc-int-histogram.h
- * \brief Histogram table for use with internal ADC
+/** \file firmware/adc-ext-global.h
+ * \brief Global adjustments for external ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,39 +19,41 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup adc_int_histogram
+ * \defgroup global_constants_adc_ext Global Constants And Definitions for external ADC
+ * \ingroup firmware
  * @{
  */
 
-#ifndef ADC_INT_HISTOGRAM_H
-#define ADC_INT_HISTOGRAM_H
+#ifndef ADC_EXT_GLOBAL_H
+#define ADC_EXT_GLOBAL_H
 
 
-#include <stdlib.h>
-
-#include "global.h"
-#include "adc-int-global.h"
+#include <stdint.h>
 
 
-/** Number of elements in the histogram table */
-#define MAX_COUNTER (1<<ADC_RESOLUTION)
+/** Sample & hold capacitor control: PORT configuration */
+#define SHRST_IO_PORT PORTD
 
 
-/** Histogram table
+/** Sample & hold capacitor control: DDR configuration */
+#define SHRST_IO_DDR DDRD
+
+
+/** Sample & hold capacitor control: Pseudonym configuration */
+#define SHRST_IO_CTRL_BIT PD6
+
+
+/** ADC resolution in bit
  *
- * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
- * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
- *
- * For the definition of sizeof_table, see adc-int-histogram.c.
- *
- * \see data_table
+ *  Put in a reasonable value (e.g. 10 bit ADC -> 9 bit)
  */
-volatile histogram_element_t table[MAX_COUNTER];
+#define ADC_RESOLUTION (9)
 
 
 /** @} */
 
-#endif /* ADC_INT_HISTOGRAM_H */
+
+#endif /* !ADC_EXT_GLOBAL_H */
 
 
 /*

@@ -321,6 +321,7 @@ clean:
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
 	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss
 	rm -f *.lst
+	rm -f *.o
 
 .PHONY: depend
 depend: $(DEPEND_MK)

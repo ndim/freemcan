@@ -105,8 +105,8 @@ ISR(INT0_vect){
     * Condition 1.) is fullfilled if 30ns < debounce time < 2270ns
     * Condition 2.) is fullfilled if 20ns < debounce time
     */
-   AD7813_DELAY
-   AD7813_DELAY
+   AD7813_DELAY();
+   AD7813_DELAY();
    /* Reset CONVST to VDD during BUSY is high to operate ADC in MODE 1 */
    AD7813_IO_CONVST_PORT |= (_BV(AD7813_IO_CONVST_CTRL_BIT));
    /* Poll BUSY signal til AD conversion is completed (falling edge on
@@ -117,11 +117,11 @@ ISR(INT0_vect){
    AD7813_IO_RD_PORT &= ~(_BV(AD7813_IO_RD_CTRL_BIT));
    /* Wait for at least AD7813_T_DATA_ACCESS_TIME_AFTR_RD_LOW (t6) til
     * data on latch is valid */
-   AD7813_DELAY
+   AD7813_DELAY();
    /* Read higher byte (8 bit) from ADC latch */
    register uint8_t result1 = AD7813_IO_DATA_PIN;
    /* Wait til atmega port is stable */
-   AD7813_DELAY
+   AD7813_DELAY();
    /* Force READ pin to VDD (reset) */
    AD7813_IO_RD_PORT |= (_BV(AD7813_IO_RD_CTRL_BIT));
 
@@ -130,14 +130,14 @@ ISR(INT0_vect){
     * AD7813_T_BUS_RELINQUISH_TIME_AFTR_RD_HIGH (t7) or
     * AD7813_T_MIN_BETWEEN_MSB_AND_LSB_READS (t8) */
    /* #if (ADC_RESOLUTION > 8) */
-   AD7813_DELAY
+   AD7813_DELAY();
    /* Force READ to GND to access lower 2 Bits by serial data read out */
    AD7813_IO_RD_PORT &= ~(_BV(AD7813_IO_RD_CTRL_BIT));
-   AD7813_DELAY
+   AD7813_DELAY();
    /* Read lower byte (8 bit) from ADC latch */
    register uint8_t result0 = AD7813_IO_DATA_PIN;
    /* Wait til ATmega latch is stable */
-   AD7813_DELAY
+   AD7813_DELAY();
    /* Force READ to VDD to reset the signal */
    AD7813_IO_RD_PORT |= (_BV(AD7813_IO_RD_CTRL_BIT));
 

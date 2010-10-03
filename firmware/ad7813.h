@@ -90,10 +90,10 @@
 
 /* ISR0 delays in dependancy of core frequency (feature is experimental !) */
 #if (F_CPU > 15000000)
-  #define AD7813_DELAY asm (" nop \n nop \n nop \n nop \n nop \n " :: );
+  #define AD7813_DELAY() do { asm(" nop \n nop \n nop \n nop \n nop \n " :: ); } while (0)
   #define AD7813_TO_SHRST_T_DELAY 1
 #else
-  #define AD7813_DELAY asm (" nop \n nop \n nop \n" :: );
+  #define AD7813_DELAY() do { asm(" nop \n nop \n nop \n" :: ); } while (0)
   #define AD7813_TO_SHRST_T_DELAY 0
 #endif
 

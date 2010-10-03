@@ -22,6 +22,8 @@
 
 CFLAGS =
 CLEANFILES =
+COMMON_OBJ =
+TARGETS =
 
 include ../common.mk
 
@@ -34,27 +36,18 @@ include ../common.mk
 
 MCU ?= atmega644p
 FORMAT = ihex
-TARGET = firmware-adc-int-mca
-SRC = \
-	main.c \
-	uart-comm.c \
-	frame-comm.c \
-	packet-comm.c \
-	wdt-softreset.c \
-	measurement-timer.c \
-	adc-int.c \
-	histogram.c \
-	firmware-version.c
-ASRC = # ISR-ADC_vect.S
+TARGETS += adc-int-mca
 OPT = s
-BSRC =
+
+# BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-BSRC += invented-histogram.bin
+COMMON_OBJ += invented-histogram.o
 CFLAGS += -DINVENTED_HISTOGRAM
 endif
 
+# BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
-SRC += uart-printf.c
+COMMON_OBJ += uart-printf.o
 CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
@@ -132,8 +125,8 @@ LDFLAGS = $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 AVRDUDE_PROGRAMMER ?= ponyser
 AVRDUDE_PORT ?= /dev/ttyS0
 
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-#AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
+AVRDUDE_WRITE_FLASH = -U flash:w:firmware-$(TARGET).hex
+#AVRDUDE_WRITE_EEPROM = -U eeprom:w:firmware-$(TARGET).eep
 
 
 # Uncomment the following if you want avrdude's erase cycle counter.
@@ -165,11 +158,15 @@ REMOVE = rm -f
 MV = mv -f
 OD = od
 
-# Define all object files.
-OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) $(BSRC:.bin=.o)
-
-# Define all listing files.
-LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
+# Define the common object files.
+# The object files specific to firmware personalities will not be listed here.
+COMMON_OBJ += main.o
+COMMON_OBJ += uart-comm.o
+COMMON_OBJ += frame-comm.o
+COMMON_OBJ += packet-comm.o
+COMMON_OBJ += wdt-softreset.o
+COMMON_OBJ += measurement-timer.o
+COMMON_OBJ += firmware-version.o
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
@@ -186,95 +183,84 @@ build: elf hex eep checks
 
 ALL: depend elf hex eep lss sym fuses checks
 
-elf: $(TARGET).elf
-hex: $(TARGET).hex
-eep: $(TARGET).eep
-lss: $(TARGET).lss
-sym: $(TARGET).sym
-fuses: $(TARGET).fuses
+elf: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
+hex: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hex)
+eep: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).eep)
+lss: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).lss)
+sym: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).sym)
+fuses: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
 
 
 # Program the device.
-program: $(TARGET).hex $(TARGET).eep
+program-% : TARGET = $*
+program-%: firmware-%.hex firmware-%.eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
-CLEANFILES += $(TARGET).fuses
-CLEANFILES += $(TARGET).lfuse.txt $(TARGET).hfuse.txt $(TARGET).efuse.txt
-$(TARGET).fuses: $(TARGET).elf
-	$(OBJCOPY) -j .fuse -O binary $(TARGET).elf $(TARGET).fuses
-	@chmod -x $(TARGET).fuses
-	$(OD) -A n -t xC $(TARGET).fuses | \
+CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
+CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).lfuse.txt)
+CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hfuse.txt)
+CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).efuse.txt)
+firmware-%.fuses: firmware-%.elf
+	$(OBJCOPY) -j .fuse -O binary $< $@
+	@chmod -x $@
+	$(OD) -A n -t xC $@ | \
 	{ read lfuse hfuse efuse restofline; \
-	  echo "0x$$lfuse" > $(TARGET).lfuse.txt; \
-	  echo "0x$$hfuse" > $(TARGET).hfuse.txt; \
-	  echo "0x$$efuse" > $(TARGET).efuse.txt; \
+	  echo "0x$$lfuse" > firmware-$*.lfuse.txt; \
+	  echo "0x$$hfuse" > firmware-$*.hfuse.txt; \
+	  echo "0x$$efuse" > firmware-$*.efuse.txt; \
 	}
 
-compare-fuses: read-fuses $(TARGET).fuses
+compare-fuses-%: read-fuses-% firmware-%.fuses
 	@echo "New fuse values to be written to device:"; \
 	for f in lfuse hfuse efuse; do \
 		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
 	done
 
-program-fuses: $(TARGET).fuses
+program-fuses-%: firmware-%.fuses
 	@echo "Writing fuses to device:"; \
 	for f in lfuse hfuse efuse; do \
-		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
+		echo "    $$f=$$(cat "firmware-$*.$$f.txt")"; \
 	done
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -u \
-		-U lfuse:w:$(shell cat $(TARGET).lfuse.txt):m \
-		-U hfuse:w:$(shell cat $(TARGET).hfuse.txt):m \
-		-U efuse:w:$(shell cat $(TARGET).efuse.txt):m
+		-U lfuse:w:$(shell cat firmware-$*.lfuse.txt):m \
+		-U hfuse:w:$(shell cat firmware-$*.hfuse.txt):m \
+		-U efuse:w:$(shell cat firmware-$*.efuse.txt):m
 
-read-fuses:
+read-fuses-%:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) \
-		-U lfuse:r:DEVICE.lfuse.txt:h \
-		-U hfuse:r:DEVICE.hfuse.txt:h \
-		-U efuse:r:DEVICE.efuse.txt:h
+		-U lfuse:r:DEVICE-$*.lfuse.txt:h \
+		-U hfuse:r:DEVICE-$*.hfuse.txt:h \
+		-U efuse:r:DEVICE-$*.efuse.txt:h
 	@echo "Read fuses from device:"; \
 	for f in lfuse hfuse efuse; do \
-		echo "    $$f=$$(cat "DEVICE.$$f.txt")"; \
+		echo "    $$f=$$(cat "DEVICE-$*.$$f.txt")"; \
 	done
-
-# Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
-COFFCONVERT=$(OBJCOPY) --debugging \
---change-section-address .data-0x800000 \
---change-section-address .bss-0x800000 \
---change-section-address .noinit-0x800000 \
---change-section-address .eeprom-0x810000
-
-
-coff: $(TARGET).elf
-	$(COFFCONVERT) -O coff-avr $(TARGET).elf $(TARGET).cof
-
-
-extcoff: $(TARGET).elf
-	$(COFFCONVERT) -O coff-ext-avr $(TARGET).elf $(TARGET).cof
-
 
 .SUFFIXES: .elf .hex .eep .lss .sym
 
-.elf.hex:
+firmware-%.hex: firmware-%.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
 
-.elf.eep:
+firmware-%.eep: firmware-%.elf
 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
-	--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
+		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
 
 # Create extended listing file from ELF output file.
-.elf.lss:
+firmware-%.lss: firmware-%.elf
 	$(OBJDUMP) -h -S $< > $@
 
 # Create a symbol table from ELF output file.
-.elf.sym:
+firmware-%.sym: firmware-%.elf
 	$(NM) -n $< > $@
 
 
 
 # Link: create ELF output file from object files.
-$(TARGET).elf: depend $(OBJ)
-	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
+firmware-% : TARGET = $*
+firmware-adc-int-mca.elf : depend $(COMMON_OBJ) adc-int.o histogram.o
+	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) --output $@ $(LDFLAGS)
+
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM
 # size: __bss_end must be <= 0x00801100.
@@ -282,8 +268,8 @@ $(TARGET).elf: depend $(OBJ)
 # The 0x00800000 is avr-gcc's Harvard architecture trick, and the
 # first 0x100 bytes in the addr space are CPU and IO registers, after
 # which the 4K of SRAM start, up to and including address 0x10ff.
-checks : check-bss-end
-check-bss-end: $(TARGET).elf
+checks : $(foreach TARGET, $(TARGETS), check-bss-end-$(TARGET))
+check-bss-end-%: firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
 	printf "CHECK: MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END"; \
@@ -291,8 +277,8 @@ check-bss-end: $(TARGET).elf
 
 # Check that SRAM + stack fit into the ATmega644's 4K of SRAM.
 MIN_STACK_SIZE = 48
-checks : check-stack-size
-check-stack-size : $(TARGET).elf
+checks : $(foreach TARGET, $(TARGETS), check-stack-size-$(TARGET))
+check-stack-size-% : firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
 	STACK_START="$$(nm $< | awk '/__stack/ { print (strtonum("0x"$$1)); }')"; \
@@ -302,8 +288,8 @@ check-stack-size : $(TARGET).elf
 	test "$$STACK_START" -ge "$$SUM"
 
 # Caution: The "data" number includes FUSES and other things besides the .data section.
-checks : check-avr-size
-check-avr-size: $(TARGET).elf
+checks : $(foreach TARGET, $(TARGETS), check-avr-size-$(TARGET))
+check-avr-size-%: firmware-%.elf
 	avr-size $<
 
 # Compile: create object files from C source files.
@@ -332,18 +318,18 @@ invented-histogram.o: invented-histogram.bin
 
 # Target: clean project.
 clean:
-	$(REMOVE) $(TARGET).hex $(TARGET).eep $(TARGET).cof $(TARGET).elf \
-	$(TARGET).map $(TARGET).sym $(TARGET).lss \
-	$(CLEANFILES) \
-	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d)
+	rm -f $(CLEANFILES)
+	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
+	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss
+	rm -f *.lst
 
 .PHONY: depend
 depend: $(DEPEND_MK)
 
-$(DEPEND_MK): $(SRC) $(ASRC)
+$(DEPEND_MK): $(wildcard *.c) $(wildcard *.S)
 	echo '# DO NOT MODIFY THIS FILE -- it is autogenerated' > $(DEPEND_MK)
 	echo '# You may delete this file, though (for the same reason).' >> $(DEPEND_MK)
-	$(COMPILE.c) $(ALL_CFLAGS) -M $(SRC) $(ASRC) >> $(DEPEND_MK)
+	$(COMPILE.c) $(ALL_CFLAGS) -M $^ >> $(DEPEND_MK)
 
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
 

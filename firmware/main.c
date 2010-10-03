@@ -119,7 +119,7 @@ FUSES = {
  * Prototypes
  *------------------------------------------------------------------------------
  */
-inline static void timer_reconf(void);
+inline static void timer_halt(void);
 
 /*------------------------------------------------------------------------------
  * Defines
@@ -167,6 +167,7 @@ volatile histogram_element_t table[MAX_COUNTER];
  */
 volatile uint16_t timer_count;
 
+volatile uint16_t num=0;
 
 /** Last value of timer counter
  *
@@ -231,58 +232,25 @@ void wdt_init(void)
  */
 ISR(ADC_vect)
 {
-
   /* Read analog value */
   uint16_t result = ADCW;
 
-  /* We are confident that the range of values the ADC gives us
-   * is within the specced 10bit range of 0..1023. */
+  table[num] = result >> (10-ADC_RESOLUTION);
 
-  /* cut off 2, 1 or 0 LSB */
-  const uint16_t index = result >> (10-ADC_RESOLUTION);
+  num++;
 
-  /* For 24bit values, the source code looks a little more complicated
-   * than just table[index]++ (even though the generated machine
-   * instructions are not).  Anyway, we needed to move the increment
-   * into a properly defined _inc function.
-   */
-  volatile histogram_element_t *element = &(table[index]);
-  histogram_element_inc(element);
+  if (num == MAX_COUNTER){
+     /* switch off any compare matches on B to stop sampling
+        reconfigure compare register A to toggle a sign            */
+     timer_halt();
+     timer_flag = 1;
+  }
 
   /* Clear interrupt flag of timer1 compare match B manually since there is no
      TIMER1_COMPB_vect executed */
   TIFR1 |= _BV(OCF1B);
-}
 
-
-/** 16 Bit timer ISR
- *
- * When timer has elapsed, the global #timer_flag (8bit, therefore
- * atomic read/writes) is set.
- *
- * Note that we are counting down the timer_count, so it will start
- * with its maximum value and count down to zero.
- *
- * \see last_timer_count, get_duration
- */
-ISR(TIMER1_COMPA_vect)
-{
-    /* runs open end */
-
-  /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
-
-  if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
-    last_timer_count = timer_count;
-    timer_count--;
-    if (timer_count == 0) {
-      /* switch off any compare matches on B to stop sampling
-         reconfigure compare register A to toggle a sign            */
-      timer_reconf();
-      /* timer has elapsed, set the flag to signal the main program */
-      timer_flag = 1;
-    }
-  }
+  TIFR1 |= _BV(OCF1A);
 }
 
 
@@ -465,7 +433,7 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
   //TIMSK1 |= BIT(OCIE1B);
 
   /* output compare match A interrupt enable                      */
-  TIMSK1 |= _BV(OCIE1A);
+  //TIMSK1 |= _BV(OCIE1A);
 }
 
 
@@ -475,7 +443,7 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
  * You MUST have run timer_init() some time before running timer_init_quick().
  */
 inline static
-void timer_reconf(void)
+void timer_halt(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */

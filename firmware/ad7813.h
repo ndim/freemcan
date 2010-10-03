@@ -24,7 +24,13 @@
 #ifndef AD7813_H
 #define AD7813_H
 
+
 #include <avr/io.h>
+
+/* global.h defines F_CPU, and util/delay.h needs F_CPU */
+#include "global.h"
+#include <util/delay.h>
+
 
 /* AD7813 input/output-peripherals */
 

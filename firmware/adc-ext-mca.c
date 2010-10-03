@@ -35,9 +35,7 @@
 #include "histogram.h"
 #include "adc-ext-histogram.h"
 
-/* following two includes need F_CPU */
 #include "ad7813.h"
-#include <util/delay.h>
 
 
 /** Initialize peripherals

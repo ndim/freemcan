@@ -1,9 +1,9 @@
 /*.lst
+/*.d
 /*.o
 /*.lfuse.txt
 /*.hfuse.txt
 /*.efuse.txt
-/.depend.mk
 /invented-histogram.bin
 /settings.mk
 /firmware-adc-ext-mca.*

@@ -40,17 +40,6 @@ TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
 CFLAGS += -Os
 
-# BUG: Needs proper hooking up with new unified-firmware build system
-ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-COMMON_OBJ += invented-histogram.o
-CPPFLAGS += -DINVENTED_HISTOGRAM
-endif
-
-# BUG: Needs proper hooking up with new unified-firmware build system
-ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
-COMMON_OBJ += uart-printf.o
-CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
-endif
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
@@ -229,6 +218,33 @@ read-fuses-%:
 		echo "    $$f=$$(cat "DEVICE-$*.$$f.txt")"; \
 	done
 
+
+########################################################################
+# Optional firmware features
+
+# BUG: Needs proper hooking up with new unified-firmware build system
+ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
+COMMON_OBJ += uart-printf.o
+CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+endif
+
+# BUG: Needs proper hooking up with new unified-firmware build system
+ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
+COMMON_OBJ += invented-histogram.o
+CPPFLAGS += -DINVENTED_HISTOGRAM
+endif
+
+CLEANFILES += invented-histogram.bin
+invented-histogram.bin: ../emulator/histogram_emulator.erl
+	$(MAKE) -C ../emulator histogram_emulator.beam
+	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
+
+invented-histogram.o: invented-histogram.bin
+	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
+		--rename-section .data=.text,contents,alloc,load,readonly,code \
+		"$<" "$@"
+
+
 .SUFFIXES: .elf .hex .eep .lss .sym
 
 firmware-%.hex: firmware-%.elf
@@ -298,6 +314,7 @@ check-ALL-%: check-ALL-%.check
 
 checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
+
 # Compile: create object files from C source files.
 .c.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
@@ -311,16 +328,6 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 # Assemble: create object files from assembler source files.
 .S.o:
 	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
-
-CLEANFILES += invented-histogram.bin
-invented-histogram.bin: ../emulator/histogram_emulator.erl
-	$(MAKE) -C ../emulator histogram_emulator.beam
-	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
-
-invented-histogram.o: invented-histogram.bin
-	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
-		--rename-section .data=.text,contents,alloc,load,readonly,code \
-		"$<" "$@"
 
 %.d: %.S
 	@set -e; rm -f $@; \

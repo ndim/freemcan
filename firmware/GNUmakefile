@@ -38,87 +38,82 @@ MCU ?= atmega644p
 FORMAT = ihex
 TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
-OPT = s
+CFLAGS += -Os
 
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
 COMMON_OBJ += invented-histogram.o
-CFLAGS += -DINVENTED_HISTOGRAM
+CPPFLAGS += -DINVENTED_HISTOGRAM
 endif
 
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
 COMMON_OBJ += uart-printf.o
-CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
-DEBUG = stabs
+CFLAGS += -gstabs
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
 # gnu89 - c89 plus GCC extensions
 # c99   - ISO C99 standard (not yet fully implemented)
 # gnu99 - c99 plus GCC extensions
-CSTANDARD = -std=gnu99
+CFLAGS += -std=gnu99
+
 
 # Place -D or -U options here
-CDEFS =
+CPPFLAGS +=
 
 # Place -I options here
-CINCS = -I../include
+CPPFLAGS += -I../include
 
 
-CDEBUG = -g$(DEBUG)
-CWARN = -Wall -Wextra -Wstrict-prototypes
+CPPFLAGS += -Wall -Wextra
+CFLAGS += -Wstrict-prototypes
 # Some more flags that might be useful for tuning:
-#    -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+# CFLAGS += -funsigned-char
+# CFLAGS += -funsigned-bitfields
+# CFLAGS += -fpack-struct
 CFLAGS += -fshort-enums
-#CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(CDEBUG) $(CDEFS) $(CINCS) -O$(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
+# CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
 
 
-ASFLAGS =
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
-ASFLAGS += -Wall -Wextra
 
 
 #Additional libraries.
 
 # Minimalistic printf version
-PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+# LDLIBS += -Wl,-u,vfprintf -lprintf_min
 
 # Floating point printf version (requires MATH_LIB = -lm below)
-PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
-
-PRINTF_LIB =
+# LDLIBS += -Wl,-u,vfprintf -lprintf_flt
 
 # Minimalistic scanf version
-SCANF_LIB_MIN = -Wl,-u,vfscanf -lscanf_min
+# LDLIBS += -Wl,-u,vfscanf -lscanf_min
 
 # Floating point + %[ scanf version (requires MATH_LIB = -lm below)
-SCANF_LIB_FLOAT = -Wl,-u,vfscanf -lscanf_flt
+# LDLIBS += -Wl,-u,vfscanf -lscanf_flt
 
-SCANF_LIB =
-
-MATH_LIB = -lm
+# Math library
+LDLIBS += -lm
 
 # External memory options
 
 # 64 KB of external RAM, starting after internal RAM (ATmega128!),
 # used for variables (.data/.bss) and heap (malloc()).
-#EXTMEMOPTS = -Wl,--section-start,.data=0x801100,--defsym=__heap_end=0x80ffff
+# LDFLAGS += -Wl,--section-start,.data=0x801100,--defsym=__heap_end=0x80ffff
 
 # 64 KB of external RAM, starting after internal RAM (ATmega128!),
 # only used for heap (malloc()).
-#EXTMEMOPTS = -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
+# LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
-EXTMEMOPTS =
-
-LDMAP = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS = $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
+# Create map file on linking
+LDFLAGS += -Wl,-Map=$*.map,--cref
 
 
 # Programming support using avrdude. Settings and variables.
@@ -168,20 +163,16 @@ COMMON_OBJ += packet-comm.o
 COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += firmware-version.o
 
-# Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
-ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+CPPFLAGS += -mmcu=$(MCU)
 
-DEPEND_MK = .depend.mk
-CLEANFILES += $(DEPEND_MK)
+CPPFLAGS += -I.
+ASFLAGS += -x assembler-with-cpp
 
 # Default target.
-all: depend build
+all: elf hex checks
 
-build: elf hex eep checks
-
-ALL: depend elf hex eep lss sym fuses checks
+ALL: elf hex lss sym fuses checks
 
 elf: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
 hex: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hex)
@@ -204,6 +195,7 @@ CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).efuse.txt)
 firmware-%.fuses: firmware-%.elf
 	$(OBJCOPY) -j .fuse -O binary $< $@
 	@chmod -x $@
+	@echo "Split $@ into $*.{l,h,e}fuse.txt"; \
 	$(OD) -A n -t xC $@ | \
 	{ read lfuse hfuse efuse restofline; \
 	  echo "0x$$lfuse" > firmware-$*.lfuse.txt; \
@@ -256,12 +248,16 @@ firmware-%.sym: firmware-%.elf
 
 
 
-# Link: create ELF output file from object files.
-firmware-% : TARGET = $*
-firmware-adc-ext-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
-	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) --output $@ $(LDFLAGS)
-firmware-adc-int-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
-	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) --output $@ $(LDFLAGS)
+# Link: create ELF output files from object files.
+
+# Firmware personality: MCA using external ADC
+firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
+# Firmware personality: MCA using internal ADC
+firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
 
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM
@@ -270,43 +266,51 @@ firmware-adc-int-mca.elf : depend $(COMMON_OBJ) measurement-timer-ISR-countdown-
 # The 0x00800000 is avr-gcc's Harvard architecture trick, and the
 # first 0x100 bytes in the addr space are CPU and IO registers, after
 # which the 4K of SRAM start, up to and including address 0x10ff.
-checks : $(foreach TARGET, $(TARGETS), check-bss-end-$(TARGET))
-check-bss-end-%: firmware-%.elf
+CHECKS += bss-end
+check-bss-end-%.check: firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
-	printf "CHECK: MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END"; \
-	test "$$MAX_BSS_END" -ge "$$BSS_END"
+	printf "CHECK($*): MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END" > $@; \
+	test "$$MAX_BSS_END" -ge "$$BSS_END" || { cat $@; exit 1; }
 
 # Check that SRAM + stack fit into the ATmega644's 4K of SRAM.
 MIN_STACK_SIZE = 48
-checks : $(foreach TARGET, $(TARGETS), check-stack-size-$(TARGET))
-check-stack-size-% : firmware-%.elf
+CHECKS += stack-size
+check-stack-size-%.check : firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
 	STACK_START="$$(nm $< | awk '/__stack/ { print (strtonum("0x"$$1)); }')"; \
 	SUM="$$(expr $$BSS_END + $(MIN_STACK_SIZE))"; \
-	printf "CHECK: STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
-		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)"; \
-	test "$$STACK_START" -ge "$$SUM"
+	printf "CHECK($*): STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
+		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" > $@; \
+	test "$$STACK_START" -ge "$$SUM" || { cat $@; exit 1; }
 
 # Caution: The "data" number includes FUSES and other things besides the .data section.
-checks : $(foreach TARGET, $(TARGETS), check-avr-size-$(TARGET))
-check-avr-size-%: firmware-%.elf
-	avr-size $<
+CHECKS += avr-size
+check-avr-size-%.check: firmware-%.elf
+	@{ echo "CHECK($*): avr-size $<"; avr-size $<; } > $@
+
+check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
+	@cat $^ > $@
+
+check-ALL-%: check-ALL-%.check
+	@cat $<
+
+checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:
-	$(CC) -c $(ALL_CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 
 # Compile: create assembler files from C source files.
 .c.s:
-	$(CC) -S $(ALL_CFLAGS) $< -o $@
+	$(CC) -S $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
 .S.o:
-	$(CC) -c $(ALL_ASFLAGS) $< -o $@
+	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
 
 CLEANFILES += invented-histogram.bin
 invented-histogram.bin: ../emulator/histogram_emulator.erl
@@ -318,24 +322,32 @@ invented-histogram.o: invented-histogram.bin
 		--rename-section .data=.text,contents,alloc,load,readonly,code \
 		"$<" "$@"
 
+%.d: %.S
+	@set -e; rm -f $@; \
+		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		rm -f $@.$$$$
+
+%.d: %.c
+	@set -e; rm -f $@; \
+		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		rm -f $@.$$$$
+
+ALL_CSOURCES = $(wildcard *.c)
+ALL_ASOURCES = $(wildcard *.S)
+include $(ALL_CSOURCES:.c=.d) $(ALL_ASOURCES:.S=.d)
+
 # Target: clean project.
 clean:
 	rm -f $(CLEANFILES)
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
 	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss
+	rm -f check-*.check
 	rm -f *.lst
 	rm -f *.o
+	rm -f *.d
 
-.PHONY: depend
-depend: $(DEPEND_MK)
-
-$(DEPEND_MK): $(wildcard *.c) $(wildcard *.S)
-	echo '# DO NOT MODIFY THIS FILE -- it is autogenerated' > $(DEPEND_MK)
-	echo '# You may delete this file, though (for the same reason).' >> $(DEPEND_MK)
-	$(COMPILE.c) $(ALL_CFLAGS) -M $^ >> $(DEPEND_MK)
-
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend fuses compare-fuses program-fuses read-fuses ALL
-
--include $(DEPEND_MK)
+.PHONY:	all elf hex eep lss sym program coff extcoff clean fuses compare-fuses program-fuses read-fuses ALL
 
 # End of GNUmakefile

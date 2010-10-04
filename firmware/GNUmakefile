@@ -55,7 +55,7 @@ endif
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
-DEBUG = stabs
+CFLAGS += -gstabs
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
@@ -71,13 +71,12 @@ CDEFS =
 CINCS = -I../include
 
 
-CDEBUG = -g$(DEBUG)
 CWARN = -Wall -Wextra -Wstrict-prototypes
 # Some more flags that might be useful for tuning:
 #    -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -fshort-enums
 #CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(CDEBUG) $(CDEFS) $(CINCS) $(CWARN) $(CSTANDARD) $(CEXTRA)
+CFLAGS += $(CDEFS) $(CINCS) $(CWARN) $(CSTANDARD) $(CEXTRA)
 
 
 ASFLAGS =

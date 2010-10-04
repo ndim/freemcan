@@ -248,11 +248,16 @@ firmware-%.sym: firmware-%.elf
 
 
 
-# Link: create ELF output file from object files.
+# Link: create ELF output files from object files.
+
+# Firmware personality: MCA using external ADC
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
+# Firmware personality: MCA using internal ADC
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
 
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM

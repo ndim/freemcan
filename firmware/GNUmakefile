@@ -251,9 +251,9 @@ firmware-%.sym: firmware-%.elf
 # Link: create ELF output file from object files.
 firmware-%.elf : TARGET = $*
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM

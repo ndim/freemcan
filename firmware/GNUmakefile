@@ -106,16 +106,14 @@ LDLIBS += -lm
 
 # 64 KB of external RAM, starting after internal RAM (ATmega128!),
 # used for variables (.data/.bss) and heap (malloc()).
-#EXTMEMOPTS = -Wl,--section-start,.data=0x801100,--defsym=__heap_end=0x80ffff
+# LDFLAGS += -Wl,--section-start,.data=0x801100,--defsym=__heap_end=0x80ffff
 
 # 64 KB of external RAM, starting after internal RAM (ATmega128!),
 # only used for heap (malloc()).
-#EXTMEMOPTS = -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
-
-EXTMEMOPTS =
+# LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
 LDMAP = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS += $(EXTMEMOPTS) $(LDMAP)
+LDFLAGS += $(LDMAP)
 
 
 # Programming support using avrdude. Settings and variables.

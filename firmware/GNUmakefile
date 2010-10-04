@@ -174,9 +174,7 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 # Default target.
-all: build
-
-build: elf hex eep checks
+all: elf hex eep checks
 
 ALL: elf hex eep lss sym fuses checks
 
@@ -347,6 +345,6 @@ clean:
 	rm -f *.o
 	rm -f *.d
 
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean fuses compare-fuses program-fuses read-fuses ALL
+.PHONY:	all elf hex eep lss sym program coff extcoff clean fuses compare-fuses program-fuses read-fuses ALL
 
 # End of GNUmakefile

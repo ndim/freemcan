@@ -255,10 +255,11 @@ ISR(ADC_vect)
     }
 
     /** \todo really necessary? */
-    /* Clear interrupt flag of timer1 compare match A & B manually since there is no
-       TIMER1_COMPB_vect ISR executed                                      */
+    /* Clear interrupt flag of timer1 compare match B manually since there is no
+       TIMER1_COMPB_vect ISR executed but the ADC is triggered on rising edge
+       of interrupt flag                                                */
     TIFR1 |= _BV(OCF1B);
-    TIFR1 |= _BV(OCF1A);
+    //TIFR1 |= _BV(OCF1A);
 }
 
 

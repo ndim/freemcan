@@ -267,29 +267,34 @@ firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-sto
 # The 0x00800000 is avr-gcc's Harvard architecture trick, and the
 # first 0x100 bytes in the addr space are CPU and IO registers, after
 # which the 4K of SRAM start, up to and including address 0x10ff.
-checks : $(foreach TARGET, $(TARGETS), check-bss-end-$(TARGET).check)
+CHECKS += bss-end
 check-bss-end-%.check: firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
-	printf "CHECK($*): MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END" | tee $@; \
-	test "$$MAX_BSS_END" -ge "$$BSS_END"
+	printf "CHECK($*): MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END" > $@; \
+	test "$$MAX_BSS_END" -ge "$$BSS_END" || { cat $@; exit 1; }
 
 # Check that SRAM + stack fit into the ATmega644's 4K of SRAM.
 MIN_STACK_SIZE = 48
-checks : $(foreach TARGET, $(TARGETS), check-stack-size-$(TARGET).check)
+CHECKS += stack-size
 check-stack-size-%.check : firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
 	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
 	STACK_START="$$(nm $< | awk '/__stack/ { print (strtonum("0x"$$1)); }')"; \
 	SUM="$$(expr $$BSS_END + $(MIN_STACK_SIZE))"; \
 	printf "CHECK($*): STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
-		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" | tee $@; \
-	test "$$STACK_START" -ge "$$SUM"
+		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" > $@; \
+	test "$$STACK_START" -ge "$$SUM" || { cat $@; exit 1; }
 
 # Caution: The "data" number includes FUSES and other things besides the .data section.
-checks : $(foreach TARGET, $(TARGETS), check-avr-size-$(TARGET).check)
+CHECKS += avr-size
 check-avr-size-%.check: firmware-%.elf
-	@echo "CHECK($*): avr-size $<"; avr-size $< | tee $@
+	@{ echo "CHECK($*): avr-size $<"; avr-size $<; } > $@
+
+checks-%: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
+	@cat $^
+
+checks: $(foreach TARGET, $(TARGETS), checks-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:

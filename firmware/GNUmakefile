@@ -75,8 +75,7 @@ CFLAGS += -Wall -Wextra -Wstrict-prototypes
 # Some more flags that might be useful for tuning:
 #    -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -fshort-enums
-#CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(CEXTRA)
+# CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
 
 
 ASFLAGS =

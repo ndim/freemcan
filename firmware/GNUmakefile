@@ -43,13 +43,13 @@ CFLAGS += -Os
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
 COMMON_OBJ += invented-histogram.o
-CFLAGS += -DINVENTED_HISTOGRAM
+CPPFLAGS += -DINVENTED_HISTOGRAM
 endif
 
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
 COMMON_OBJ += uart-printf.o
-CFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
 # Debugging format.
@@ -64,14 +64,16 @@ CFLAGS += -gstabs
 # gnu99 - c99 plus GCC extensions
 CFLAGS += -std=gnu99
 
+
 # Place -D or -U options here
-CFLAGS +=
+CPPFLAGS +=
 
 # Place -I options here
-CFLAGS += -I../include
+CPPFLAGS += -I../include
 
 
-CFLAGS += -Wall -Wextra -Wstrict-prototypes
+CPPFLAGS += -Wall -Wextra
+CFLAGS += -Wstrict-prototypes
 # Some more flags that might be useful for tuning:
 # CFLAGS += -funsigned-char
 # CFLAGS += -funsigned-bitfields
@@ -80,9 +82,7 @@ CFLAGS += -fshort-enums
 # CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
 
 
-ASFLAGS =
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
-ASFLAGS += -Wall -Wextra
 
 
 #Additional libraries.
@@ -164,10 +164,9 @@ COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += firmware-version.o
 
 # Add target processor to flags.
-CFLAGS += -mmcu=$(MCU)
-CFLAGS += -I.
-ASFLAGS += -mmcu=$(MCU)
-ASFLAGS += -I.
+CPPFLAGS += -mmcu=$(MCU)
+
+CPPFLAGS += -I.
 ASFLAGS += -x assembler-with-cpp
 
 # Default target.
@@ -252,9 +251,9 @@ firmware-%.sym: firmware-%.elf
 # Link: create ELF output file from object files.
 firmware-%.elf : TARGET = $*
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
-	$(CC) $(CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
-	$(CC) $(CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
 
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM
@@ -297,17 +296,17 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 
 # Compile: create assembler files from C source files.
 .c.s:
-	$(CC) -S $(CFLAGS) $< -o $@
+	$(CC) -S $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
 .S.o:
-	$(CC) -c $(ASFLAGS) $< -o $@
+	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
 
 CLEANFILES += invented-histogram.bin
 invented-histogram.bin: ../emulator/histogram_emulator.erl
@@ -321,13 +320,13 @@ invented-histogram.o: invented-histogram.bin
 
 %.d: %.S
 	@set -e; rm -f $@; \
-		$(CC) -MM $(ASFLAGS) $< > $@.$$$$; \
+		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 %.d: %.c
 	@set -e; rm -f $@; \
-		$(CC) -MM $(CFLAGS) $< > $@.$$$$; \
+		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 

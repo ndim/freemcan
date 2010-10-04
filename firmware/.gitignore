@@ -8,3 +8,4 @@
 /settings.mk
 /firmware-adc-ext-mca.*
 /firmware-adc-int-mca.*
+/check-*.check

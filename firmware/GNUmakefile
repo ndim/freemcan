@@ -290,10 +290,13 @@ CHECKS += avr-size
 check-avr-size-%.check: firmware-%.elf
 	@{ echo "CHECK($*): avr-size $<"; avr-size $<; } > $@
 
-checks-%: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
-	@cat $^
+check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
+	@cat $^ > $@
 
-checks: $(foreach TARGET, $(TARGETS), checks-$(TARGET))
+check-ALL-%: check-ALL-%.check
+	@cat $<
+
+checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:

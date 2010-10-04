@@ -38,7 +38,7 @@ MCU ?= atmega644p
 FORMAT = ihex
 TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
-OPT = s
+CFLAGS += -Os
 
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
@@ -77,7 +77,7 @@ CWARN = -Wall -Wextra -Wstrict-prototypes
 #    -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -fshort-enums
 #CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(CDEBUG) $(CDEFS) $(CINCS) -O$(OPT) $(CWARN) $(CSTANDARD) $(CEXTRA)
+CFLAGS += $(CDEBUG) $(CDEFS) $(CINCS) $(CWARN) $(CSTANDARD) $(CEXTRA)
 
 
 ASFLAGS =

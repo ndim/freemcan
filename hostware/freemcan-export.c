@@ -75,6 +75,35 @@ const char *time_rfc_3339(const time_t time)
 }
 
 
+typedef struct {
+  double counts;
+  double counts_error;
+  double duration;
+  double avg_cpm;   /**< counts per minute */
+  double avg_cpm_error; /**< error in counts per minute */
+  double statistical_error;
+} statistics_t;
+
+
+void print_stats(FILE *file, const char *prefix, const char *eol,
+                 const statistics_t *s)
+{
+  fprintf(file, "%sduration:\t%.1f seconds = %.2f minutes = %.4f hours%s",
+          prefix, s->duration, s->duration/60.0, s->duration/3600.0, eol);
+
+  fprintf(file, "%scounts:\t%.0f%s", prefix, s->counts, eol);
+  fprintf(file, "%s       \t+/- %1.2f CNTs (average is within 1 sigma)%s",
+          prefix, s->counts_error, eol);
+
+  fprintf(file, "%scounts per minute:\t%1.2f%s", prefix, s->avg_cpm, eol);
+  fprintf(file, "%s                  \t+/- %1.2f CPMs (average is within 1 sigma)%s",
+          prefix, s->avg_cpm_error, eol);
+
+  fprintf(file, "%sstatistical error:\t%1.1f %%%s",
+          prefix, s->statistical_error, eol);
+}
+
+
 /* documented in freemcan-export.h */
 void export_value_table(const packet_value_table_t *value_table_packet)
 {
@@ -110,31 +139,34 @@ void export_value_table(const packet_value_table_t *value_table_packet)
     }
     break;
   case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
-    fprintf(datfile, "# number of intervalls:\t%d\n", value_table_packet->element_count);
-    fprintf(datfile, "#duration per interval: %d sec\n", value_table_packet->total_duration);
+    fprintf(datfile, "# number of intervals:    %d\n",     value_table_packet->element_count);
+    fprintf(datfile, "# duration per interval:  %d sec\n", value_table_packet->total_duration);
+
+    fprintf(datfile, "# receive_time:           %lu (%s)\n",
+            value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
+    fprintf(datfile, "# orig_element_size:      %d byte (%d bit)\n",
+            value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
+    fprintf(datfile, "# duration per value:     %u\n", value_table_packet->total_duration);
+    fprintf(datfile, "# duration of last value: %u\n", value_table_packet->duration);
+    const uint32_t elapsed_time = value_table_packet->duration +
+      (value_table_packet->total_duration * (value_table_packet->element_count-1));
+    fprintf(datfile, "# elapsed time:           %u sec\n", elapsed_time);
 
     unsigned long total_count = 0;
     for (size_t i=0; i<element_count; i++) {
       total_count += value_table_packet->elements[i];
     }
 
-    fprintf(datfile, "#elapsed time:      %d sec\n",
-            value_table_packet->element_count*value_table_packet->total_duration);
+    statistics_t s;
+    s.counts = total_count;
+    s.counts_error = sqrt(s.counts);
+    s.duration = (double)(elapsed_time);
+    s.avg_cpm = 60.0*s.counts/s.duration;
+    s.avg_cpm_error = s.avg_cpm*s.counts_error/s.counts;
+    s.statistical_error = 100.0 * s.avg_cpm_error / s.avg_cpm;
 
-    fprintf(datfile, "#total counts:      %lu", total_count);
-
-    float total_counts_error = sqrt((float)(total_count));
-    fprintf(datfile, "    +/- %1.2f CNTs (average is within 1 sigma)\n", total_counts_error);
-
-    float average_count_rate = 60.0*(float)(total_count)/(float)(element_count*value_table_packet->total_duration);
-    fprintf(datfile, "#counts per minute: %1.2f", average_count_rate);
-
-    float average_counts_error = average_count_rate*total_counts_error/total_count;
-    fprintf(datfile, "  +/- %1.2f CPMs (average is within 1 sigma)\n", average_counts_error);
-
-    fprintf(datfile, "#statistical error: %1.1f %%\n",
-            100.0*average_counts_error/average_count_rate);
-    break;
+    print_stats(datfile, "# ",    "\n",   &s);
+    print_stats(stdout,  "     ", "\r\n", &s);
   }
   fclose(datfile);
 }

@@ -105,6 +105,38 @@ LDLIBS += -lm
 LDFLAGS += -Wl,-Map=$*.map,--cref
 
 
+# Define the common object files.
+# The object files specific to firmware personalities will not be listed here.
+COMMON_OBJ += main.o
+COMMON_OBJ += uart-comm.o
+COMMON_OBJ += frame-comm.o
+COMMON_OBJ += packet-comm.o
+COMMON_OBJ += wdt-softreset.o
+COMMON_OBJ += firmware-version.o
+
+# Add target processor to flags.
+CPPFLAGS += -mmcu=$(MCU)
+
+CPPFLAGS += -I.
+ASFLAGS += -x assembler-with-cpp
+
+
+########################################################################
+# The programs used
+
+ERL = erl
+CC = avr-gcc
+OBJCOPY = avr-objcopy
+OBJDUMP = avr-objdump
+SIZE = avr-size
+NM = avr-nm
+AVRDUDE = avrdude
+REMOVE = rm -f
+MV = mv -f
+OD = od
+
+
+########################################################################
 # Programming support using avrdude. Settings and variables.
 
 AVRDUDE_PROGRAMMER ?= ponyser
@@ -132,33 +164,9 @@ AVRDUDE_BASIC = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDUDE_ERASE_COUNTER)
 
 
-ERL = erl
-CC = avr-gcc
-OBJCOPY = avr-objcopy
-OBJDUMP = avr-objdump
-SIZE = avr-size
-NM = avr-nm
-AVRDUDE = avrdude
-REMOVE = rm -f
-MV = mv -f
-OD = od
+########################################################################
+# Default target and related "metatargets"
 
-# Define the common object files.
-# The object files specific to firmware personalities will not be listed here.
-COMMON_OBJ += main.o
-COMMON_OBJ += uart-comm.o
-COMMON_OBJ += frame-comm.o
-COMMON_OBJ += packet-comm.o
-COMMON_OBJ += wdt-softreset.o
-COMMON_OBJ += firmware-version.o
-
-# Add target processor to flags.
-CPPFLAGS += -mmcu=$(MCU)
-
-CPPFLAGS += -I.
-ASFLAGS += -x assembler-with-cpp
-
-# Default target.
 all: elf hex checks
 
 ALL: elf hex lss sym fuses checks
@@ -171,11 +179,16 @@ sym: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).sym)
 fuses: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
 
 
-# Program the device.
+########################################################################
+# Program the device with a firmware image
+
 program-% : TARGET = $*
 program-%: firmware-%.hex firmware-%.eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
+
+########################################################################
+# AVR fuse extraction, reading, writing, comparing
 
 CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
 CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).lfuse.txt)
@@ -245,7 +258,8 @@ invented-histogram.o: invented-histogram.bin
 		"$<" "$@"
 
 
-.SUFFIXES: .elf .hex .eep .lss .sym
+########################################################################
+# Firmware image formats and firmware image statistics
 
 firmware-%.hex: firmware-%.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
@@ -263,8 +277,8 @@ firmware-%.sym: firmware-%.elf
 	$(NM) -n $< > $@
 
 
-
-# Link: create ELF output files from object files.
+########################################################################
+# Link firmware images with different personalities
 
 # Firmware personality: MCA using external ADC
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
@@ -275,6 +289,8 @@ firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-sto
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 
+########################################################################
+# Check the firmware images
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM
 # size: __bss_end must be <= 0x00801100.
@@ -315,6 +331,9 @@ check-ALL-%: check-ALL-%.check
 checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 
+########################################################################
+# Compilation rules
+
 # Compile: create object files from C source files.
 .c.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
@@ -328,6 +347,10 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 # Assemble: create object files from assembler source files.
 .S.o:
 	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
+
+
+########################################################################
+# Automatic dependency generation
 
 %.d: %.S
 	@set -e; rm -f $@; \
@@ -345,7 +368,10 @@ ALL_CSOURCES = $(wildcard *.c)
 ALL_ASOURCES = $(wildcard *.S)
 include $(ALL_CSOURCES:.c=.d) $(ALL_ASOURCES:.S=.d)
 
-# Target: clean project.
+
+########################################################################
+# clean target
+
 clean:
 	rm -f $(CLEANFILES)
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
@@ -354,6 +380,9 @@ clean:
 	rm -f *.lst
 	rm -f *.o
 	rm -f *.d
+
+
+########################################################################
 
 .PHONY:	all elf hex eep lss sym program coff extcoff clean fuses compare-fuses program-fuses read-fuses ALL
 

@@ -174,9 +174,9 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 # Default target.
-all: elf hex eep checks
+all: elf hex checks
 
-ALL: elf hex eep lss sym fuses checks
+ALL: elf hex lss sym fuses checks
 
 elf: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
 hex: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hex)

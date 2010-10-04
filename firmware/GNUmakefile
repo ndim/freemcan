@@ -88,20 +88,16 @@ ASFLAGS += -Wall -Wextra
 #Additional libraries.
 
 # Minimalistic printf version
-PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+# LDLIBS += -Wl,-u,vfprintf -lprintf_min
 
 # Floating point printf version (requires MATH_LIB = -lm below)
-PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
-
-PRINTF_LIB =
+# LDLIBS += -Wl,-u,vfprintf -lprintf_flt
 
 # Minimalistic scanf version
-SCANF_LIB_MIN = -Wl,-u,vfscanf -lscanf_min
+# LDLIBS += -Wl,-u,vfscanf -lscanf_min
 
 # Floating point + %[ scanf version (requires MATH_LIB = -lm below)
-SCANF_LIB_FLOAT = -Wl,-u,vfscanf -lscanf_flt
-
-SCANF_LIB =
+# LDLIBS += -Wl,-u,vfscanf -lscanf_flt
 
 MATH_LIB = -lm
 
@@ -118,7 +114,7 @@ MATH_LIB = -lm
 EXTMEMOPTS =
 
 LDMAP = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS += $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
+LDFLAGS += $(EXTMEMOPTS) $(LDMAP) $(MATH_LIB)
 
 
 # Programming support using avrdude. Settings and variables.

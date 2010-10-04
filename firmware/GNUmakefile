@@ -113,7 +113,7 @@ LDLIBS += -lm
 # LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
 # Create map file on linking
-LDFLAGS += -Wl,-Map=$(TARGET).map,--cref
+LDFLAGS += -Wl,-Map=$*.map,--cref
 
 
 # Programming support using avrdude. Settings and variables.
@@ -249,7 +249,6 @@ firmware-%.sym: firmware-%.elf
 
 
 # Link: create ELF output file from object files.
-firmware-%.elf : TARGET = $*
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o

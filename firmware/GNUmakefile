@@ -201,6 +201,7 @@ CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).efuse.txt)
 firmware-%.fuses: firmware-%.elf
 	$(OBJCOPY) -j .fuse -O binary $< $@
 	@chmod -x $@
+	@echo "Split $@ into $*.{l,h,e}fuse.txt"; \
 	$(OD) -A n -t xC $@ | \
 	{ read lfuse hfuse efuse restofline; \
 	  echo "0x$$lfuse" > firmware-$*.lfuse.txt; \

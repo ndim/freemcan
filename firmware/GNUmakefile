@@ -99,7 +99,8 @@ ASFLAGS += -Wall -Wextra
 # Floating point + %[ scanf version (requires MATH_LIB = -lm below)
 # LDLIBS += -Wl,-u,vfscanf -lscanf_flt
 
-MATH_LIB = -lm
+# Math library
+LDLIBS += -lm
 
 # External memory options
 
@@ -114,7 +115,7 @@ MATH_LIB = -lm
 EXTMEMOPTS =
 
 LDMAP = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS += $(EXTMEMOPTS) $(LDMAP) $(MATH_LIB)
+LDFLAGS += $(EXTMEMOPTS) $(LDMAP)
 
 
 # Programming support using avrdude. Settings and variables.

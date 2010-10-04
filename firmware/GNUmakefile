@@ -163,10 +163,12 @@ COMMON_OBJ += packet-comm.o
 COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += firmware-version.o
 
-# Combine all necessary flags and optional flags.
 # Add target processor to flags.
-ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
-ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
+CFLAGS += -mmcu=$(MCU)
+CFLAGS += -I.
+ASFLAGS += -mmcu=$(MCU)
+ASFLAGS += -I.
+ASFLAGS += -x assembler-with-cpp
 
 # Default target.
 all: elf hex checks
@@ -250,9 +252,9 @@ firmware-%.sym: firmware-%.elf
 # Link: create ELF output file from object files.
 firmware-%.elf : TARGET = $*
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o adc-ext-histogram.o histogram.o
-	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
-	$(CC) $(ALL_CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(filter %.o, $^) $(LDLIBS) --output $@ $(LDFLAGS)
 
 
 # Check that the SRAM usage fits into the ATmega644's 4K SRAM
@@ -295,17 +297,17 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:
-	$(CC) -c $(ALL_CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 
 # Compile: create assembler files from C source files.
 .c.s:
-	$(CC) -S $(ALL_CFLAGS) $< -o $@
+	$(CC) -S $(CFLAGS) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
 .S.o:
-	$(CC) -c $(ALL_ASFLAGS) $< -o $@
+	$(CC) -c $(ASFLAGS) $< -o $@
 
 CLEANFILES += invented-histogram.bin
 invented-histogram.bin: ../emulator/histogram_emulator.erl
@@ -319,13 +321,13 @@ invented-histogram.o: invented-histogram.bin
 
 %.d: %.S
 	@set -e; rm -f $@; \
-		$(CC) -MM $(ALL_ASFLAGS) $< > $@.$$$$; \
+		$(CC) -MM $(ASFLAGS) $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 %.d: %.c
 	@set -e; rm -f $@; \
-		$(CC) -MM $(ALL_CFLAGS) $< > $@.$$$$; \
+		$(CC) -MM $(CFLAGS) $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 

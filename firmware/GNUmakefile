@@ -112,8 +112,8 @@ LDLIBS += -lm
 # only used for heap (malloc()).
 # LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
-LDMAP = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS += $(LDMAP)
+# Create map file on linking
+LDFLAGS += -Wl,-Map=$(TARGET).map,--cref
 
 
 # Programming support using avrdude. Settings and variables.

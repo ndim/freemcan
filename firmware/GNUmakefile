@@ -68,7 +68,7 @@ CSTANDARD = -std=gnu99
 CDEFS =
 
 # Place -I options here
-CINCS = -I../include
+CFLAGS += -I../include
 
 
 CWARN = -Wall -Wextra -Wstrict-prototypes
@@ -76,7 +76,7 @@ CWARN = -Wall -Wextra -Wstrict-prototypes
 #    -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -fshort-enums
 #CEXTRA = -Wa,-adhlns=$(<:.c=.lst)
-CFLAGS += $(CDEFS) $(CINCS) $(CWARN) $(CSTANDARD) $(CEXTRA)
+CFLAGS += $(CDEFS) $(CWARN) $(CSTANDARD) $(CEXTRA)
 
 
 ASFLAGS =

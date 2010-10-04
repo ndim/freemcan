@@ -102,7 +102,7 @@ LDLIBS += -lm
 # LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
 # Create map file on linking
-LDFLAGS += -Wl,-Map=$*.map,--cref
+LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
 
 
 # Define the common object files.
@@ -208,7 +208,7 @@ firmware-%.fuses: firmware-%.elf
 compare-fuses-%: read-fuses-% firmware-%.fuses
 	@echo "New fuse values to be written to device:"; \
 	for f in lfuse hfuse efuse; do \
-		echo "    $$f=$$(cat "$(TARGET).$$f.txt")"; \
+		echo "    $$f=$$(cat "$*.$$f.txt")"; \
 	done
 
 program-fuses-%: firmware-%.fuses

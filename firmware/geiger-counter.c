@@ -35,7 +35,6 @@
 #include <avr/interrupt.h>
 
 #include "global.h"
-#include "histogram.h"
 
 /* Needs F_CPU defined */
 #include <util/delay.h>

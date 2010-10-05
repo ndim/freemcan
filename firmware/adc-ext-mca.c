@@ -34,7 +34,6 @@
 #include <avr/interrupt.h>
 
 #include "global.h"
-#include "histogram.h"
 #include "adc-ext-global.h"
 
 #include "ad7813.h"

@@ -114,6 +114,7 @@ COMMON_OBJ += frame-comm.o
 COMMON_OBJ += packet-comm.o
 COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += firmware-version.o
+COMMON_OBJ += send-table.o
 
 # Add target processor to flags.
 CPPFLAGS += -mmcu=$(MCU)
@@ -285,15 +286,15 @@ firmware-%.sym: firmware-%.elf
 # Link firmware images with different personalities
 
 # Firmware personality: MCA using external ADC
-firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o histogram.o
+firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: MCA using internal ADC
-firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o histogram.o
+firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: Geiger Counter without time series
-firmware-geiger-counter.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o geiger-counter.o histogram.o
+firmware-geiger-counter.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 

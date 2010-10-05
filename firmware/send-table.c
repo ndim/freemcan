@@ -1,5 +1,5 @@
-/** \file firmware/histogram.c
- * \brief Histogram
+/** \file firmware/send-table.c
+ * \brief Send Table of Measured Data
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,17 +19,17 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup histogram Histogram
+ * \defgroup send_table Send Table of Measured Data
  * \ingroup firmware
  *
- * Histogram.
+ * Send the table of measured data to the host.
  *
  * @{
  */
 
 
 #include "global.h"
-#include "histogram.h"
+#include "send-table.h"
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "measurement-timer.h"
@@ -89,7 +89,7 @@ void invent_histogram(const uint16_t duration)
  * Note that for 'I' histograms it is possible that we send fluked
  * values due to overflows.
  */
-void send_histogram(const packet_histogram_type_t type)
+void send_table(const packet_histogram_type_t type)
 {
   const uint16_t duration = get_duration();
 

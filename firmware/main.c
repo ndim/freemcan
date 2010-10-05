@@ -90,6 +90,7 @@
 #include "packet-defs.h"
 #include "wdt-softreset.h"
 #include "measurement-timer.h"
+#include "send-table.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -243,7 +244,7 @@ int main(void)
       case ST_MEASURING_nomsg:
         if (timer_flag) { /* done */
           cli();
-          send_histogram(PACKET_HISTOGRAM_DONE);
+          send_table(PACKET_HISTOGRAM_DONE);
           timer_init_quick();
           next_state = ST_DONE;
         } else if (bit_is_set(UCSR0A, RXC0)) {
@@ -252,7 +253,7 @@ int main(void)
           switch (cmd) {
           case FRAME_CMD_ABORT:
             cli();
-            send_histogram(PACKET_HISTOGRAM_ABORTED);
+            send_table(PACKET_HISTOGRAM_ABORTED);
             next_state = ST_RESET;
             break;
           case FRAME_CMD_INTERMEDIATE:
@@ -263,18 +264,18 @@ int main(void)
              * *intermediate* results, those glitches are acceptable.
              *
              * Keeping interrupts enabled has the additional advantage
-             * that the measurement continues during send_histogram(),
+             * that the measurement continues during send_table(),
              * so we need not concern ourselves with pausing the
              * measurement timer or anything similar.
              *
-             * If you decide to bracket the send_histogram() call with a
+             * If you decide to bracket the send_table() call with a
              * cli()/sei() pair, be aware that you need to solve the
              * issue of resetting the peak hold capacitor on resume if
              * an event has been detected by the analog circuit while we
              * had interrupts disabled and thus ISR(ADC_vect) could not
              * reset the peak hold capacitor.
              */
-            send_histogram(PACKET_HISTOGRAM_INTERMEDIATE);
+            send_table(PACKET_HISTOGRAM_INTERMEDIATE);
             next_state = ST_MEASURING;
             break;
           case FRAME_CMD_STATE:
@@ -300,7 +301,7 @@ int main(void)
           next_state = ST_RESET;
           break;
         default:
-          send_histogram(PACKET_HISTOGRAM_RESEND);
+          send_table(PACKET_HISTOGRAM_RESEND);
           next_state = ST_DONE;
           break;
         }

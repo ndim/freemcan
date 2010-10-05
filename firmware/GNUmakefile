@@ -168,10 +168,13 @@ AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDU
 ########################################################################
 # Default target and related "metatargets"
 
+.PHONY: all
 all: elf hex checks
 
+.PHONY: ALL
 ALL: elf hex lss sym fuses checks
 
+.PHONY: elf hex eep lss sym fuses
 elf: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
 hex: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hex)
 eep: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).eep)
@@ -333,6 +336,7 @@ check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
 check-ALL-%: check-ALL-%.check
 	@cat $<
 
+.PHONY: checks
 checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 
@@ -377,6 +381,7 @@ include $(ALL_CSOURCES:.c=.d) $(ALL_ASOURCES:.S=.d)
 ########################################################################
 # clean target
 
+.PHONY: clean
 clean:
 	rm -f $(CLEANFILES)
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
@@ -388,7 +393,4 @@ clean:
 
 
 ########################################################################
-
-.PHONY:	all elf hex eep lss sym program coff extcoff clean fuses compare-fuses program-fuses read-fuses ALL
-
 # End of GNUmakefile

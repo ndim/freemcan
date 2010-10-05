@@ -1,5 +1,5 @@
-/** \file firmware/adc-ext-global.h
- * \brief Global adjustments for external ADC related stuff
+/** \file firmware/adc-int-global.h
+ * \brief Global adjustments for internal ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup global_constants_adc_ext Global Constants And Definitions for external ADC
+ * \defgroup global_constants_adc_int Global Constants And Definitions for internal ADC
  * \ingroup firmware
  * @{
  */

@@ -28,14 +28,44 @@
  */
 
 
+#include <stdlib.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
 #include "global.h"
 #include "histogram.h"
-#include "adc-ext-histogram.h"
+#include "adc-ext-global.h"
 
 #include "ad7813.h"
+
+
+/** Number of elements in the histogram table */
+#define MAX_COUNTER (1<<ADC_RESOLUTION)
+
+
+/** Histogram table
+ *
+ * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
+ * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
+ *
+ * For the definition of sizeof_table, see adc-int-histogram.c.
+ *
+ * \see data_table
+ */
+volatile histogram_element_t table[MAX_COUNTER];
+
+
+/** Actual size of #table in bytes
+ *
+ * Unfortunately, we need to define this variable and use it.  It
+ * would be so nice if we could just use the ELF symbol size of
+ * table[] to determine the size, but, alas, we do not know how to do
+ * that.
+ *
+ * \see data_table
+ */
+const size_t sizeof_table = sizeof(table);
 
 
 /** Initialize peripherals

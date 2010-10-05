@@ -101,6 +101,43 @@ typedef
 #if (ELEMENT_SIZE_IN_BYTES == 3)
 /** Increment 24bit unsigned integer */
 inline static
+void histogram_element_zero(volatile freemcan_uint24_t *dest)
+{
+  asm("\n\t"
+      /* store 24 bit value zero */
+      "std %a[preg]+2, __zero_reg__\n\t"                    /* 2 cycles */
+      "std %a[preg]+1, __zero_reg__\n\t"                    /* 2 cycles */
+      "st  %a[preg], __zero_reg__\n\t"                      /* 2 cycles */
+      : /* output operands */
+      : /* input operands */
+        [preg] "b" (dest)
+        /* no clobber */
+      );
+}
+
+
+inline static
+void histogram_element_copy(volatile freemcan_uint24_t *dest,
+                            volatile freemcan_uint24_t *source)
+{
+  asm("\n\t"
+      /* load and store 24 bit value in units of 8 bits */
+      "ld  __tmp_reg__, %a[src]\n\t"              /* 2 cycles */
+      "st  %a[dst], __tmp_reg__\n\t"              /* 2 cycles */
+      "ldd __tmp_reg__, %a[src]+1\n\t"            /* 2 cycles */
+      "std %a[dst]+1, __tmp_reg__\n\t"            /* 2 cycles */
+      "ldd __tmp_reg__, %a[src]+2\n\t"            /* 2 cycles */
+      "std %a[dst]+2, __tmp_reg__\n\t"            /* 2 cycles */
+      : /* output operands */
+      : /* input operands */
+        [dst] "b" (dest),
+        [src] "b" (source)
+        /* no clobbers */
+      );
+}
+
+
+inline static
 void histogram_element_inc(volatile freemcan_uint24_t *element)
 {
   uint16_t accu;

@@ -38,6 +38,7 @@ MCU ?= atmega644p
 FORMAT = ihex
 TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
+TARGETS += geiger-counter
 CFLAGS += -Os
 
 
@@ -286,6 +287,10 @@ firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-sto
 
 # Firmware personality: MCA using internal ADC
 firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o adc-int-histogram.o histogram.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
+# Firmware personality: Geiger Counter without time series
+firmware-geiger-counter.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o geiger-counter.o histogram.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 

@@ -18,8 +18,8 @@ CLEANFILES =
 
 SUBDIRS = . firmware hostware emulator
 
-.PHONY: all clean ALL
-all clean ALL:
+.PHONY: all clean
+all clean:
 	@for subdir in $(SUBDIRS); do \
 		if test "x$$subdir" = "x."; then \
 			echo $(MAKE) $@-here; \
@@ -33,6 +33,11 @@ all clean ALL:
 .PHONY: all-here
 all-here: README.html
 
+# Legacy target
+.PHONY: ALL
+ALL: all
+
+# Legacy target
 .PHONY: ALL-here
 ALL-here: all-here
 

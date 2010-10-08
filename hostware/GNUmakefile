@@ -37,6 +37,7 @@ all: depend $(bin_PROGRAMS)
 
 DEPEND_MK = .depend.mk
 
+# Legacy target
 .PHONY: ALL
 ALL: all
 

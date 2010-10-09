@@ -112,6 +112,12 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
         [timer1] "r" (timer1)
       );
 
+  /** Safeguard: We cannot handle 0 or 1 count measurements. */
+  if (orig_timer_count <= 1) {
+    send_text("Unsupported timer value <= 1");
+    wdt_soft_reset();
+  }
+
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;

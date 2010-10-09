@@ -33,13 +33,27 @@ include ../common.mk
 # settings.mk.
 -include settings.mk
 
-
 MCU ?= atmega644p
+# F_CPU ?= 1000000UL
+F_CPU ?= 16000000UL
+# F_CPU ?= 18432000UL
+# BUILD_FREEMCAN_INVENTED_HISTOGRAM = yes
+# BUILD_FREEMCAN_PRINTF = yes
+
+# End of settings
+
+
 FORMAT = ihex
+
 TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
 TARGETS += geiger-counter
+
+
 CFLAGS += -Os
+
+
+CPPFLAGS += -DF_CPU=$(F_CPU)
 
 
 # Debugging format.

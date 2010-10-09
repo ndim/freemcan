@@ -35,9 +35,7 @@
 
 /** XTAL frequency */
 #ifndef F_CPU
-/* #define F_CPU 1000000UL                     //!< factory configuration: 8Mhz/8 */
-/* #define F_CPU 16000000UL		               //!< Pollin AVR Eval board  */
-#define F_CPU 18432000UL
+# error You need to define F_CPU!
 #endif
 
 
@@ -51,7 +49,13 @@
  *
  *  Select a prescaler to have an compare match value as integer
  */
-#define TIMER_PRESCALER (5)
+#if (F_CPU == 18432000UL)
+# define TIMER_PRESCALER (5)
+#elif (F_CPU == 16000000UL)
+# define TIMER_PRESCALER (5)
+#else
+# error Unsupported F_CPU value
+#endif
 
 
 /** Timer compare match value for 16Bit timer
@@ -61,7 +65,13 @@
  *
  *  The data measurement is carried out in multiples of time_elapsed.
  */
-#define TIMER_COMPARE_MATCH_VAL 17999
+#if (F_CPU == 18432000UL)
+# define TIMER_COMPARE_MATCH_VAL 17999
+#elif (F_CPU == 16000000UL)
+# define TIMER_COMPARE_MATCH_VAL 15624
+#else
+# error Unsupported F_CPU value
+#endif
 
 
 /** Histogram element size in bytes

@@ -118,9 +118,9 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 }
 
 
-void tui_device_send_measure_command(const uint16_t param)
+void tui_device_send_measure_command(const uint16_t seconds)
 {
-  device_send_command_u16(device, FRAME_CMD_MEASURE, param);
+  device_send_command_u16(device, FRAME_CMD_MEASURE, seconds);
 }
 
 

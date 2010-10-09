@@ -41,7 +41,7 @@ extern packet_parser_t *tui_packet_parser;
 
 
 void tui_device_send_simple_command(const frame_cmd_t cmd);
-void tui_device_send_measure_command(const uint16_t param);
+void tui_device_send_measure_command(const uint16_t seconds);
 
 
 void tui_startup_messages(void);

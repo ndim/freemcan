@@ -170,8 +170,7 @@ void device_close(device_t *self)
 }
 
 
-void device_send_command(device_t *self,
-                         const frame_cmd_t cmd)
+void device_send_command(device_t *self, const frame_cmd_t cmd)
 {
   const int fd = self->fd;
   if (fd > 0) {
@@ -181,19 +180,19 @@ void device_send_command(device_t *self,
     return;
   }
 
-  write(fd, &cmd, 1);
+  const uint8_t cmd8 = cmd;
+  write(fd, &cmd8, 1);
 }
 
 
-void device_send_command_u16(device_t *self,
-                             const frame_cmd_t cmd, const uint16_t param)
+void device_send_command_u16(device_t *self, const frame_cmd_t cmd,
+                             const uint16_t param)
 {
   const int fd = self->fd;
   if (fd > 0) {
-    fmlog("Sending '%c' command to device (param=%d=0x%04x)",
-          cmd, param, param);
+    fmlog("Sending '%c'(%u=0x%x) command to device", cmd, param, param);
   } else {
-    fmlog("Not sending '%c' command to closed device (param=%d=0x%04x)",
+    fmlog("Not sending '%c'(%u=0x%x) command to closed device",
           cmd, param, param);
     return;
   }

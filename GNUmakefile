@@ -23,10 +23,10 @@ all clean:
 	@for subdir in $(SUBDIRS); do \
 		if test "x$$subdir" = "x."; then \
 			echo $(MAKE) $@-here; \
-			$(MAKE) $@-here; \
+			$(MAKE) $@-here || exit "$$?"; \
 		else \
 			echo $(MAKE) -C "$$subdir" $@; \
-			$(MAKE) -C "$$subdir" $@; \
+			$(MAKE) -C "$$subdir" $@ || exit "$$?"; \
 		fi; \
 	done
 

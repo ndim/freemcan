@@ -36,7 +36,9 @@
 
 #include "global.h"
 
-/* Needs F_CPU defined */
+#ifndef F_CPU
+# error Need F_CPU defined for util/delay.h
+#endif
 #include <util/delay.h>
 
 

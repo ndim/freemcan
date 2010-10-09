@@ -27,8 +27,12 @@
 
 #include <avr/io.h>
 
-/* global.h defines F_CPU, and util/delay.h needs F_CPU */
 #include "global.h"
+
+
+#ifndef F_CPU
+# error Need F_CPU defined for util/delay.h
+#endif
 #include <util/delay.h>
 
 

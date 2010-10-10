@@ -37,11 +37,11 @@
  * The actual structure of the bytes in the table is undefined for the
  * purpose of this interface.
  */
-extern uint8_t table[];
+extern void *data_table;
 
 
 /** The size of the data #table in bytes */
-extern size_t sizeof_table;
+extern size_t sizeof_data_table;
 
 
 /** @} */

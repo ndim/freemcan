@@ -103,9 +103,9 @@ void send_table(const packet_histogram_type_t type)
     duration,
     orig_timer_count
   };
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof_table);
+  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof_data_table);
   uart_putb((const void *)&header, sizeof(header));
-  uart_putb((const void *)table, sizeof_table);
+  uart_putb((const void *)data_table, sizeof_data_table);
   frame_end();
 }
 

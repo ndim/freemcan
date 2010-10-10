@@ -53,7 +53,14 @@
 volatile histogram_element_t table[MAX_COUNTER];
 
 
-/** Actual size of #table in bytes
+/** Address of data table
+ *
+ * \see data_table
+ */
+const void *data_table = table;
+
+
+/** Actual size of #data_table in bytes
  *
  * Unfortunately, we need to define this variable and use it.  It
  * would be so nice if we could just use the ELF symbol size of
@@ -62,7 +69,7 @@ volatile histogram_element_t table[MAX_COUNTER];
  *
  * \see data_table
  */
-const size_t sizeof_table = sizeof(table);
+const size_t sizeof_data_table = sizeof(table);
 
 
 /** Initialize peripherals

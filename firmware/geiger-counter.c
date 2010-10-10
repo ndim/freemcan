@@ -51,16 +51,21 @@
  * object file level, we call it "table", though, in order to fulfill
  * our part of the #data-table.h interface.
  */
-volatile histogram_element_t counter asm("table");
+volatile histogram_element_t counter;
 
 
-/** Size of the GM event counter
+/** Address of data table
  *
- * We note the size of #counter (in bytes) here.  On the object file
- * level, we call it "sizeof_table", though, in order to fulfill our
- * part of the #data-table.h interface.
+ * \see data_table
  */
-const size_t sizeof_counter asm("sizeof_table") = sizeof(counter);
+const void *data_table = &counter;
+
+
+/** Actual size of #data_table in bytes
+ *
+ * \see data_table
+ */
+const size_t sizeof_data_table = sizeof(counter);
 
 
 /** Initialize peripherals

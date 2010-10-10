@@ -255,7 +255,6 @@ read-fuses-%:
 ########################################################################
 # Optional firmware features
 
-# BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
 COMMON_OBJ += uart-printf.o
 CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION

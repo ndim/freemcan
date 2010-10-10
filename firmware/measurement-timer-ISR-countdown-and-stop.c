@@ -28,6 +28,7 @@
  */
 
 #include "measurement-timer.h"
+#include "main.h"
 
 
 /** 16 Bit timer ISR
@@ -44,15 +45,22 @@ ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
-  if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
+  if (!measurement_finished) {
+    /** We do not touch #measurement_finished ever again after setting
+     * it. */
     last_timer_count = timer_count;
     timer_count--;
     if (timer_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
-      timer_flag = 1;
+      measurement_finished = 1;
     }
   }
+}
+
+
+void on_measurement_finished(void)
+{
+  timer_init_quick();
 }
 
 

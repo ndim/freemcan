@@ -91,6 +91,7 @@
 #include "wdt-softreset.h"
 #include "measurement-timer.h"
 #include "send-table.h"
+#include "main.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -242,10 +243,10 @@ int main(void)
         next_state = ST_MEASURING_nomsg;
         break;
       case ST_MEASURING_nomsg:
-        if (timer_flag) { /* done */
+        if (measurement_finished) {
           cli();
           send_table(PACKET_HISTOGRAM_DONE);
-          timer_init_quick();
+          on_measurement_finished();
           next_state = ST_DONE;
         } else if (bit_is_set(UCSR0A, RXC0)) {
           /* there is a character in the UART input buffer */

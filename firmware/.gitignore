@@ -9,4 +9,5 @@
 /firmware-adc-ext-mca.*
 /firmware-adc-int-mca.*
 /firmware-geiger-counter.*
+/firmware-geiger-ts.*
 /check-*.check

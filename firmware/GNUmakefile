@@ -48,6 +48,7 @@ FORMAT = ihex
 TARGETS += adc-ext-mca
 TARGETS += adc-int-mca
 TARGETS += geiger-counter
+TARGETS += geiger-ts
 
 
 CFLAGS += -Os
@@ -311,6 +312,10 @@ firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-sto
 firmware-geiger-counter.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
+# Firmware personality: Geiger Counter with time series
+firmware-geiger-ts.elf : $(COMMON_OBJ) geiger-time-series.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+
 
 ########################################################################
 # Check the firmware images
@@ -339,6 +344,9 @@ check-stack-size-%.check : firmware-%.elf
 	printf "CHECK($*): STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
 		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" > $@; \
 	test "$$STACK_START" -ge "$$SUM" || { cat $@; exit 1; }
+
+# TODO: Check that the table size for time series firmwares has a
+#       useful size above 0, or even above a few dozen.
 
 # Caution: The "data" number includes FUSES and other things besides the .data section.
 CHECKS += avr-size

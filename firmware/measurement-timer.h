@@ -33,6 +33,8 @@
 #include <avr/interrupt.h>
 
 #include "global.h"
+#include "packet-comm.h"
+#include "wdt-softreset.h"
 
 
 /** timer counter

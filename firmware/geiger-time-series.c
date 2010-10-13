@@ -62,6 +62,24 @@
 #define MAX_STACK_DEPTH 128
 
 
+/** Maximum size of area for malloc
+ *
+ * malloc(3) might be run by some function from <stdio.h>, so if we
+ * link with uart-printf.o we might need a MALLOC_AREA_SIZE other than
+ * 0.
+ *
+ * An arbitrary value which should be rooted in reality somehow.
+ *
+ * \bug Needs a check to prevent overflows and make sure stuff
+ *      actually fits into SRAM.
+ */
+#ifdef HAVE_UPRINTF_IMPLEMENTATION
+# define MALLOC_AREA_SIZE 128
+#else
+# define MALLOC_AREA_SIZE 0
+#endif
+
+
 /** The table
  *
  * Note that we have the table start at the start of the heap,
@@ -105,9 +123,17 @@ void ts_init(void)
   __attribute__ ((section(".init5")));
 void ts_init(void)
 {
-  size_t off = (RAMEND) - (MAX_STACK_DEPTH) - (sizeof(*table_cur)-1);
+  size_t off = (RAMEND) - (MAX_STACK_DEPTH) - (MALLOC_AREA_SIZE)
+    - (sizeof(*table_cur)-1);
   table_end = (void *)(off);
   table_cur = table;
+  /** The functions from <stdio.h> might be using malloc(3) & Co, so
+   * we should make sure that malloc(3) does not overwrite our table
+   * (and that we do not overwrite the data structures created by
+   * malloc(3)!).
+   */
+  __malloc_heap_start = table_end;
+  __malloc_heap_end = (RAMEND) - (MAX_STACK_DEPTH);
   /** As the table is outside of the memory area with the normal data,
    * its content will NOT be cleared by the default avr-libc startup
    * code.  So we clear the table memory ourselves.

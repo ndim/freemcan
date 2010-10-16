@@ -382,9 +382,6 @@ check-min-stack-size-%.check: firmware-%.lss
 	echo "CHECK($*): PUSH_INSTRUCTION_COUNT=$$PUSH_INSTRUCTION_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
 	test "$$PUSH_INSTRUCTION_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
 
-# TODO: Check that the table size for time series firmwares has a
-#       useful size above 0, or even above a few dozen.
-
 # Caution: The "data" number includes FUSES and other things besides the .data section.
 CHECKS += avr-size
 check-avr-size-%.check: firmware-%.elf

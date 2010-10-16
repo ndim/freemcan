@@ -10,3 +10,4 @@ SECTIONS {
 }
 INSERT AFTER .noinit ;
 ASSERT ( ( __heap_end + MIN_STACK_SIZE ) <= RAM_END, "(data+stack+table) size is too large for SRAM") ;
+ASSERT ( data_table_size >= 1024, "data table size is smaller than 1K" ) ;

@@ -37,7 +37,7 @@
  * The actual structure of the bytes in the table is undefined for the
  * purpose of this interface.
  */
-extern void *data_table;
+extern char data_table[];
 
 
 /** The size of the data #table in bytes */

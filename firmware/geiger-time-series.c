@@ -85,13 +85,14 @@
  * Note that we have the table location and size determined by the
  * linker script time-series-table.x.
  */
-extern volatile histogram_element_t table[] asm("__time_series_table_start");
+extern volatile histogram_element_t table[] asm("data_table");
 
 /** End of the table: Still needs rounding */
-extern volatile histogram_element_t table_end_arr[] asm("__time_series_table_end");
+extern volatile histogram_element_t table_end_arr[] asm("data_table_end");
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
-volatile histogram_element_t *volatile table_end;
+volatile histogram_element_t *volatile table_end =
+  (histogram_element_t volatile *)((char *)table_end_arr - (sizeof(histogram_element_t)-1));
 
 /** Pointer to the current place to store the next value at */
 volatile histogram_element_t *volatile table_cur = table;
@@ -120,20 +121,19 @@ void ts_init(void)
   __attribute__ ((section(".init5")));
 void ts_init(void)
 {
-  table_end = (histogram_element_t volatile *)((char *)table_end_arr - (sizeof(histogram_element_t)-1));
   /** As the table is outside of the memory area with the normal data,
    * its content will NOT be cleared by the default avr-libc startup
    * code.  So we clear the table memory ourselves.
    */
   asm volatile("\t /* assembly code taken from GPLv2+ libgcc.S __do_clear_bss */ \n"
-               "\t	ldi     r17, hi8(__time_series_table_end)\n"
-               "\t	ldi     r26, lo8(__time_series_table_start)\n"
-               "\t	ldi     r27, hi8(__time_series_table_start)\n"
+               "\t	ldi     r17, hi8(data_table_end)\n"
+               "\t	ldi     r26, lo8(data_table)\n"
+               "\t	ldi     r27, hi8(data_table)\n"
                "\t	rjmp    L%=_start\n"
                "\tL%=_loop:\n"
                "\t	st      X+, __zero_reg__\n"
                "\tL%=_start:\n"
-               "\t	cpi     r26, lo8(__time_series_table_end)\n"
+               "\t	cpi     r26, lo8(data_table_end)\n"
                "\t	cpc     r27, r17\n"
                "\t	brne    L%=_loop\n"
                ::

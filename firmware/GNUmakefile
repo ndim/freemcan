@@ -23,6 +23,7 @@
 CFLAGS =
 CLEANFILES =
 COMMON_OBJ =
+COMMON_X =
 TARGETS =
 
 include ../common.mk
@@ -300,32 +301,51 @@ firmware-%.sym: firmware-%.elf
 ########################################################################
 # Link firmware images with different personalities
 
+
+# Link time checks
+# LDFLAGS += -Wl,--verbose
+LDFLAGS += -Wl,--defsym=RAM_END=$(RAM_END)
+LDFLAGS += -Wl,--defsym=MIN_STACK_SIZE=$(MIN_STACK_SIZE)
+
+# Check that (data+stack) fit into SRAM with a linker script ASSERT().
+# Requires RAM_END and MIN_STACK_SIZE to be --defsym'd.
+COMMON_X += check-data-stack-in-SRAM.x
+
+
 # Firmware personality: MCA using external ADC
-firmware-adc-ext-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
+firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: MCA using internal ADC
-firmware-adc-int-mca.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
+firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: Geiger Counter without time series
-firmware-geiger-counter.elf : $(COMMON_OBJ) measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
+firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: Geiger Counter with time series
-firmware-geiger-ts.elf : $(COMMON_OBJ) geiger-time-series.o
+firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 
 ########################################################################
 # Check the firmware images
 
-# Check that the SRAM usage fits into the ATmega644's 4K SRAM
-# size: __bss_end must be <= 0x00801100.
-#
+
 # The 0x00800000 is avr-gcc's Harvard architecture trick, and the
 # first 0x100 bytes in the addr space are CPU and IO registers, after
 # which the 4K of SRAM start, up to and including address 0x10ff.
+RAM_END = 0x00801100
+
+# The minimum required stack size we want to have space for (i.e. the
+# maximum stack size that can appear at runtime). We just about assume
+# this value, but have a consistency check lower down in the form of
+# the check-min-stack-size-%.check target.
+MIN_STACK_SIZE = 80
+
+# Check that the SRAM usage fits into the ATmega644's 4K SRAM
+# size: __bss_end must be <= 0x00801100.
 CHECKS += bss-end
 check-bss-end-%.check: firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
@@ -333,8 +353,7 @@ check-bss-end-%.check: firmware-%.elf
 	printf "CHECK($*): MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END" > $@; \
 	test "$$MAX_BSS_END" -ge "$$BSS_END" || { cat $@; exit 1; }
 
-# Check that SRAM + stack fit into the ATmega644's 4K of SRAM.
-MIN_STACK_SIZE = 48
+# Check that (data + stack) fit into the ATmega644's 4K of SRAM using ugly shell magic
 CHECKS += stack-size
 check-stack-size-%.check : firmware-%.elf
 	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
@@ -344,6 +363,18 @@ check-stack-size-%.check : firmware-%.elf
 	printf "CHECK($*): STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
 		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" > $@; \
 	test "$$STACK_START" -ge "$$SUM" || { cat $@; exit 1; }
+
+# Check that the minimum stack size we want accomodated in a firmware
+# (used for other checks) is actually less than the number of push
+# instructions in the firmware image. As the firmwares do not use
+# recursion, the push instruction count is a good upper bound estimate
+# for the stack depth.
+CHECKS += min-stack-size
+check-min-stack-size-%.check: firmware-%.lss
+	@set -e; \
+	PUSH_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\spush\sr[0-9]+" $< | wc -l)"; \
+	echo "CHECK($*): PUSH_INSTRUCTION_COUNT=$$PUSH_INSTRUCTION_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
+	test "$$PUSH_INSTRUCTION_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
 
 # TODO: Check that the table size for time series firmwares has a
 #       useful size above 0, or even above a few dozen.

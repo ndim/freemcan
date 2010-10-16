@@ -85,34 +85,29 @@
  * Note that we have the table location and size determined by the
  * linker script time-series-table.x.
  */
-extern volatile histogram_element_t table[] asm("data_table");
+extern volatile histogram_element_t data_table[];
 
 /** End of the table: Still needs rounding */
-extern volatile histogram_element_t table_end_arr[] asm("data_table_end");
+extern volatile histogram_element_t data_table_end[];
+
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
 volatile histogram_element_t *volatile table_end =
-  (histogram_element_t volatile *)((char *)table_end_arr - (sizeof(histogram_element_t)-1));
+  (histogram_element_t volatile *)((char *)data_table_end -
+                                   (sizeof(histogram_element_t)-1));
 
 /** Pointer to the current place to store the next value at */
-volatile histogram_element_t *volatile table_cur = table;
-
-
-/** Address of data table
- *
- * \see data_table
- */
-const void *data_table = table;
+volatile histogram_element_t *volatile table_cur = data_table;
 
 
 /** Actual size of #data_table in bytes
  *
  * We update this value whenever new time series data has been
- * recorded.
+ * recorded. The initial value is "one element".
  *
  * \see data_table
  */
-size_t sizeof_data_table = sizeof(table[0]);
+size_t sizeof_data_table = sizeof(data_table[0]);
 
 
 /** Setup, needs to be called once on startup */
@@ -148,14 +143,14 @@ void ts_print_status(void)
 void ts_print_status(void)
 {
   uprintf("<ts_print_status>");
-  uprintf("table %p", table);
-  uprintf("table_cur %p",           table_cur);
-  uprintf("table_end %p",           table_end);
-  const size_t UV(diff) = table_end - table_cur;
-  uprintf("table_end - table_cur 0x%x", _UV(diff));
-  const size_t UV(diff2) = ((char*)table_end) - ((char*)table_cur);
-  uprintf("table_end - table_cur 0x%x %d %d",
-          _UV(diff2), _UV(diff2), _UV(diff2)/sizeof(*table_cur));
+  uprintf("%-25s %p", "data_table", data_table);
+  uprintf("%-25s %p", "table_cur",  table_cur);
+  uprintf("%-25s %p", "table_end",  table_end);
+  const size_t UV(sizeof_table) = ((char*)table_end) - ((char*)table_cur);
+  uprintf("%-25s 0x%x = %d >= %d * %d",
+          "table_end - table_cur",
+          _UV(sizeof_table), _UV(sizeof_table),
+          _UV(sizeof_table)/sizeof(*table_cur), sizeof(*table_cur));
   uprintf("</ts_print_status>");
 }
 

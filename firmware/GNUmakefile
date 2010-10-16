@@ -350,26 +350,6 @@ MALLOC_HEAP_SIZE = 64
 # the check-min-stack-size-%.check target.
 MIN_STACK_SIZE = 80
 
-# Check that the SRAM usage fits into the ATmega644's 4K SRAM
-# size: __bss_end must be <= 0x00801100.
-CHECKS += bss-end
-check-bss-end-%.check: firmware-%.elf
-	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
-	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
-	printf "CHECK($*): MAX_BSS_END=0x%x >= BSS_END=0x%x\n" "$$MAX_BSS_END" "$$BSS_END" > $@; \
-	test "$$MAX_BSS_END" -ge "$$BSS_END" || { cat $@; exit 1; }
-
-# Check that (data + stack) fit into the ATmega644's 4K of SRAM using ugly shell magic
-CHECKS += stack-size
-check-stack-size-%.check : firmware-%.elf
-	@MAX_BSS_END="$$(printf "%d\n" 0x1100)"; \
-	BSS_END="$$(nm $< | awk '/__bss_end/ { print (strtonum("0x"$$1) % 0x10000); }')"; \
-	STACK_START="$$(nm $< | awk '/__stack/ { print (strtonum("0x"$$1)); }')"; \
-	SUM="$$(expr $$BSS_END + $(MIN_STACK_SIZE))"; \
-	printf "CHECK($*): STACK_START=0x%x >= 0x%x = (BSS_END=0x%x + MIN_STACK_SIZE=0x%x)\n" \
-		"$$STACK_START" "$$SUM" "$$BSS_END" "$(MIN_STACK_SIZE)" > $@; \
-	test "$$STACK_START" -ge "$$SUM" || { cat $@; exit 1; }
-
 # Check that the minimum stack size we want accomodated in a firmware
 # (used for other checks) is actually less than the number of push
 # instructions in the firmware image. As the firmwares do not use

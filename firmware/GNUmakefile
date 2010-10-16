@@ -306,6 +306,7 @@ firmware-%.sym: firmware-%.elf
 # LDFLAGS += -Wl,--verbose
 LDFLAGS += -Wl,--defsym=RAM_END=$(RAM_END)
 LDFLAGS += -Wl,--defsym=MIN_STACK_SIZE=$(MIN_STACK_SIZE)
+LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 
 # Check that (data+stack) fit into SRAM with a linker script ASSERT().
 # Requires RAM_END and MIN_STACK_SIZE to be --defsym'd.
@@ -325,8 +326,10 @@ firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
 # Firmware personality: Geiger Counter with time series
+firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
+firmware-geiger-ts.elf : time-series-table.x
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@ $(LDFLAGS)
 
 
 ########################################################################
@@ -337,6 +340,9 @@ firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
 # first 0x100 bytes in the addr space are CPU and IO registers, after
 # which the 4K of SRAM start, up to and including address 0x10ff.
 RAM_END = 0x00801100
+
+# Size of memory area we reserve for malloc(3)
+MALLOC_HEAP_SIZE = 64
 
 # The minimum required stack size we want to have space for (i.e. the
 # maximum stack size that can appear at runtime). We just about assume

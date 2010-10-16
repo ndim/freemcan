@@ -82,29 +82,26 @@
 
 /** The table
  *
- * Note that we have the table start at the start of the heap,
- * i.e. after all variables. The end of the table will be where the
- * stack ends (stack grows downwards).
- *
- * This has the additional consequence that we MUST NOT use malloc(3),
- * calloc(3), free(3) anywhere in our program.
+ * Note that we have the table location and size determined by the
+ * linker script time-series-table.x.
  */
-extern volatile histogram_element_t table[] asm("__heap_start");
+extern volatile histogram_element_t table[] asm("__time_series_table_start");
 
+/** End of the table: Still needs rounding */
+extern volatile histogram_element_t table_end_arr[] asm("__time_series_table_end");
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
-volatile histogram_element_t *table_end;
-
+volatile histogram_element_t *volatile table_end;
 
 /** Pointer to the current place to store the next value at */
-volatile histogram_element_t *table_cur;
+volatile histogram_element_t *volatile table_cur = table;
 
 
 /** Address of data table
  *
  * \see data_table
  */
-const void *data_table = &table;
+const void *data_table = table;
 
 
 /** Actual size of #data_table in bytes
@@ -114,7 +111,7 @@ const void *data_table = &table;
  *
  * \see data_table
  */
-size_t sizeof_data_table = sizeof(*table_cur);
+size_t sizeof_data_table = sizeof(table[0]);
 
 
 /** Setup, needs to be called once on startup */
@@ -123,22 +120,24 @@ void ts_init(void)
   __attribute__ ((section(".init5")));
 void ts_init(void)
 {
-  size_t off = (RAMEND) - (MAX_STACK_DEPTH) - (MALLOC_AREA_SIZE)
-    - (sizeof(*table_cur)-1);
-  table_end = (void *)(off);
-  table_cur = table;
-  /** The functions from <stdio.h> might be using malloc(3) & Co, so
-   * we should make sure that malloc(3) does not overwrite our table
-   * (and that we do not overwrite the data structures created by
-   * malloc(3)!).
-   */
-  __malloc_heap_start = table_end;
-  __malloc_heap_end = (RAMEND) - (MAX_STACK_DEPTH);
+  table_end = (histogram_element_t volatile *)((char *)table_end_arr - (sizeof(histogram_element_t)-1));
   /** As the table is outside of the memory area with the normal data,
    * its content will NOT be cleared by the default avr-libc startup
    * code.  So we clear the table memory ourselves.
    */
-  memset(table_cur, 0, ((char *)table_end)-((char *)table_cur));
+  asm volatile("\t /* assembly code taken from GPLv2+ libgcc.S __do_clear_bss */ \n"
+               "\t	ldi     r17, hi8(__time_series_table_end)\n"
+               "\t	ldi     r26, lo8(__time_series_table_start)\n"
+               "\t	ldi     r27, hi8(__time_series_table_start)\n"
+               "\t	rjmp    L%=_start\n"
+               "\tL%=_loop:\n"
+               "\t	st      X+, __zero_reg__\n"
+               "\tL%=_start:\n"
+               "\t	cpi     r26, lo8(__time_series_table_end)\n"
+               "\t	cpc     r27, r17\n"
+               "\t	brne    L%=_loop\n"
+               ::
+               );
 }
 
 

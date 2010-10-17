@@ -26,10 +26,13 @@
 #ifndef UART_COMM_H
 #define UART_COMM_H
 
+#include <avr/pgmspace.h>
+
 #include <stdlib.h>
 
 void uart_putc(const char c);
 void uart_putb(const void *buf, size_t len);
+void uart_putb_P(PGM_VOID_P buf, size_t len);
 char uart_getc(void);
 
 void uart_checksum_reset(void);

@@ -71,6 +71,15 @@ void frame_send(const frame_type_t frame_type,
   frame_end();
 }
 
+
+void frame_send_P(const frame_type_t frame_type,
+                  PGM_VOID_P payload, const size_t payload_size)
+{
+  frame_start(frame_type, payload_size);
+  uart_putb_P(payload, payload_size);
+  frame_end();
+}
+
 /** @} */
 
 

@@ -138,7 +138,7 @@ void ts_print_status(void)
    *  after linking. The linking would gives the necessary information
    *  to fill in.
    */
-  send_text("data table of #### elements of ##bit each");
+  send_text_P(PSTR("data table of #### elements of ##bit each"));
 #endif
 }
 

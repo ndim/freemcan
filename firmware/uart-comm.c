@@ -184,6 +184,14 @@ void uart_putb(const void *buf, size_t len)
 }
 
 
+void uart_putb_P(PGM_VOID_P buf, size_t len)
+{
+  for (PGM_P s = buf; len > 0; s++, len--) {
+    uart_putc(pgm_read_byte(s));
+  }
+}
+
+
 /** Read a character from the UART */
 char uart_getc()
 {

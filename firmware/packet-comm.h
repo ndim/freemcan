@@ -26,10 +26,12 @@
 #ifndef PACKET_COMM_H
 #define PACKET_COMM_H
 
+#include <avr/pgmspace.h>
+
 #include "packet-defs.h"
 
-void send_state(const char *msg);
-void send_text(const char *msg);
+void send_state_P(PGM_P state);
+void send_text_P(PGM_P msg);
 
 /** @} */
 

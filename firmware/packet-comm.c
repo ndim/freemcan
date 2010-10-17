@@ -45,10 +45,10 @@
  * State messages are constant strings describing the FSM state we are
  * currently in.
  */
-void send_state(const char *msg)
+void send_state_P(PGM_P state)
 {
-  const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_STATE, msg, len);
+  const size_t len = strlen_P(state);
+  frame_send_P(FRAME_TYPE_STATE, state, len);
 }
 
 
@@ -56,10 +56,10 @@ void send_state(const char *msg)
  *
  * If you need to send more than static text, use uprintf().
  */
-void send_text(const char *msg)
+void send_text_P(PGM_P msg)
 {
-  const size_t len = strlen(msg);
-  frame_send(FRAME_TYPE_TEXT, msg, len);
+  const size_t len = strlen_P(msg);
+  frame_send_P(FRAME_TYPE_TEXT, msg, len);
 }
 
 

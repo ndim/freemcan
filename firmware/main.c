@@ -199,7 +199,7 @@ int main(void)
       firmware_state_t next_state = state;
       switch (state) {
       case ST_READY:
-        send_state("READY");
+        send_state_P(PSTR("READY"));
         uart_checksum_reset();
         cmd = ch = uart_getc();
         switch (cmd) {
@@ -234,12 +234,12 @@ int main(void)
         } else { /* checksum fail */
           /** \todo Find a way to report checksum failure without
            *        resorting to sending free text. */
-          send_text("checksum fail");
+          send_text_P(PSTR("checksum fail"));
           next_state = ST_RESET;
         }
         break;
       case ST_MEASURING:
-        send_state("MEASURING");
+        send_state_P(PSTR("MEASURING"));
         next_state = ST_MEASURING_nomsg;
         break;
       case ST_MEASURING_nomsg:
@@ -292,7 +292,7 @@ int main(void)
         break;
       case ST_DONE:
         /* STATE: DONE (wait for RESET command while seinding histograms) */
-        send_state("DONE");
+        send_state_P(PSTR("DONE"));
         cmd = ch = uart_getc();
         switch (cmd) {
         case FRAME_CMD_STATE:
@@ -308,7 +308,7 @@ int main(void)
         }
         break;
       case ST_RESET:
-        send_state("RESET");
+        send_state_P(PSTR("RESET"));
         wdt_soft_reset();
         break;
       } /* switch (state) */

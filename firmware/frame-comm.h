@@ -25,12 +25,17 @@
 #ifndef FRAME_COMM_H
 #define FRAME_COMM_H
 
+#include <avr/pgmspace.h>
+
 #include <stdlib.h>
 
 #include "frame-defs.h"
 
 void frame_send(const frame_type_t frame_type,
                 const void *payload, const size_t payload_size);
+
+void frame_send_P(const frame_type_t frame_type,
+                  PGM_VOID_P payload, const size_t payload_size);
 
 void frame_start(const frame_type_t frame_type,
                  const size_t payload_size);

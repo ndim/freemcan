@@ -31,6 +31,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
 #include "global.h"
 #include "packet-comm.h"
@@ -103,7 +104,7 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
 
   /** Safeguard: We cannot handle 0 or 1 count measurements. */
   if (orig_timer_count <= 1) {
-    send_text("Unsupported timer value <= 1");
+    send_text_P(PSTR("Unsupported timer value <= 1"));
     wdt_soft_reset();
   }
 

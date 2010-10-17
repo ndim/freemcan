@@ -1,4 +1,4 @@
-/** \file firmware/firmware-version.h
+/** \file firmware/software-version.c
  * \brief Firmware version string output
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -18,15 +18,31 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup software_version
+ * \defgroup software_version Software version string
+ * \ingroup firmware
+ *
+ * Send the software version string on firmware bootup. If the source
+ * tree the firmware was not built from is not a git tree, the printed
+ * version will be a static default string.
  *
  * @{
  */
 
-#ifndef FIRMWARE_VERSION_H
-#define FIRMWARE_VERSION_H
 
-#endif /* FIRMWARE_VERSION_H */
+#include <avr/pgmspace.h>
+
+
+#include "packet-comm.h"
+#include "git-version.h"
+
+
+void send_version(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init8")));
+void send_version(void)
+{
+  send_text_P(PSTR("freemcan " GIT_VERSION));
+}
 
 /** @} */
 

@@ -154,7 +154,12 @@ void ts_print_status(void)
           _UV(sizeof_table)/sizeof(*table_cur), sizeof(*table_cur));
   uprintf("</ts_print_status>");
 #else
-  /** \bug Why do we need to calculate this at run time??? */
+  /** \bug Why do we need to calculate this at run time???  Ugly idea:
+   *       We could put a placeholder like ##### into the string, and
+   *       put a rule into the GNUmakefile to replace that placeholder
+   *       with a string just after linking. The linking would give
+   *       the necessary information to fill in.
+   */
   uprintf("table size: %d elements", _UV(sizeof_table)/sizeof(*table_cur));
 #endif
 }

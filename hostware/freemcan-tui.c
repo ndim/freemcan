@@ -338,7 +338,11 @@ void tui_do_io(void)
       /* handle a few key input things internally */
       switch (buf[i]) {
       case 3: /* ctrl-c */
-      case 27: /* escape */
+      /* case 27: escape
+       *
+       * Pressing e.g. cursor up sends an escape character and thus
+       * would quit freemcan-tui. So we ignore escape characters.
+       */
       case 'q':
       case 'Q':
       case 'x':

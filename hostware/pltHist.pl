@@ -24,14 +24,39 @@ use LWP::Simple;
 use File::Basename;
 
 $datadir = "./";
-opendir DIR, $datadir or die "Plot utility: $datadir cannot be read: $!";
-map { $plotfile = $_ } grep { /hist/ and -f } sort readdir DIR;
-print "Plotting the file: $plotfile \n";
-print "Enter to continue \n";
+$numargs = $#ARGV + 1;
 
+SWITCH: {
+  #if there is one argument one file to be plot
+  $numargs == 1 && do {  $plotfile = $ARGV[0];
+                         print "Print file with arg[0]: $plotfile \n";
+                         last SWITCH;
+                      };
+  #if there are two arguments two files to be plot
+  $numargs == 2 && do {  $plotfile = $ARGV[0];
+                         $plotfile2 = $ARGV[1];
+                         print "Print file with arg[0] & arg[1]: $plotfile $plotfile2 \n";
+                         last SWITCH;
+                      };
+  #default fall through: if there are too much or too less arguments we look for the newest file
+  opendir DIR, $datadir or die "Plot utility: $datadir cannot be read: $!";
+  map { $plotfile = $_ } grep { /hist/ and -f } sort readdir DIR;
+  print "Plotting file with last timestamp: $plotfile \n";
+}
+
+#start gnuplot
+print "Enter to continue \n";
 open(GP, "| '/usr/bin/gnuplot' 2>&1 ");
 syswrite(GP, "load 'pltOptions.plt' \n");
-syswrite(GP, "plot \"$plotfile\" using 1:2 with lines title \"test\" \n");
+
+#multi plot (two files)
+if ($numargs == 2) {
+    syswrite(GP, "plot \"$plotfile\" using 1:2 with lines , \"$plotfile2\" using 1:2 with lines \n");
+}
+#single plot (one file)
+else {
+    syswrite(GP, "plot \"$plotfile\" using 1:2 with lines title \"test\" \n");
+}
 
 #sleep 5;
 <STDIN>;

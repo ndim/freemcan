@@ -32,9 +32,11 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
 #include "global.h"
 #include "adc-int-global.h"
+#include "packet-comm.h"
 
 
 /** Number of elements in the histogram table */
@@ -229,6 +231,15 @@ void adc_init(void)
   /** configure AREF at pin 32 and single shot auto trigger over int0
    * at pin 40 ADC0 */
   adc_int_init();
+}
+
+
+void startup_messages(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init8")));
+void startup_messages(void)
+{
+  send_text_P(PSTR("adc-int-mca"));
 }
 
 

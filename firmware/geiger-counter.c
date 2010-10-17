@@ -33,8 +33,10 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
 #include "global.h"
+#include "packet-comm.h"
 
 #ifndef F_CPU
 # error Need F_CPU defined for util/delay.h
@@ -159,6 +161,15 @@ void trigger_src_conf(void)
      * register). we do not want to jump to the ISR in case of an interrupt
      * so we do not set this bit  */
     EIMSK |= (_BV(INT0));
+}
+
+
+void startup_messages(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init8")));
+void startup_messages(void)
+{
+  send_text_P(PSTR("geiger-counter"));
 }
 
 

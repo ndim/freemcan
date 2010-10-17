@@ -32,9 +32,11 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
 #include "global.h"
 #include "adc-ext-global.h"
+#include "packet-comm.h"
 
 #include "ad7813.h"
 
@@ -290,6 +292,15 @@ void adc_init(void)
 {
   AD7813_init();
   trigger_src_conf();
+}
+
+
+void startup_messages(void)
+  __attribute__ ((naked))
+  __attribute__ ((section(".init8")));
+void startup_messages(void)
+{
+  send_text_P(PSTR("adc-ext-mca"));
 }
 
 

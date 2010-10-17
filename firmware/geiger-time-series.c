@@ -80,8 +80,13 @@ volatile histogram_element_t *volatile table_cur = data_table;
  * recorded. The initial value is "one element".
  *
  * \see data_table
+ *
+ * Note: We put this value into the .data.sizeof section in order to
+ *       easily automatically extract the data table element size
+ *       during the later build stages.
  */
-size_t sizeof_data_table = sizeof(data_table[0]);
+size_t sizeof_data_table __attribute__ (( section(".data.sizeof") )) =
+  sizeof(data_table[0]);
 
 
 /** Setup, needs to be called once on startup */
@@ -116,25 +121,24 @@ void ts_print_status(void)
   __attribute__ ((section(".init8")));
 void ts_print_status(void)
 {
-  const size_t UV(sizeof_table) = ((char*)table_end) - ((char*)table_cur);
 #ifdef VERBOSE_STARTUP_MESSAGES
   uprintf("<ts_print_status>");
   uprintf("%-25s %p", "data_table", data_table);
   uprintf("%-25s %p", "table_cur",  table_cur);
   uprintf("%-25s %p", "table_end",  table_end);
+  const size_t UV(sizeof_table) = ((char*)table_end) - ((char*)table_cur);
   uprintf("%-25s 0x%x = %d >= %d * %d",
           "table_end - table_cur",
           _UV(sizeof_table), _UV(sizeof_table),
           _UV(sizeof_table)/sizeof(*table_cur), sizeof(*table_cur));
   uprintf("</ts_print_status>");
 #else
-  /** \bug Why do we need to calculate this at run time???  Ugly idea:
-   *       We could put a placeholder like ##### into the string, and
-   *       put a rule into the GNUmakefile to replace that placeholder
-   *       with a string just after linking. The linking would give
-   *       the necessary information to fill in.
+  /** The "#### ##" string is just a placeholder. There is a
+   *  GNUmakefile rule to replace that placeholder with a string just
+   *  after linking. The linking would gives the necessary information
+   *  to fill in.
    */
-  uprintf("table size: %d elements", _UV(sizeof_table)/sizeof(*table_cur));
+  send_text("data table of #### elements of ##bit each");
 #endif
 }
 

@@ -11,3 +11,4 @@
 /firmware-geiger-counter.*
 /firmware-geiger-ts.*
 /check-*.check
+/geiger-time-series.element-size.txt

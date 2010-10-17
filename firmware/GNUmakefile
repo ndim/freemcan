@@ -325,13 +325,29 @@ firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-coun
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
 
+# Extract size of a single table element in bytes
+CLEANFILES += geiger-time-series.element-size.txt
+geiger-time-series.element-size.txt: geiger-time-series.o
+	@set -e; \
+	rm -f $@; \
+	avr-objcopy -j .data.sizeof -O binary $< $@.$$$$; \
+	echo $$(od -An -t u2 $@.$$$$) > $@; \
+	rm -f $@.$$$$
+
 # Firmware personality: Geiger Counter with time series
 firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
 firmware-geiger-ts.elf : time-series-table.x
+firmware-geiger-ts.elf : geiger-time-series.element-size.txt
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@ $(LDFLAGS)
 	nm $@ | awk '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
-
+	@DATA_TABLE_SIZE_BYTES="$$(nm $@ | awk '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
+	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
+	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
+	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
+	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
+	echo sed -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
+	sed -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
 
 ########################################################################
 # Check the firmware images

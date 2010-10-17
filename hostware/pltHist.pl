@@ -34,21 +34,21 @@ SWITCH: {
   #if there is one argument: one file is to be plot
   $numargs == 1 && do {  $plotfile1 = $ARGV[0];
                          print "Print file with arg[0]: $plotfile1 \n";
-			 $numfiles = 1;
+			 $numplotmode = 1;
                          last SWITCH;
                       };
   #if there are two arguments: two files are to be plot
   $numargs == 2 && do {  $plotfile1 = $ARGV[0];
                          $plotfile2 = $ARGV[1];
                          print "Print file with arg[0] & arg[1]: $plotfile1 $plotfile2 \n";
-			 $numfiles = 2;
+			 $numplotmode = 2;
                          last SWITCH;
                       };
   #if there are three arguments: calculate difference and plot difference
   $numargs == 3 && do {  if ($ARGV[0] eq "-d"){
                            $plotfile1 = $ARGV[1];
 			   $plotfile2 = $ARGV[2];
-			   print "Print difference from arg[1] & arg[2]: $plotfile1 $plotfile2 \n";
+			   print "Print difference from arg[1] & arg[2]: $plotfile1 - $plotfile2 \n";
                            #parse first histogram
 			   open (FILE1, "<$plotfile1") ||
 			       die "cannot open $plotfile1 ";
@@ -69,7 +69,9 @@ SWITCH: {
 				    $matrix2[$1]=$2;
 				 }
 			    }
-                            #take both array and write difference into TMP
+			    close(FILE2) ||
+			       die "cannot close $plotfile2 ";
+                            #take both arrays and write difference into ./tmp.dat
 			    $tmpfile = "$datadir/tmp.dat";
 			    open (TMP, ">$tmpfile") ||
 			     	die "cannot open  $tmpfile ";                            
@@ -82,21 +84,19 @@ SWITCH: {
                                 die "cannot close $tmpfile ";
 
                             $plotfile1 = $tmpfile;
-                            $numfiles = 1;
+                            $numplotmode = 3;
 			 }
 			 else{
-			   die "panic! usage: ./pltHist -d file1 file2 \n";
+			   die "usage to plot with background subtracted: ./pltHist -d file1 background \n";
 			 }
 
                          last SWITCH;
                       };
-
-		      
   #default fall through: if there are too much or too less arguments we look for the newest file
   opendir DIR, $datadir or die "Plot utility: $datadir cannot be read: $!";
   map { $plotfile1 = $_ } grep { /hist/ and -f } sort readdir DIR;
   print "Plotting file with last timestamp: $plotfile1 \n";
-  $numfiles = 1;
+  $numplotmode = 1;
 }
 
 #start gnuplot
@@ -104,13 +104,23 @@ print "Enter to continue \n";
 open(GP, "| '/usr/bin/gnuplot' 2>&1 ");
 syswrite(GP, "load 'pltOptions.plt' \n");
 
-#multi plot (two files)
-if ($numfiles == 2) {
-    syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines , \"$plotfile2\" using 1:2 with lines \n");
-}
-#single plot (one file)
-else {
-    syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines title \"test\" \n");
+SWITCH: {
+  #single plot (one file)
+  $numargs == 1 && do {  
+                         syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines title \"test\" \n");
+                         last SWITCH;
+                      };
+  #double plot (two files at one time)
+  $numargs == 2 && do {  
+                         syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines , \"$plotfile2\" using 1:2 with lines \n");
+                         last SWITCH;
+                      };
+  #plot with background subtracted
+  $numargs == 3 && do {
+                         syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines title \"background subtracted\" \n");  
+                         last SWITCH;
+                      };
+#this is a poor mans fall through
 }
 
 #sleep 5;

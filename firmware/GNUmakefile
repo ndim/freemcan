@@ -368,9 +368,13 @@ check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
 check-ALL-%: check-ALL-%.check
 	@cat $<
 
+# The awk magic sums up the numbers from the text and data columns,
+# i.e. the total amount of bytes that need to be flashed to the chip,
+# and shows them under the new "txt+dat" column.
 .PHONY: checks
 checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
-	@avr-size $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
+	@avr-size $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf) \
+	| awk '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
 
 
 ########################################################################

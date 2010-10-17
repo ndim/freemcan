@@ -1,6 +1,6 @@
+/*.d
 /*.o
 /*.strace
-/.depend.mk
 /freemcan-tui
 /freemcan-tui.log
 /hist.*.dat

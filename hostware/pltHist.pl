@@ -2,7 +2,11 @@
 #
 #  plotHist.pl
 #
-#  Plot freeMCAn data file with newest time stamp
+#  Plot freeMCAn data - file with newest time stamp (default, no argument)
+#  Plot freeMCAn data - from one file given by argument
+#  Plot freeMCAn data - two files given by argument
+#  Plot freeMCAn data - difference from two files given by argument -d
+#
 #  Copyright (C) 2010 samplemaker
 #
 #  This library is free software; you can redistribute it and/or
@@ -27,21 +31,72 @@ $datadir = "./";
 $numargs = $#ARGV + 1;
 
 SWITCH: {
-  #if there is one argument one file to be plot
-  $numargs == 1 && do {  $plotfile = $ARGV[0];
-                         print "Print file with arg[0]: $plotfile \n";
+  #if there is one argument: one file is to be plot
+  $numargs == 1 && do {  $plotfile1 = $ARGV[0];
+                         print "Print file with arg[0]: $plotfile1 \n";
+			 $numfiles = 1;
                          last SWITCH;
                       };
-  #if there are two arguments two files to be plot
-  $numargs == 2 && do {  $plotfile = $ARGV[0];
+  #if there are two arguments: two files are to be plot
+  $numargs == 2 && do {  $plotfile1 = $ARGV[0];
                          $plotfile2 = $ARGV[1];
-                         print "Print file with arg[0] & arg[1]: $plotfile $plotfile2 \n";
+                         print "Print file with arg[0] & arg[1]: $plotfile1 $plotfile2 \n";
+			 $numfiles = 2;
                          last SWITCH;
                       };
+  #if there are three arguments: calculate difference and plot difference
+  $numargs == 3 && do {  if ($ARGV[0] eq "-d"){
+                           $plotfile1 = $ARGV[1];
+			   $plotfile2 = $ARGV[2];
+			   print "Print difference from arg[1] & arg[2]: $plotfile1 $plotfile2 \n";
+                           #parse first histogram
+			   open (FILE1, "<$plotfile1") ||
+			       die "cannot open $plotfile1 ";
+                            while (<FILE1>){
+			         if (!($_ =~ /\s*#.*/)){
+                                    $_ =~ /\s*([0-9]+)\s+([0-9]+)/;
+				    $matrix1[$1]=$2;
+				 }
+			    }
+			    close(FILE1) ||
+			       die "cannot close $plotfile1 ";
+                           #parse second histogram
+			   open (FILE2, "<$plotfile2") ||
+			       die "cannot open  $plotfile2 ";
+                            while (<FILE2>){
+			         if (!($_ =~ /\s*#.*/)){
+                                    $_ =~ /\s*([0-9]+)\s+([0-9]+)/;
+				    $matrix2[$1]=$2;
+				 }
+			    }
+                            #take both array and write difference into TMP
+			    $tmpfile = "$datadir/tmp.dat";
+			    open (TMP, ">$tmpfile") ||
+			     	die "cannot open  $tmpfile ";                            
+                            for ($i=0;$i<@matrix1;$i++){
+			        $delta = $matrix1[$i] - $matrix2[$i];
+                                #print "$delta\n";
+                                print TMP "$i $delta \n";
+                            }
+                            close (TMP) ||
+                                die "cannot close $tmpfile ";
+
+                            $plotfile1 = $tmpfile;
+                            $numfiles = 1;
+			 }
+			 else{
+			   die "panic! usage: ./pltHist -d file1 file2 \n";
+			 }
+
+                         last SWITCH;
+                      };
+
+		      
   #default fall through: if there are too much or too less arguments we look for the newest file
   opendir DIR, $datadir or die "Plot utility: $datadir cannot be read: $!";
-  map { $plotfile = $_ } grep { /hist/ and -f } sort readdir DIR;
-  print "Plotting file with last timestamp: $plotfile \n";
+  map { $plotfile1 = $_ } grep { /hist/ and -f } sort readdir DIR;
+  print "Plotting file with last timestamp: $plotfile1 \n";
+  $numfiles = 1;
 }
 
 #start gnuplot
@@ -50,12 +105,12 @@ open(GP, "| '/usr/bin/gnuplot' 2>&1 ");
 syswrite(GP, "load 'pltOptions.plt' \n");
 
 #multi plot (two files)
-if ($numargs == 2) {
-    syswrite(GP, "plot \"$plotfile\" using 1:2 with lines , \"$plotfile2\" using 1:2 with lines \n");
+if ($numfiles == 2) {
+    syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines , \"$plotfile2\" using 1:2 with lines \n");
 }
 #single plot (one file)
 else {
-    syswrite(GP, "plot \"$plotfile\" using 1:2 with lines title \"test\" \n");
+    syswrite(GP, "plot \"$plotfile1\" using 1:2 with lines title \"test\" \n");
 }
 
 #sleep 5;

@@ -48,17 +48,12 @@
 /** GM event counter
  *
  * We count the events from the GM tube in this variable.  On the
- * object file level, we call it "table", though, in order to fulfill
- * our part of the #data-table.h interface.
- */
-volatile histogram_element_t counter;
-
-
-/** Address of data table
+ * object file level, we call it "data_table", though, in order to
+ * fulfill our part of the #data-table.h interface.
  *
  * \see data_table
  */
-const void *data_table = &counter;
+volatile histogram_element_t counter asm("data_table");
 
 
 /** Actual size of #data_table in bytes

@@ -52,14 +52,7 @@
  *
  * \see data_table
  */
-volatile histogram_element_t table[MAX_COUNTER];
-
-
-/** Address of data table
- *
- * \see data_table
- */
-const void *data_table = table;
+volatile histogram_element_t table[MAX_COUNTER] asm("data_table");
 
 
 /** Actual size of #data_table in bytes

@@ -362,11 +362,6 @@ check-min-stack-size-%.check: firmware-%.lss
 	echo "CHECK($*): PUSH_INSTRUCTION_COUNT=$$PUSH_INSTRUCTION_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
 	test "$$PUSH_INSTRUCTION_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
 
-# Caution: The "data" number includes FUSES and other things besides the .data section.
-CHECKS += avr-size
-check-avr-size-%.check: firmware-%.elf
-	@{ echo "CHECK($*): avr-size $<"; avr-size $<; } > $@
-
 check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
 	@cat $^ > $@
 
@@ -375,6 +370,7 @@ check-ALL-%: check-ALL-%.check
 
 .PHONY: checks
 checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
+	@avr-size $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
 
 
 ########################################################################

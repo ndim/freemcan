@@ -315,15 +315,15 @@ COMMON_X += check-data-stack-in-SRAM.x
 
 # Firmware personality: MCA using external ADC
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # Firmware personality: MCA using internal ADC
 firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # Firmware personality: Geiger Counter without time series
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $^ $(LDLIBS) --output $@ $(LDFLAGS)
+	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # Extract size of a single table element in bytes
 CLEANFILES += geiger-time-series.element-size.txt
@@ -339,7 +339,7 @@ firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
 firmware-geiger-ts.elf : time-series-table.x
 firmware-geiger-ts.elf : geiger-time-series.element-size.txt
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@ $(LDFLAGS)
+	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
 	nm $@ | awk '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
 	@DATA_TABLE_SIZE_BYTES="$$(nm $@ | awk '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
 	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
@@ -399,12 +399,7 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 # Compile: create object files from C source files.
 .c.o:
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
-
-
-# Compile: create assembler files from C source files.
-.c.s:
-	$(CC) -S $(CFLAGS) $(CPPFLAGS) $< -o $@
+	$(COMPILE.c) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
@@ -423,7 +418,7 @@ checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
 
 %.d: %.c
 	@set -e; rm -f $@; \
-		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+		$(COMPILE.c) -MM $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 

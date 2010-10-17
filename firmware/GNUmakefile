@@ -330,6 +330,7 @@ firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
 firmware-geiger-ts.elf : time-series-table.x
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@ $(LDFLAGS)
+	nm $@ | awk '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
 
 
 ########################################################################

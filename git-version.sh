@@ -21,6 +21,8 @@ if test -d "${gitdir}" && test "x$(git rev-parse HEAD)" != "x"; then
 	git_branch="$(git symbolic-ref HEAD | sed -n 's,^refs/heads/,,p' )"
 	if test "x${git_branch}" != "x"; then
 	    git_version="${git_version} (${git_branch} branch)"
+	else
+	    git_version="${git_version} (HEAD not on branch)"
 	fi
     fi
 fi

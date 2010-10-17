@@ -42,7 +42,7 @@ ALL: all
 .PHONY: clean
 clean:
 	rm -f $(CLEANFILES)
-	rm -f *.d
+	rm -f *.d *.d.[0-9]*
 	rm -f *.o
 
 

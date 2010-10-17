@@ -24,7 +24,7 @@ CFLAGS =
 CLEANFILES =
 COMMON_OBJ =
 COMMON_X =
-TARGETS =
+PERSONALITIES =
 
 include ../common.mk
 
@@ -46,10 +46,10 @@ F_CPU ?= 16000000UL
 
 FORMAT = ihex
 
-TARGETS += adc-ext-mca
-TARGETS += adc-int-mca
-TARGETS += geiger-counter
-TARGETS += geiger-ts
+PERSONALITIES += adc-ext-mca
+PERSONALITIES += adc-int-mca
+PERSONALITIES += geiger-counter
+PERSONALITIES += geiger-ts
 
 
 CFLAGS += -Os
@@ -160,8 +160,8 @@ OD = od
 AVRDUDE_PROGRAMMER ?= ponyser
 AVRDUDE_PORT ?= /dev/ttyS0
 
-AVRDUDE_WRITE_FLASH = -U flash:w:firmware-$(TARGET).hex
-#AVRDUDE_WRITE_EEPROM = -U eeprom:w:firmware-$(TARGET).eep
+AVRDUDE_WRITE_FLASH = -U flash:w:firmware-$(PERSONALITY).hex
+#AVRDUDE_WRITE_EEPROM = -U eeprom:w:firmware-$(PERSONALITY).eep
 
 
 # Uncomment the following if you want avrdude's erase cycle counter.
@@ -193,18 +193,18 @@ all: elf hex lss sym fuses checks
 ALL: all
 
 .PHONY: elf hex eep lss sym fuses
-elf: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf)
-hex: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hex)
-eep: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).eep)
-lss: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).lss)
-sym: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).sym)
-fuses: $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
+elf: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)
+hex: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).hex)
+eep: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).eep)
+lss: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).lss)
+sym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).sym)
+fuses: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
 
 
 ########################################################################
 # Program the device with a firmware image
 
-program-% : TARGET = $*
+program-% : PERSONALITY = $*
 program-%: firmware-%.hex firmware-%.eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
@@ -212,10 +212,10 @@ program-%: firmware-%.hex firmware-%.eep
 ########################################################################
 # AVR fuse extraction, reading, writing, comparing
 
-CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).fuses)
-CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).lfuse.txt)
-CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).hfuse.txt)
-CLEANFILES += $(foreach TARGET, $(TARGETS), firmware-$(TARGET).efuse.txt)
+CLEANFILES += $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
+CLEANFILES += $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).lfuse.txt)
+CLEANFILES += $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).hfuse.txt)
+CLEANFILES += $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).efuse.txt)
 firmware-%.fuses: firmware-%.elf
 	$(OBJCOPY) -j .fuse -O binary $< $@
 	@chmod -x $@
@@ -389,8 +389,8 @@ check-ALL-%: check-ALL-%.check
 # i.e. the total amount of bytes that need to be flashed to the chip,
 # and shows them under the new "txt+dat" column.
 .PHONY: checks
-checks: $(foreach TARGET, $(TARGETS), check-ALL-$(TARGET))
-	@avr-size $(foreach TARGET, $(TARGETS), firmware-$(TARGET).elf) \
+checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
+	@avr-size $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf) \
 	| awk '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
 
 

@@ -111,7 +111,7 @@ void export_histogram(const packet_histogram_t *histogram_packet)
     fprintf(histfile, "#elapsed time:      %d sec\n",
             histogram_packet->element_count*histogram_packet->total_duration);
 
-    fprintf(histfile, "#total counts:      %d", total_count);
+    fprintf(histfile, "#total counts:      %lu", total_count);
 
     float total_counts_error = sqrt((float)(total_count));
     fprintf(histfile, "    +/- %1.2f CNTs (average is within 1 sigma)\n", total_counts_error);
@@ -122,7 +122,7 @@ void export_histogram(const packet_histogram_t *histogram_packet)
     float average_counts_error = average_count_rate*total_counts_error/total_count;
     fprintf(histfile, "  +/- %1.2f CPMs (average is within 1 sigma)\n", average_counts_error);
 
-    fprintf(histfile, "#statistical error: %1.1f \%\n",
+    fprintf(histfile, "#statistical error: %1.1f %%\n",
             100.0*average_counts_error/average_count_rate);
   }
   fclose(histfile);

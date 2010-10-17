@@ -142,6 +142,8 @@ ASFLAGS += -x assembler-with-cpp
 ########################################################################
 # The programs used
 
+AWK = awk
+SED = sed
 ERL = erl
 CC = avr-gcc
 OBJCOPY = avr-objcopy
@@ -149,8 +151,6 @@ OBJDUMP = avr-objdump
 SIZE = avr-size
 NM = avr-nm
 AVRDUDE = avrdude
-REMOVE = rm -f
-MV = mv -f
 OD = od
 
 
@@ -330,7 +330,7 @@ CLEANFILES += geiger-time-series.element-size.txt
 geiger-time-series.element-size.txt: geiger-time-series.o
 	@set -e; \
 	rm -f $@; \
-	avr-objcopy -j .data.sizeof -O binary $< $@.$$$$; \
+	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
 	echo $$(od -An -t u2 $@.$$$$) > $@; \
 	rm -f $@.$$$$
 
@@ -340,14 +340,14 @@ firmware-geiger-ts.elf : time-series-table.x
 firmware-geiger-ts.elf : geiger-time-series.element-size.txt
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
 	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
-	nm $@ | awk '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
-	@DATA_TABLE_SIZE_BYTES="$$(nm $@ | awk '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
+	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
+	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
 	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
 	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
 	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
 	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
-	echo sed -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
-	sed -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
+	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
+	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
 
 ########################################################################
 # Check the firmware images
@@ -390,8 +390,8 @@ check-ALL-%: check-ALL-%.check
 # and shows them under the new "txt+dat" column.
 .PHONY: checks
 checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
-	@avr-size $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf) \
-	| awk '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
+	@$(SIZE) $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf) \
+	| $(AWK) '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
 
 
 ########################################################################
@@ -413,13 +413,13 @@ checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
 %.d: %.S
 	@set -e; rm -f $@; \
 		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
-		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 %.d: %.c
 	@set -e; rm -f $@; \
 		$(COMPILE.c) -MM $< > $@.$$$$; \
-		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 ALL_CSOURCES = $(wildcard *.c)

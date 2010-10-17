@@ -52,34 +52,6 @@
 #define DELAY_BEEP 200
 
 
-/** Maximum expected stack depth in bytes
- *
- * An arbitrary value which should be rooted in reality somehow.
- *
- * \bug Needs a check to prevent overflows and make sure stuff
- *      actually fits into SRAM.
- */
-#define MAX_STACK_DEPTH 128
-
-
-/** Maximum size of area for malloc
- *
- * malloc(3) might be run by some function from <stdio.h>, so if we
- * link with uart-printf.o we might need a MALLOC_AREA_SIZE other than
- * 0.
- *
- * An arbitrary value which should be rooted in reality somehow.
- *
- * \bug Needs a check to prevent overflows and make sure stuff
- *      actually fits into SRAM.
- */
-#ifdef HAVE_UPRINTF_IMPLEMENTATION
-# define MALLOC_AREA_SIZE 128
-#else
-# define MALLOC_AREA_SIZE 0
-#endif
-
-
 /** The table
  *
  * Note that we have the table location and size determined by the

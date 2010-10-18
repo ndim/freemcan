@@ -31,7 +31,7 @@
 
 
 /* documented in send-table.c */
-void send_table(const packet_value_table_type_t type);
+void send_table(const packet_value_table_reason_t type);
 
 
 /** @} */

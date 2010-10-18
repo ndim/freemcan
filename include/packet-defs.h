@@ -50,9 +50,9 @@
 
 
 
-/** Histogram packet types (UNUSED SO FAR)
+/** Histogram packet types
  *
- * The reason for sending the histogram. (UNUSED SO FAR)
+ * The reason for sending the histogram.
  */
 typedef enum {
 
@@ -68,7 +68,7 @@ typedef enum {
   /** Measurement has been aborted, report results as gathered so far. */
   PACKET_VALUE_TABLE_ABORTED = 'A'
 
-} packet_value_table_type_t;
+} packet_value_table_reason_t;
 
 
 /** Histogram packet header
@@ -81,8 +81,8 @@ typedef enum {
 typedef struct {
   /** histogram element size in bytes (1,2,3,4) */
   uint8_t  element_size;
-  /** histogram type (#packet_value_table_type_t cast to uint8_t) */
-  uint8_t  type;
+  /** histogram type (#packet_value_table_reason_t cast to uint8_t) */
+  uint8_t  reason;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
   /** total duration (of the measurement in progress) */

@@ -40,19 +40,19 @@ char *export_value_table_get_filename(const packet_value_table_t *value_table_pa
 {
   const struct tm *tm_ = localtime(&value_table_packet->receive_time);
   assert(tm_);
-  char type = 'X';
-  switch (value_table_packet->type) {
+  char reason = 'X';
+  switch (value_table_packet->reason) {
   case PACKET_VALUE_TABLE_DONE:
   case PACKET_VALUE_TABLE_RESEND:
   case PACKET_VALUE_TABLE_ABORTED:
   case PACKET_VALUE_TABLE_INTERMEDIATE:
-    type = value_table_packet->type;
+    reason = value_table_packet->reason;
     break;
   }
   char date[128];
   strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
   static char fname[256];
-  snprintf(fname, sizeof(fname), "hist.%s.%c.%s", date, type, extension);
+  snprintf(fname, sizeof(fname), "hist.%s.%c.%s", date, reason, extension);
   return fname;
 }
 
@@ -75,14 +75,14 @@ void export_value_table(const packet_value_table_t *value_table_packet)
   FILE *histfile = fopen(fname, "w");
   assert(histfile);
   fmlog("Writing histogram to file %s", fname);
-  const char *type_str = "unknown type";
-  switch (value_table_packet->type) {
-  case PACKET_VALUE_TABLE_DONE: type_str = "measurement completed"; break;
-  case PACKET_VALUE_TABLE_RESEND: type_str = "resent histogram after measurement completed"; break;
-  case PACKET_VALUE_TABLE_ABORTED: type_str = "measurement aborted"; break;
-  case PACKET_VALUE_TABLE_INTERMEDIATE: type_str = "intermediate result"; break;
+  const char *reason_str = "unknown type";
+  switch (value_table_packet->reason) {
+  case PACKET_VALUE_TABLE_DONE: reason_str = "measurement completed"; break;
+  case PACKET_VALUE_TABLE_RESEND: reason_str = "resent histogram after measurement completed"; break;
+  case PACKET_VALUE_TABLE_ABORTED: reason_str = "measurement aborted"; break;
+  case PACKET_VALUE_TABLE_INTERMEDIATE: reason_str = "intermediate result"; break;
   }
-  fprintf(histfile, "# type:\t'%c' (%s)\n", value_table_packet->type, type_str);
+  fprintf(histfile, "# type:\t'%c' (%s)\n", value_table_packet->reason, reason_str);
   /** \todo We need a better way to distinguish between histogram data
    *        and counter/time series data.
    */

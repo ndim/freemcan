@@ -106,7 +106,7 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
       const size_t hist_size = frame->size - sizeof(*header);
       assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
-      packet_value_table_t *hist = packet_value_table_new(header->type,
+      packet_value_table_t *hist = packet_value_table_new(header->reason,
                                                       time(NULL),
                                                       header->element_size,
                                                       element_count,

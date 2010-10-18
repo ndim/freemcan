@@ -36,7 +36,7 @@ typedef struct {
   int refs;
 
   /** The reason for sending the histogram */
-  packet_value_table_type_t type;
+  packet_value_table_reason_t reason;
 
   /** Timestamp when package was received */
   time_t receive_time;
@@ -79,7 +79,7 @@ typedef struct {
  * in the array due to that being the value where ADC clamping is
  * counted.
  */
-packet_value_table_t *packet_value_table_new(const packet_value_table_type_t type,
+packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                          const time_t receive_time,
                                          const uint8_t element_size,
                                          const size_t element_count,

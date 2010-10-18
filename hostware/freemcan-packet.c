@@ -37,7 +37,7 @@
 #include "endian-conversion.h"
 
 
-packet_value_table_t *packet_value_table_new(const packet_value_table_type_t type,
+packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                          const time_t receive_time,
                                          const uint8_t element_size,
                                          const size_t element_count,
@@ -50,7 +50,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_type_t typ
   assert(result != NULL);
 
   result->refs              = 1;
-  result->type              = type;
+  result->reason            = reason;
   result->receive_time      = receive_time;
   result->element_count     = element_count;
   result->orig_element_size = element_size;

@@ -458,16 +458,16 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
   packet_value_table_ref(value_table_packet);
 
   const size_t element_count = value_table_packet->element_count;
-  const packet_value_table_type_t type = value_table_packet->type;
+  const packet_value_table_reason_t reason = value_table_packet->reason;
   char buf[128];
-  if ((type>=32)&&(type<127)) {
+  if ((reason>=32)&&(reason<127)) {
     snprintf(buf, sizeof(buf),
              "Received '%c' type histogram: %%d elements, %%d seconds:",
-             type);
+             reason);
   } else {
     snprintf(buf, sizeof(buf),
              "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
-             type, type);
+             reason, reason);
   }
   fmlog(buf, element_count, value_table_packet->duration);
   fmlog_hist(value_table_packet->elements, element_count);

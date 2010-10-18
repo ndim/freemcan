@@ -74,10 +74,8 @@ void invent_histogram(const uint16_t duration)
 
 /** Send value table packet to controller via serial port (layer 3).
  *
- * \param type The type of value table we are sending
- *             (#packet_value_table_type_t).  You may also a dummy
- *             value like '?' or -1 or 0xff or 0 until you make use of
- *             that value on the receiver side.
+ * \param type The reason why we are sending the value table
+ *             (#packet_value_table_reason_t).
  *
  * Note that send_table() might take a significant amount of time.
  * For example, at 9600bps, transmitting a good 3KByte will take a
@@ -89,7 +87,7 @@ void invent_histogram(const uint16_t duration)
  * Note that for 'I' value tables it is possible that we send fluked
  * values due to overflows.
  */
-void send_table(const packet_value_table_type_t type)
+void send_table(const packet_value_table_reason_t reason)
 {
   const uint16_t duration = get_duration();
 
@@ -99,7 +97,7 @@ void send_table(const packet_value_table_type_t type)
 
   packet_value_table_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
-    type,
+    reason,
     duration,
     orig_timer_count
   };

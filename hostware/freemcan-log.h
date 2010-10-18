@@ -68,7 +68,7 @@ void fmlog_data24(const void *data, const size_t size);
 /** Log a block of data as 32 bit integers */
 void fmlog_data32(const void *data, const size_t size);
 
-/** Log histogram data */
+/** Log value table data */
 void fmlog_hist(const uint32_t *elements, const size_t count);
 
 /** @} */

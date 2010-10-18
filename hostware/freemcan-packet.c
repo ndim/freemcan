@@ -110,7 +110,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
     }
     break;
   default:
-    abort(); /* invalid histogram element size */
+    abort(); /* invalid value table element size */
     break;
   }
 

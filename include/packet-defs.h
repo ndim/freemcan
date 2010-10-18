@@ -36,8 +36,8 @@
  *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>packet_value_table_header_t</td> <td>histogram packet header</td></tr>
- *  <tr><td>see above</td> <td>uintX_t []</td> <td>histogram data</td></tr>
+ *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>packet_value_table_header_t</td> <td>value table packet header</td></tr>
+ *  <tr><td>see above</td> <td>uintX_t []</td> <td>value table data</td></tr>
  * </table>
  *
  */
@@ -50,9 +50,9 @@
 
 
 
-/** Histogram packet types
+/** Value table packet types
  *
- * The reason for sending the histogram.
+ * The reason for sending the value table.
  */
 typedef enum {
 
@@ -62,7 +62,7 @@ typedef enum {
   /** Measurement has completed ("done"). */
   PACKET_VALUE_TABLE_DONE = 'D',
 
-  /** Repeat sending of 'D' type histogram */
+  /** Repeat sending of 'D' type value table */
   PACKET_VALUE_TABLE_RESEND = 'R',
 
   /** Measurement has been aborted, report results as gathered so far. */
@@ -71,7 +71,7 @@ typedef enum {
 } packet_value_table_reason_t;
 
 
-/** Histogram packet header
+/** Value table packet header
  *
  * \todo Verify the compiler does not do strange alignment things.
  *
@@ -79,9 +79,9 @@ typedef enum {
  * table above.
  */
 typedef struct {
-  /** histogram element size in bytes (1,2,3,4) */
+  /** value table element size in bytes (1,2,3,4) */
   uint8_t  element_size;
-  /** histogram type (#packet_value_table_reason_t cast to uint8_t) */
+  /** Reason for sending value table (#packet_value_table_reason_t cast to uint8_t) */
   uint8_t  reason;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;

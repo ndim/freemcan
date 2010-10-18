@@ -451,7 +451,7 @@ static void packet_handler_text(const char *text, void *UP(data))
 }
 
 
-/** Histogram data packet handler (TUI specific) */
+/** Value table data packet handler (TUI specific) */
 static void packet_handler_value_table(packet_value_table_t *value_table_packet,
                                        void *UP(data))
 {
@@ -462,17 +462,17 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
   char buf[128];
   if ((reason>=32)&&(reason<127)) {
     snprintf(buf, sizeof(buf),
-             "Received '%c' type histogram: %%d elements, %%d seconds:",
+             "Received '%c' reason value table: %%d elements, %%d seconds:",
              reason);
   } else {
     snprintf(buf, sizeof(buf),
-             "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
+             "Received 0x%02x=%d reason value table: %%d elements, %%d seconds:",
              reason, reason);
   }
   fmlog(buf, element_count, value_table_packet->duration);
   fmlog_hist(value_table_packet->elements, element_count);
 
-  /* export current histogram to file(s) */
+  /* export current value table to file(s) */
   export_value_table(value_table_packet);
 
   packet_value_table_unref(value_table_packet);

@@ -23,13 +23,13 @@ digraph firmware_fsm {
   checksum -> measuring [ label="chksum byte, if match\nstart measurement, start timer, state 'MEASURING'" style=bold ];
   checksum -> reset [ color=red fontcolor=red label="chksum byte, if fail\ntext 'checksum fail', state 'RESET'" ];
 
-  measuring -> reset [ color=blue fontcolor=blue label="cmd 'a'\nhistogram 'aborted', state 'RESET'"];
-  measuring -> measuring [ color=blue fontcolor=blue label="cmd 'i'\nhistogram 'intermediate', state 'MEASURING'" ];
+  measuring -> reset [ color=blue fontcolor=blue label="cmd 'a'\nvalue table 'aborted', state 'RESET'"];
+  measuring -> measuring [ color=blue fontcolor=blue label="cmd 'i'\nvalue table 'intermediate', state 'MEASURING'" ];
 
   ready -> reset [ color=blue fontcolor=blue label="cmd 'r'\nstate 'RESET'"];
-  measuring -> done [ label="timer done\nhistogram 'done', state 'DONE'" style=bold ];
+  measuring -> done [ label="timer done\nvalue table 'done', state 'DONE'" style=bold ];
   done -> reset [ label="cmd 'r'\nstate 'RESET'" style=bold ];
-  done -> done  [ color=blue fontcolor=blue label="any other byte\nhistogram 'resend', state 'DONE'" ];
+  done -> done  [ color=blue fontcolor=blue label="any other byte\nvalue table 'resend', state 'DONE'" ];
 
   ready:ne -> ready:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'READY'"];
   done:ne -> done:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'DONE'"];

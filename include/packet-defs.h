@@ -27,17 +27,17 @@
  * The host never sends packets to the firmware. It only sends
  * simplified frames.  See the \ref frame_defs "frame documentation".
  *
- * \section packet_emb_to_host From firmware to hostware: Histogram packet
+ * \section packet_emb_to_host From firmware to hostware: Value table packet
  *
- * The size of the histogram data is determined from the total packet
- * data size (i.e. the frame's payload size) by subtracting the size
- * of the #packet_histogram_header_t that is sent in front of
- * histogram data.
+ * The size of the value table data is determined from the total
+ * packet data size (i.e. the frame's payload size) by subtracting the
+ * size of the #packet_value_table_header_t that is sent in front of
+ * the actual value table data.
  *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>sizeof(packet_histogram_header_t)</td> <td>packet_histogram_header_t</td> <td>histogram packet header</td></tr>
- *  <tr><td>see above</td> <td>uintX_t []</td> <td>histogram data</td></tr>
+ *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>packet_value_table_header_t</td> <td>value table packet header</td></tr>
+ *  <tr><td>see above</td> <td>uintX_t []</td> <td>value table data</td></tr>
  * </table>
  *
  */
@@ -50,44 +50,73 @@
 
 
 
-/** Histogram packet types (UNUSED SO FAR)
+/** Type of value table
  *
- * The reason for sending the histogram. (UNUSED SO FAR)
+ * The kind of data in the value table.
+ */
+typedef enum {
+
+  /** Histogram data */
+  VALUE_TABLE_TYPE_HISTOGRAM = 'H',
+
+  /** Time series (e.g. repeated geiger counter) data */
+  VALUE_TABLE_TYPE_TIME_SERIES = 'T',
+
+  /* O-Scope type PCM data
+   * VALUE_TABLE_TYPE_PCM = 'P',
+   */
+
+} packet_value_table_type_t;
+
+
+/** Value table packet reason for sending
+ *
+ * The reason for sending the value table.
  */
 typedef enum {
 
   /** Regular intermediate report. */
-  PACKET_HISTOGRAM_INTERMEDIATE = 'I',
+  PACKET_VALUE_TABLE_INTERMEDIATE = 'I',
 
   /** Measurement has completed ("done"). */
-  PACKET_HISTOGRAM_DONE = 'D',
+  PACKET_VALUE_TABLE_DONE = 'D',
 
-  /** Repeat sending of 'D' type histogram */
-  PACKET_HISTOGRAM_RESEND = 'R',
+  /** Repeat sending of 'D' type value table */
+  PACKET_VALUE_TABLE_RESEND = 'R',
 
   /** Measurement has been aborted, report results as gathered so far. */
-  PACKET_HISTOGRAM_ABORTED = 'A'
+  PACKET_VALUE_TABLE_ABORTED = 'A'
 
-} packet_histogram_type_t;
+} packet_value_table_reason_t;
 
 
-/** Histogram packet header
+/** Value table packet header
  *
  * \todo Verify the compiler does not do strange alignment things.
  *
  * Note: If you change this structure, please make sure you update the
  * table above.
+ *
+ * Note 2: This struct is quite sensible to compiler settings,
+ * alignment, packing and order of the members. If this turns out to
+ * be too fragile, we need to get rid of the struct, and read the
+ * values byte-by-byte by hand. The current struct works with
+ *
+ *   * avr-gcc-4.5.1 on AVR
+ *   * native gcc-4.5.1 on i386
  */
 typedef struct {
-  /** histogram element size in bytes (1,2,3,4) */
+  /** value table element size in bytes (1,2,3,4) */
   uint8_t  element_size;
-  /** histogram type (#packet_histogram_type_t cast to uint8_t) */
+  /** Reason for sending value table (#packet_value_table_reason_t cast to uint8_t) */
+  uint8_t  reason;
+  /** Type of value table (#packet_value_table_type_t cast to uint8_t) */
   uint8_t  type;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
   /** total duration (of the measurement in progress) */
   uint16_t total_duration;
-} packet_histogram_header_t;
+} __attribute__ ((packed)) packet_value_table_header_t;
 
 
 /** @} */

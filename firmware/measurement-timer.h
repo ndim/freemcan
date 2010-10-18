@@ -155,9 +155,9 @@ void timer_init_quick(void)
  *
  * We do synchronized reading of the multi-byte variable timer_count
  * here (which is being written to by the ISR(TIMER1_COMPA_vect) while
- * send_histogram() is being executed for 'I' histograms). For all other
- * types of histograms, this busy sync loop will still work, but is not
- * required as all interrupts will be disabled.
+ * send_table() is being executed for 'I' value tables). For all other
+ * types of value tables, this busy sync loop will still work, but is
+ * not required as all interrupts will be disabled.
  *
  * Reading both #timer_count and #last_timer_count consists basically of
  * the following four steps:
@@ -195,8 +195,9 @@ void timer_init_quick(void)
  * that the while loop can repeats a number of times during that
  * second, this will terminate quite quickly with a useful result.
  *
- * The result may be off by one for the 'I' histograms but not by
- * more, and for 'I' results we can tolerate that kind of inaccuracy.
+ * The result may be off by one for the 'I' value table packets but
+ * not by more, and for 'I' results we can tolerate that kind of
+ * inaccuracy.
  *
  * Durations for finished measurements will always be accurate, as
  * that will trigger case 1.

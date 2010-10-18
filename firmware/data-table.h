@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup data_table Data table interface between MCA/time series and send_histogram()
+ * \defgroup data_table Data table interface between MCA/time series and send_table()
  * \ingroup firmware
  *
  * @{
@@ -30,6 +30,8 @@
 
 
 #include <stdlib.h>
+
+#include "packet-defs.h"
 
 
 /** The data table as an opaque array of bytes
@@ -42,6 +44,10 @@ extern char data_table[];
 
 /** The size of the data #table in bytes */
 extern size_t sizeof_data_table;
+
+
+/** The type of value table */
+extern packet_value_table_type_t value_table_type;
 
 
 /** @} */

@@ -54,7 +54,7 @@
  *
  * \see data_table
  */
-volatile histogram_element_t table[MAX_COUNTER] asm("data_table");
+volatile table_element_t table[MAX_COUNTER] asm("data_table");
 
 
 /** Actual size of #data_table in bytes
@@ -62,6 +62,13 @@ volatile histogram_element_t table[MAX_COUNTER] asm("data_table");
  * \see data_table
  */
 const size_t sizeof_data_table = sizeof(table);
+
+
+/** Type of value table we send
+ *
+ * \see data_table
+ */
+packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_HISTOGRAM;
 
 
 /** Initialize peripherals
@@ -184,8 +191,8 @@ ISR(INT0_vect){
     * instructions are not).  Anyway, we needed to move the increment
     * into a properly defined _inc function.
     */
-   volatile histogram_element_t *element = &(table[index]);
-   histogram_element_inc(element);
+   volatile table_element_t *element = &(table[index]);
+   table_element_inc(element);
 
    /* Wait til preamp falls below INT0 trigger threshold
     * with 27pF||120k */

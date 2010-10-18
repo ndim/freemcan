@@ -44,11 +44,11 @@
 #ifdef INVENTED_HISTOGRAM
 
 /** created from binary via objcopy */
-extern uint8_t invented_histogram[] asm("_binary_invented_histogram_bin_start") PROGMEM;
+extern uint8_t invented_histogram[] asm("_binary_invented_value_table_bin_start") PROGMEM;
 /** created from binary via objcopy */
-extern uint8_t invented_histogram_size[] asm("_binary_invented_histogram_bin_size") PROGMEM;
+extern uint8_t invented_value_table_size[] asm("_binary_invented_value_table_bin_size") PROGMEM;
 /** created from binary via objcopy */
-extern uint8_t invented_histogram_end[] asm("_binary_invented_histogram_bin_end") PROGMEM;
+extern uint8_t invented_value_table_end[] asm("_binary_invented_value_table_bin_end") PROGMEM;
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)
 /** Simulate a histogram based on the invented histogram data */
@@ -72,24 +72,22 @@ void invent_histogram(const uint16_t duration)
 #endif
 
 
-/** Send histogram packet to controller via serial port (layer 3).
+/** Send value table packet to controller via serial port (layer 3).
  *
- * \param type The type of histogram we are sending
- *             (#packet_histogram_type_t).  You may also a dummy value
- *             like '?' or -1 or 0xff or 0 until you make use of that
- *             value on the receiver side.
+ * \param type The reason why we are sending the value table
+ *             (#packet_value_table_reason_t).
  *
- * Note that send_histogram() might take a significant amount of time.
+ * Note that send_table() might take a significant amount of time.
  * For example, at 9600bps, transmitting a good 3KByte will take a
  * good 3 seconds.  If you disable interrupts for that time and want
  * to continue the measurement later, you will want to properly pause
  * the timer.  We are currently keeping interrupts enabled if we
  * continue measuring, which avoids this issue.
  *
- * Note that for 'I' histograms it is possible that we send fluked
+ * Note that for 'I' value tables it is possible that we send fluked
  * values due to overflows.
  */
-void send_table(const packet_histogram_type_t type)
+void send_table(const packet_value_table_reason_t reason)
 {
   const uint16_t duration = get_duration();
 
@@ -97,13 +95,14 @@ void send_table(const packet_histogram_type_t type)
   invent_histogram(duration);
 #endif
 
-  packet_histogram_header_t header = {
+  packet_value_table_header_t header = {
     ELEMENT_SIZE_IN_BYTES,
-    type,
+    reason,
+    value_table_type,
     duration,
     orig_timer_count
   };
-  frame_start(FRAME_TYPE_HISTOGRAM, sizeof(header)+sizeof_data_table);
+  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header)+sizeof_data_table);
   uart_putb((const void *)&header, sizeof(header));
   uart_putb((const void *)data_table, sizeof_data_table);
   frame_end();

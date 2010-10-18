@@ -105,13 +105,13 @@ typedef
 #else
 # error Unsupported ELEMENT_SIZE_IN_BYTES
 #endif
-  histogram_element_t;
+  table_element_t;
 
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)
 /** Increment 24bit unsigned integer */
 inline static
-void histogram_element_zero(volatile freemcan_uint24_t *dest)
+void table_element_zero(volatile freemcan_uint24_t *dest)
 {
   asm("\n\t"
       /* store 24 bit value zero */
@@ -127,7 +127,7 @@ void histogram_element_zero(volatile freemcan_uint24_t *dest)
 
 
 inline static
-void histogram_element_copy(volatile freemcan_uint24_t *dest,
+void table_element_copy(volatile freemcan_uint24_t *dest,
                             volatile freemcan_uint24_t *source)
 {
   asm("\n\t"
@@ -148,7 +148,7 @@ void histogram_element_copy(volatile freemcan_uint24_t *dest,
 
 
 inline static
-void histogram_element_inc(volatile freemcan_uint24_t *element)
+void table_element_inc(volatile freemcan_uint24_t *element)
 {
   uint16_t accu;
   asm volatile("\n\t"
@@ -179,7 +179,7 @@ void histogram_element_inc(volatile freemcan_uint24_t *element)
 #else
 /** Increment 8bit, 16bit, or 32bit unsigned integer */
 inline static
-void histogram_element_inc(volatile histogram_element_t *element)
+void table_element_inc(volatile table_element_t *element)
 {
   (*element)++;
 }

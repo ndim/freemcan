@@ -55,7 +55,7 @@
  *
  * \see data_table
  */
-volatile histogram_element_t counter asm("data_table");
+volatile table_element_t counter asm("data_table");
 
 
 /** Actual size of #data_table in bytes
@@ -63,6 +63,13 @@ volatile histogram_element_t counter asm("data_table");
  * \see data_table
  */
 const size_t sizeof_data_table = sizeof(counter);
+
+
+/** Type of value table we send
+ *
+ * \see data_table
+ */
+packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
 
 
 /** Initialize peripherals
@@ -112,7 +119,7 @@ ISR(INT0_vect)
 
   _delay_ms(2);
 
-  histogram_element_inc(&counter);
+  table_element_inc(&counter);
 
   /* debounce any pending ints
      - preller während schaltflanke

@@ -135,14 +135,14 @@
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
    (((uint32_t)'P')<<16) |			\
-   (((uint32_t)'K')<<24)			\
+   (((uint32_t)'k')<<24)			\
     )
 
 /** Header magic marker value for data frames to host, string version.
  *
  * This is good for endianness independent char-by-char receivers.
  */
-#define FRAME_MAGIC_STR "FMPK"
+#define FRAME_MAGIC_STR "FMPk"
 
 /** Data frame types (data frame to host)
  *
@@ -153,10 +153,10 @@ typedef enum {
   /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
 
-  /** histogram data */
-  FRAME_TYPE_HISTOGRAM = 'H',
+  /** value table data */
+  FRAME_TYPE_VALUE_TABLE = 'V',
 
-  /** device state message */
+  /** Device state message */
   FRAME_TYPE_STATE = 'S'
 
 } frame_type_t;

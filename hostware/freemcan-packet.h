@@ -30,40 +30,45 @@
 #include "packet-defs.h"
 
 
-/** Parsed histogram packet. */
+/** Parsed value table packet. */
 typedef struct {
   /** Reference counter */
   int refs;
 
-  /** The reason for sending the histogram */
-  packet_histogram_type_t type;
+  /** The reason for sending the value table */
+  packet_value_table_reason_t reason;
+
+  /** The type of value table */
+  packet_value_table_type_t type;
 
   /** Timestamp when package was received */
   time_t receive_time;
 
-  /** Number of elements in histogram array */
+  /** Number of elements in value table array */
   size_t element_count;
 
-  /** Size of each received histogram elements in bytes */
+  /** Size of each received value table element in bytes */
   size_t orig_element_size;
 
-  /** Duration of measurement which lead to the histogram data */
+  /** Duration of measurement which lead to the value table data, or
+   * time spent recording the last item in the time series. */
   unsigned int duration;
 
-  /** Total duration of measurement in progress */
+  /** Total scheduled duration of the measurement in progress, or the
+   * time spent recording all but the last item in the time series. */
   unsigned int total_duration;
 
   /** Maximum "good" value from elements[] array (ignores clamping value!) */
   uint32_t max_value;
 
-  /** Histogram element table (native endian uint32_t) */
+  /** Value table array (native endian uint32_t) */
   uint32_t elements[];
-} packet_histogram_t;
+} packet_value_table_t;
 
 
-/** Create (allocate and initialize) a new packet_histogram_t instance.
+/** Create (allocate and initialize) a new packet_value_table_t instance.
  *
- * \param type Type of histogram packet, i.e. reason why it was sent.
+ * \param type Reason for sending the value table packet
  * \param receive_time Timestamp at which the packet was received.
  * \param element_size Size of each element in bytes (1,2,3,4).
  * \param element_count The number of elements received from device.
@@ -79,32 +84,33 @@ typedef struct {
  * in the array due to that being the value where ADC clamping is
  * counted.
  */
-packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
-                                         const time_t receive_time,
-                                         const uint8_t element_size,
-                                         const size_t element_count,
-                                         const uint16_t duration,
-                                         const uint16_t total_duration,
-                                         const void *elements)
+packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
+                                             const packet_value_table_type_t type,
+                                             const time_t receive_time,
+                                             const uint8_t element_size,
+                                             const size_t element_count,
+                                             const uint16_t duration,
+                                             const uint16_t total_duration,
+                                             const void *elements)
   __attribute__((malloc));
 
 
-/** Call this when you want to use hist and store a pointer to it. */
-void packet_histogram_ref(packet_histogram_t *hist);
+/** Call this when you want to use value_table and store a pointer to it. */
+void packet_value_table_ref(packet_value_table_t *value_table);
 
 
-/** Call this when you have finished using your pointer to hist. */
-void packet_histogram_unref(packet_histogram_t *hist);
+/** Call this when you have finished using your pointer to value_table. */
+void packet_value_table_unref(packet_value_table_t *value_table);
 
 
-/** Callback function type called when histogram packet arrives
+/** Callback function type called when value table packet arrives
  *
- * The callback function must call #packet_histogram_ref if it wants
+ * The callback function must call #packet_value_table_ref if it wants
  * to use the packet after returning, and then is responsible for
- * calling #packet_histogram_unref when it has finished accessing it.
+ * calling #packet_value_table_unref when it has finished accessing it.
  */
-typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
-                                           void *data);
+typedef void (*packet_handler_value_table_t)(packet_value_table_t *packet_value_table,
+                                             void *data);
 
 /** Callback function type called when state packet arrives */
 typedef void (*packet_handler_state_t)(const char *state, void *data);

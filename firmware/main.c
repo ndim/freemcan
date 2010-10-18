@@ -245,7 +245,7 @@ int main(void)
       case ST_MEASURING_nomsg:
         if (measurement_finished) {
           cli();
-          send_table(PACKET_HISTOGRAM_DONE);
+          send_table(PACKET_VALUE_TABLE_DONE);
           on_measurement_finished();
           next_state = ST_DONE;
         } else if (bit_is_set(UCSR0A, RXC0)) {
@@ -254,29 +254,34 @@ int main(void)
           switch (cmd) {
           case FRAME_CMD_ABORT:
             cli();
-            send_table(PACKET_HISTOGRAM_ABORTED);
+            send_table(PACKET_VALUE_TABLE_ABORTED);
             next_state = ST_RESET;
             break;
           case FRAME_CMD_INTERMEDIATE:
-            /** The ISR(ADC_vect) will be called when the analog circuit
-             * detects an event.  This will cause glitches in the
-             * intermediate histogram values as the histogram values are
-             * larger than 8 bits.  However, we have decided that for
+            /** The value table will be updated asynchronously from
+             * ISRs like ISR(ADC_vect) or ISR(TIMER_foo),
+             * i.e. independent from this main loop.  This will cause
+             * glitches in the intermediate values as the values are
+             * larger than 1 byte.  However, we have decided that for
              * *intermediate* results, those glitches are acceptable.
              *
              * Keeping interrupts enabled has the additional advantage
-             * that the measurement continues during send_table(),
-             * so we need not concern ourselves with pausing the
-             * measurement timer or anything similar.
+             * that the measurement continues during send_table(), so
+             * we need not concern ourselves with pausing the
+             * measurement timer, or with making sure we properly
+             * reset the hardware which triggered our ISR within the
+             * appropriate time range or anything similar.
              *
              * If you decide to bracket the send_table() call with a
              * cli()/sei() pair, be aware that you need to solve the
-             * issue of resetting the peak hold capacitor on resume if
-             * an event has been detected by the analog circuit while we
-             * had interrupts disabled and thus ISR(ADC_vect) could not
-             * reset the peak hold capacitor.
+             * issue of resetting the hardware properly. For example,
+             * with the adc-int-mca personality, resetting the peak
+             * hold capacitor on resume if an event has been detected
+             * by the analog circuit while we had interrupts disabled
+             * and thus ISR(ADC_vect) could not reset the peak hold
+             * capacitor.
              */
-            send_table(PACKET_HISTOGRAM_INTERMEDIATE);
+            send_table(PACKET_VALUE_TABLE_INTERMEDIATE);
             next_state = ST_MEASURING;
             break;
           case FRAME_CMD_STATE:
@@ -302,7 +307,7 @@ int main(void)
           next_state = ST_RESET;
           break;
         default:
-          send_table(PACKET_HISTOGRAM_RESEND);
+          send_table(PACKET_VALUE_TABLE_RESEND);
           next_state = ST_DONE;
           break;
         }

@@ -3,5 +3,4 @@
 /*.strace
 /freemcan-tui
 /freemcan-tui.log
-/hist.*.dat
 /test-log

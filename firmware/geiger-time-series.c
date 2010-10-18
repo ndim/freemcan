@@ -89,6 +89,13 @@ size_t sizeof_data_table __attribute__ (( section(".data.sizeof") )) =
   sizeof(data_table[0]);
 
 
+/** Type of value table we send
+ *
+ * \see data_table
+ */
+packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
+
+
 /** Setup, needs to be called once on startup */
 void ts_init(void)
   __attribute__ ((naked))

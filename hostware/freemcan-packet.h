@@ -38,6 +38,9 @@ typedef struct {
   /** The reason for sending the value table */
   packet_value_table_reason_t reason;
 
+  /** The type of value table */
+  packet_value_table_type_t type;
+
   /** Timestamp when package was received */
   time_t receive_time;
 
@@ -82,6 +85,7 @@ typedef struct {
  * counted.
  */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
+                                             const packet_value_table_type_t type,
                                              const time_t receive_time,
                                              const uint8_t element_size,
                                              const size_t element_count,

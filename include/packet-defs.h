@@ -50,7 +50,26 @@
 
 
 
-/** Value table packet types
+/** Type of value table
+ *
+ * The kind of data in the value table.
+ */
+typedef enum {
+
+  /** Histogram data */
+  VALUE_TABLE_TYPE_HISTOGRAM = 'H',
+
+  /** Time series (e.g. repeated geiger counter) data */
+  VALUE_TABLE_TYPE_TIME_SERIES = 'T',
+
+  /* O-Scope type PCM data
+   * VALUE_TABLE_TYPE_PCM = 'P',
+   */
+
+} packet_value_table_type_t;
+
+
+/** Value table packet reason for sending
  *
  * The reason for sending the value table.
  */
@@ -77,17 +96,27 @@ typedef enum {
  *
  * Note: If you change this structure, please make sure you update the
  * table above.
+ *
+ * Note 2: This struct is quite sensible to compiler settings,
+ * alignment, packing and order of the members. If this turns out to
+ * be too fragile, we need to get rid of the struct, and read the
+ * values byte-by-byte by hand. The current struct works with
+ *
+ *   * avr-gcc-4.5.1 on AVR
+ *   * native gcc-4.5.1 on i386
  */
 typedef struct {
   /** value table element size in bytes (1,2,3,4) */
   uint8_t  element_size;
   /** Reason for sending value table (#packet_value_table_reason_t cast to uint8_t) */
   uint8_t  reason;
+  /** Type of value table (#packet_value_table_type_t cast to uint8_t) */
+  uint8_t  type;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
   /** total duration (of the measurement in progress) */
   uint16_t total_duration;
-} packet_value_table_header_t;
+} __attribute__ ((packed)) packet_value_table_header_t;
 
 
 /** @} */

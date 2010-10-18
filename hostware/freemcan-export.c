@@ -86,7 +86,8 @@ void export_value_table(const packet_value_table_t *value_table_packet)
   /** \todo We need a better way to distinguish between histogram data
    *        and counter/time series data.
    */
-  if (element_count >= 32) { /* histogram data */
+  switch (value_table_packet->type) {
+  case VALUE_TABLE_TYPE_HISTOGRAM: /* histogram data */
     fprintf(datfile, "# receive_time:\t%lu (%s)\n",
             value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
     fprintf(datfile, "# element_count:\t%d\n", value_table_packet->element_count);
@@ -99,7 +100,8 @@ void export_value_table(const packet_value_table_t *value_table_packet)
     for (size_t i=0; i<element_count; i++) {
       fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
     }
-  } else { /* counter data */
+    break;
+  case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
     fprintf(datfile, "# number of intervalls:\t%d\n", value_table_packet->element_count);
     fprintf(datfile, "#duration per interval: %d sec\n", value_table_packet->total_duration);
 
@@ -124,6 +126,7 @@ void export_value_table(const packet_value_table_t *value_table_packet)
 
     fprintf(datfile, "#statistical error: %1.1f %%\n",
             100.0*average_counts_error/average_count_rate);
+    break;
   }
   fclose(datfile);
 }

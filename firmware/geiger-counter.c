@@ -65,6 +65,13 @@ volatile table_element_t counter asm("data_table");
 const size_t sizeof_data_table = sizeof(counter);
 
 
+/** Type of value table we send
+ *
+ * \see data_table
+ */
+packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
+
+
 /** Initialize peripherals
  *
  * Set up output pins to Pollin Eval Board speaker and LED2.

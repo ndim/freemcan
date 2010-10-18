@@ -64,6 +64,13 @@ volatile table_element_t table[MAX_COUNTER] asm("data_table");
 const size_t sizeof_data_table = sizeof(table);
 
 
+/** Type of value table we send
+ *
+ * \see data_table
+ */
+packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_HISTOGRAM;
+
+
 /** Initialize peripherals
  *
  * Configure peak hold capacitor reset pin.

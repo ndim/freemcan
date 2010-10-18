@@ -459,16 +459,24 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
 
   const size_t element_count = value_table_packet->element_count;
   const packet_value_table_reason_t reason = value_table_packet->reason;
+  const packet_value_table_type_t type = value_table_packet->type;
   char buf[128];
+  char reason_str[16];
   if ((reason>=32)&&(reason<127)) {
-    snprintf(buf, sizeof(buf),
-             "Received '%c' reason value table: %%d elements, %%d seconds:",
-             reason);
+    snprintf(reason_str, sizeof(reason_str), "'%c'", reason);
   } else {
-    snprintf(buf, sizeof(buf),
-             "Received 0x%02x=%d reason value table: %%d elements, %%d seconds:",
-             reason, reason);
+    snprintf(reason_str, sizeof(reason_str), "0x%02x=%d", reason, reason);
   }
+  char type_str[16];
+  if ((type>=32)&&(type<127)) {
+    snprintf(type_str, sizeof(type_str), "'%c'", type);
+  } else {
+    snprintf(type_str, sizeof(type_str), "0x%02x=%d", type, type);
+  }
+  snprintf(buf, sizeof(buf),
+           "Received %s type value table for reason %s: %%d elements, %%d seconds:",
+           type_str, reason_str);
+
   fmlog(buf, element_count, value_table_packet->duration);
   fmlog_value_table(value_table_packet->elements, element_count);
 

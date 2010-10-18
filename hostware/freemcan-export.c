@@ -135,10 +135,6 @@ void export_value_table(const packet_value_table_t *value_table_packet)
       fprintf(datfile, "# duration:\t%d\n", value_table_packet->duration);
       fprintf(datfile, "# total_duration:\t%d\n", value_table_packet->total_duration);
       fprintf(datfile, "# max_value:\t%d\n", value_table_packet->max_value);
-
-      for (size_t i=0; i<element_count; i++) {
-        fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
-      }
     }
     break;
   case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
@@ -181,6 +177,9 @@ void export_value_table(const packet_value_table_t *value_table_packet)
   }
 
   if (datfile) {
+    for (size_t i=0; i<element_count; i++) {
+      fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
+    }
     fclose(datfile);
   }
 }

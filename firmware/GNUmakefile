@@ -28,20 +28,17 @@ PERSONALITIES =
 
 include ../common.mk
 
-# Override settings by defining them in settings.mk Things not defined
-# in settings.mk will be later defined with ?= later in this Makefile.
-# AVRDUDE_PROGRAMMER, AVRDUDE_PORT, MCU are good candidates for
-# settings.mk.
+# Override settings by defining them in settings.mk. For an example of
+# settings to define in settings.mk, see the settings.mk.sample
+# file. Things not defined in settings.mk will be later defined with
+# ?= later in this Makefile.  AVRDUDE_PROGRAMMER, AVRDUDE_PORT, F_CPU,
+# MCU are good candidates for settings.mk.
 -include settings.mk
 
 MCU ?= atmega644p
-# F_CPU ?= 1000000UL
 F_CPU ?= 16000000UL
-# F_CPU ?= 18432000UL
-# BUILD_FREEMCAN_INVENTED_HISTOGRAM = yes
-# BUILD_FREEMCAN_PRINTF = yes
 
-# End of settings
+# End of default settings
 
 
 FORMAT = ihex

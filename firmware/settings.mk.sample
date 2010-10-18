@@ -1,0 +1,30 @@
+# settings.mk.sample - Example build settings for the -*- makefile -*-
+# Copy this file to settings.mk and then adapt settings.mk as required.
+#
+# settings.mk.sample both documents the options and makes it easy to
+# set up your own customized settings.mk.
+
+# Microcontroller type
+# MCU = atmega644
+# MCU = atmega644p
+
+# Build firmware with printf support
+# BUILD_FREEMCAN_PRINTF = yes
+
+# Build firmware with histogram emulation support
+# BUILD_FREEMCAN_INVENTED_HISTOGRAM = yes
+
+# CPU clock frequency
+# 1 MHz - chip default
+# F_CPU = 1000000UL
+# 16 MHz - Pollin evaluation board default
+# F_CPU = 16000000UL
+# 18.432 MHz - Popular when RS232 timing precision is required
+# F_CPU = 18432000UL
+
+# The programmer type avrdude is to use for programming the AVR MCU.
+# Run "avrdude -c help" for a list of supported programmers.
+# AVRDUDE_PROGRAMMER = ponyser
+
+# The device/port avrdude is to use for programming the AVR MCU.
+# AVRDUDE_PORT = /dev/ttyS0

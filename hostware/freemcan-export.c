@@ -52,7 +52,7 @@ char *export_value_table_get_filename(const packet_value_table_t *value_table_pa
   char date[128];
   strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
   static char fname[256];
-  snprintf(fname, sizeof(fname), "hist.%s.%c.%s", date, reason, extension);
+  snprintf(fname, sizeof(fname), "data.%s.%c.%s", date, reason, extension);
   return fname;
 }
 
@@ -72,60 +72,60 @@ void export_value_table(const packet_value_table_t *value_table_packet)
 {
   const size_t element_count = value_table_packet->element_count;
   const char *fname = export_value_table_get_filename(value_table_packet, "dat");
-  FILE *histfile = fopen(fname, "w");
-  assert(histfile);
-  fmlog("Writing histogram to file %s", fname);
+  FILE *datfile = fopen(fname, "w");
+  assert(datfile);
+  fmlog("Writing value table to file %s", fname);
   const char *reason_str = "unknown type";
   switch (value_table_packet->reason) {
   case PACKET_VALUE_TABLE_DONE: reason_str = "measurement completed"; break;
-  case PACKET_VALUE_TABLE_RESEND: reason_str = "resent histogram after measurement completed"; break;
+  case PACKET_VALUE_TABLE_RESEND: reason_str = "resent value table after measurement completed"; break;
   case PACKET_VALUE_TABLE_ABORTED: reason_str = "measurement aborted"; break;
   case PACKET_VALUE_TABLE_INTERMEDIATE: reason_str = "intermediate result"; break;
   }
-  fprintf(histfile, "# type:\t'%c' (%s)\n", value_table_packet->reason, reason_str);
+  fprintf(datfile, "# type:\t'%c' (%s)\n", value_table_packet->reason, reason_str);
   /** \todo We need a better way to distinguish between histogram data
    *        and counter/time series data.
    */
   if (element_count >= 32) { /* histogram data */
-    fprintf(histfile, "# receive_time:\t%lu (%s)\n",
+    fprintf(datfile, "# receive_time:\t%lu (%s)\n",
             value_table_packet->receive_time, time_rfc_3339(value_table_packet->receive_time));
-    fprintf(histfile, "# element_count:\t%d\n", value_table_packet->element_count);
-    fprintf(histfile, "# orig_element_size:\t%d (%d bit)\n",
+    fprintf(datfile, "# element_count:\t%d\n", value_table_packet->element_count);
+    fprintf(datfile, "# orig_element_size:\t%d (%d bit)\n",
             value_table_packet->orig_element_size, 8*value_table_packet->orig_element_size);
-    fprintf(histfile, "# duration:\t%d\n", value_table_packet->duration);
-    fprintf(histfile, "# total_duration:\t%d\n", value_table_packet->total_duration);
-    fprintf(histfile, "# max_value:\t%d\n", value_table_packet->max_value);
+    fprintf(datfile, "# duration:\t%d\n", value_table_packet->duration);
+    fprintf(datfile, "# total_duration:\t%d\n", value_table_packet->total_duration);
+    fprintf(datfile, "# max_value:\t%d\n", value_table_packet->max_value);
 
     for (size_t i=0; i<element_count; i++) {
-      fprintf(histfile, "%d\t%u\n", i, value_table_packet->elements[i]);
+      fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
     }
   } else { /* counter data */
-    fprintf(histfile, "# number of intervalls:\t%d\n", value_table_packet->element_count);
-    fprintf(histfile, "#duration per interval: %d sec\n", value_table_packet->total_duration);
+    fprintf(datfile, "# number of intervalls:\t%d\n", value_table_packet->element_count);
+    fprintf(datfile, "#duration per interval: %d sec\n", value_table_packet->total_duration);
 
     unsigned long total_count = 0;
     for (size_t i=0; i<element_count; i++) {
       total_count += value_table_packet->elements[i];
     }
 
-    fprintf(histfile, "#elapsed time:      %d sec\n",
+    fprintf(datfile, "#elapsed time:      %d sec\n",
             value_table_packet->element_count*value_table_packet->total_duration);
 
-    fprintf(histfile, "#total counts:      %lu", total_count);
+    fprintf(datfile, "#total counts:      %lu", total_count);
 
     float total_counts_error = sqrt((float)(total_count));
-    fprintf(histfile, "    +/- %1.2f CNTs (average is within 1 sigma)\n", total_counts_error);
+    fprintf(datfile, "    +/- %1.2f CNTs (average is within 1 sigma)\n", total_counts_error);
 
     float average_count_rate = 60.0*(float)(total_count)/(float)(element_count*value_table_packet->total_duration);
-    fprintf(histfile, "#counts per minute: %1.2f", average_count_rate);
+    fprintf(datfile, "#counts per minute: %1.2f", average_count_rate);
 
     float average_counts_error = average_count_rate*total_counts_error/total_count;
-    fprintf(histfile, "  +/- %1.2f CPMs (average is within 1 sigma)\n", average_counts_error);
+    fprintf(datfile, "  +/- %1.2f CPMs (average is within 1 sigma)\n", average_counts_error);
 
-    fprintf(histfile, "#statistical error: %1.1f %%\n",
+    fprintf(datfile, "#statistical error: %1.1f %%\n",
             100.0*average_counts_error/average_count_rate);
   }
-  fclose(histfile);
+  fclose(datfile);
 }
 
 

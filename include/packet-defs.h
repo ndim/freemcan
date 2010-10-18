@@ -27,16 +27,16 @@
  * The host never sends packets to the firmware. It only sends
  * simplified frames.  See the \ref frame_defs "frame documentation".
  *
- * \section packet_emb_to_host From firmware to hostware: Histogram packet
+ * \section packet_emb_to_host From firmware to hostware: Value table packet
  *
- * The size of the histogram data is determined from the total packet
- * data size (i.e. the frame's payload size) by subtracting the size
- * of the #packet_histogram_header_t that is sent in front of
- * histogram data.
+ * The size of the value table data is determined from the total
+ * packet data size (i.e. the frame's payload size) by subtracting the
+ * size of the #packet_value_table_header_t that is sent in front of
+ * the actual value table data.
  *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>sizeof(packet_histogram_header_t)</td> <td>packet_histogram_header_t</td> <td>histogram packet header</td></tr>
+ *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>packet_value_table_header_t</td> <td>histogram packet header</td></tr>
  *  <tr><td>see above</td> <td>uintX_t []</td> <td>histogram data</td></tr>
  * </table>
  *
@@ -57,18 +57,18 @@
 typedef enum {
 
   /** Regular intermediate report. */
-  PACKET_HISTOGRAM_INTERMEDIATE = 'I',
+  PACKET_VALUE_TABLE_INTERMEDIATE = 'I',
 
   /** Measurement has completed ("done"). */
-  PACKET_HISTOGRAM_DONE = 'D',
+  PACKET_VALUE_TABLE_DONE = 'D',
 
   /** Repeat sending of 'D' type histogram */
-  PACKET_HISTOGRAM_RESEND = 'R',
+  PACKET_VALUE_TABLE_RESEND = 'R',
 
   /** Measurement has been aborted, report results as gathered so far. */
-  PACKET_HISTOGRAM_ABORTED = 'A'
+  PACKET_VALUE_TABLE_ABORTED = 'A'
 
-} packet_histogram_type_t;
+} packet_value_table_type_t;
 
 
 /** Histogram packet header
@@ -81,13 +81,13 @@ typedef enum {
 typedef struct {
   /** histogram element size in bytes (1,2,3,4) */
   uint8_t  element_size;
-  /** histogram type (#packet_histogram_type_t cast to uint8_t) */
+  /** histogram type (#packet_value_table_type_t cast to uint8_t) */
   uint8_t  type;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
   /** total duration (of the measurement in progress) */
   uint16_t total_duration;
-} packet_histogram_header_t;
+} packet_value_table_header_t;
 
 
 /** @} */

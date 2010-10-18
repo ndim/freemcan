@@ -37,7 +37,7 @@
 #include "endian-conversion.h"
 
 
-packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
+packet_value_table_t *packet_value_table_new(const packet_value_table_type_t type,
                                          const time_t receive_time,
                                          const uint8_t element_size,
                                          const size_t element_count,
@@ -45,8 +45,8 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
                                          const uint16_t total_duration,
                                          const void *elements)
 {
-  packet_histogram_t *result =
-    malloc(sizeof(packet_histogram_t)+element_count*sizeof(uint32_t));
+  packet_value_table_t *result =
+    malloc(sizeof(packet_value_table_t)+element_count*sizeof(uint32_t));
   assert(result != NULL);
 
   result->refs              = 1;
@@ -120,7 +120,7 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 }
 
 
-void packet_histogram_ref(packet_histogram_t *hist_pack)
+void packet_value_table_ref(packet_value_table_t *hist_pack)
 {
   assert(hist_pack->refs > 0);
   hist_pack->refs++;
@@ -128,18 +128,18 @@ void packet_histogram_ref(packet_histogram_t *hist_pack)
 
 
 static
-void packet_histogram_free(packet_histogram_t *hist_pack)
+void packet_value_table_free(packet_value_table_t *hist_pack)
 {
   free(hist_pack);
 }
 
 
-void packet_histogram_unref(packet_histogram_t *hist_pack)
+void packet_value_table_unref(packet_value_table_t *hist_pack)
 {
   assert(hist_pack->refs > 0);
   hist_pack->refs--;
   if (hist_pack->refs == 0) {
-    packet_histogram_free(hist_pack);
+    packet_value_table_free(hist_pack);
   }
 }
 

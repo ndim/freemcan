@@ -69,7 +69,7 @@
 /* Forward declaration */
 static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
-static void packet_handler_histogram(packet_histogram_t *histogram_packet, void *data);
+static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
 
 
 /** Quit flag for the main loop. */
@@ -282,7 +282,7 @@ void tui_init()
   stdlog = fopen("freemcan-tui.log", "w");
   fmlog_set_handler(tui_log_handler, NULL);
 
-  tui_packet_parser = packet_parser_new(packet_handler_histogram,
+  tui_packet_parser = packet_parser_new(packet_handler_value_table,
                                         packet_handler_state,
                                         packet_handler_text,
                                         NULL);
@@ -452,13 +452,13 @@ static void packet_handler_text(const char *text, void *UP(data))
 
 
 /** Histogram data packet handler (TUI specific) */
-static void packet_handler_histogram(packet_histogram_t *histogram_packet,
-                                     void *UP(data))
+static void packet_handler_value_table(packet_value_table_t *value_table_packet,
+                                       void *UP(data))
 {
-  packet_histogram_ref(histogram_packet);
+  packet_value_table_ref(value_table_packet);
 
-  const size_t element_count = histogram_packet->element_count;
-  const packet_histogram_type_t type = histogram_packet->type;
+  const size_t element_count = value_table_packet->element_count;
+  const packet_value_table_type_t type = value_table_packet->type;
   char buf[128];
   if ((type>=32)&&(type<127)) {
     snprintf(buf, sizeof(buf),
@@ -469,13 +469,13 @@ static void packet_handler_histogram(packet_histogram_t *histogram_packet,
              "Received 0x%02x=%d type histogram: %%d elements, %%d seconds:",
              type, type);
   }
-  fmlog(buf, element_count, histogram_packet->duration);
-  fmlog_hist(histogram_packet->elements, element_count);
+  fmlog(buf, element_count, value_table_packet->duration);
+  fmlog_hist(value_table_packet->elements, element_count);
 
   /* export current histogram to file(s) */
-  export_histogram(histogram_packet);
+  export_value_table(value_table_packet);
 
-  packet_histogram_unref(histogram_packet);
+  packet_value_table_unref(value_table_packet);
 }
 
 /** @} */

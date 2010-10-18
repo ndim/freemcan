@@ -36,7 +36,7 @@ typedef struct {
   int refs;
 
   /** The reason for sending the histogram */
-  packet_histogram_type_t type;
+  packet_value_table_type_t type;
 
   /** Timestamp when package was received */
   time_t receive_time;
@@ -58,10 +58,10 @@ typedef struct {
 
   /** Histogram element table (native endian uint32_t) */
   uint32_t elements[];
-} packet_histogram_t;
+} packet_value_table_t;
 
 
-/** Create (allocate and initialize) a new packet_histogram_t instance.
+/** Create (allocate and initialize) a new packet_value_table_t instance.
  *
  * \param type Type of histogram packet, i.e. reason why it was sent.
  * \param receive_time Timestamp at which the packet was received.
@@ -79,7 +79,7 @@ typedef struct {
  * in the array due to that being the value where ADC clamping is
  * counted.
  */
-packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
+packet_value_table_t *packet_value_table_new(const packet_value_table_type_t type,
                                          const time_t receive_time,
                                          const uint8_t element_size,
                                          const size_t element_count,
@@ -90,20 +90,20 @@ packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
 
 
 /** Call this when you want to use hist and store a pointer to it. */
-void packet_histogram_ref(packet_histogram_t *hist);
+void packet_value_table_ref(packet_value_table_t *hist);
 
 
 /** Call this when you have finished using your pointer to hist. */
-void packet_histogram_unref(packet_histogram_t *hist);
+void packet_value_table_unref(packet_value_table_t *hist);
 
 
 /** Callback function type called when histogram packet arrives
  *
- * The callback function must call #packet_histogram_ref if it wants
+ * The callback function must call #packet_value_table_ref if it wants
  * to use the packet after returning, and then is responsible for
- * calling #packet_histogram_unref when it has finished accessing it.
+ * calling #packet_value_table_unref when it has finished accessing it.
  */
-typedef void (*packet_handler_histogram_t)(packet_histogram_t *packet_histogram,
+typedef void (*packet_handler_value_table_t)(packet_value_table_t *packet_histogram,
                                            void *data);
 
 /** Callback function type called when state packet arrives */

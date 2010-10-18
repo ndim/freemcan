@@ -153,10 +153,10 @@ typedef enum {
   /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
 
-  /** histogram data */
-  FRAME_TYPE_HISTOGRAM = 'H',
+  /** value table data */
+  FRAME_TYPE_VALUE_TABLE = 'V',
 
-  /** device state message */
+  /** Device state message */
   FRAME_TYPE_STATE = 'S'
 
 } frame_type_t;

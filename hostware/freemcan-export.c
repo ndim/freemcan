@@ -40,6 +40,7 @@ char *export_value_table_get_filename(const packet_value_table_t *value_table_pa
 {
   const struct tm *tm_ = localtime(&value_table_packet->receive_time);
   assert(tm_);
+
   char reason = 'X';
   switch (value_table_packet->reason) {
   case PACKET_VALUE_TABLE_DONE:
@@ -49,10 +50,17 @@ char *export_value_table_get_filename(const packet_value_table_t *value_table_pa
     reason = value_table_packet->reason;
     break;
   }
+
+  char *prefix = "data";
+  switch (value_table_packet->type) {
+  case VALUE_TABLE_TYPE_HISTOGRAM:   prefix = "hist"; break;
+  case VALUE_TABLE_TYPE_TIME_SERIES: prefix = "time"; break;
+  }
+
   char date[128];
   strftime(date, sizeof(date), "%Y-%m-%d.%H:%M:%S", tm_);
   static char fname[256];
-  snprintf(fname, sizeof(fname), "data.%s.%c.%s", date, reason, extension);
+  snprintf(fname, sizeof(fname), "%s.%s.%c.%s", prefix, date, reason, extension);
   return fname;
 }
 

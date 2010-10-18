@@ -22,7 +22,7 @@ ERL_SOURCES = freemcan_emulator.erl histogram_emulator.erl
 BEAMS = $(ERL_SOURCES:.erl=.beam)
 CLEANFILES += $(BEAMS)
 
-ERL_LIB = /usr/lib/erlang/lib
+ERL_LIB = $(shell if test -d /usr/lib64/erlang/lib; then echo /usr/lib64/erlang/lib; else echo /usr/lib/erlang/lib; fi)
 ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB)/erl_interface-*))
 
 bin_PROGRAMS += erl_unix_port

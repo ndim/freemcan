@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup data_table Data table interface between MCA/time series and send_histogram()
+ * \defgroup data_table Data table interface between MCA/time series and send_table()
  * \ingroup firmware
  *
  * @{

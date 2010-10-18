@@ -1,5 +1,5 @@
 /** \file hostware/freemcan-export.h
- * \brief histogram export functions
+ * \brief Value table export functions
  *
  * \author Copyright (C) 2010 samplemaker
  *
@@ -45,7 +45,7 @@
 void export_value_table(const packet_value_table_t *value_table_packet);
 
 
-/** Compute default file name for exporting given histogram packet data to.
+/** Compute default file name for exporting given value packet packet data to.
  *
  * \return The return value points to a global static buffer.
  */

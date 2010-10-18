@@ -52,7 +52,7 @@
  *
  * \see data_table
  */
-volatile histogram_element_t table[MAX_COUNTER] asm("data_table");
+volatile table_element_t table[MAX_COUNTER] asm("data_table");
 
 
 /** Actual size of #data_table in bytes
@@ -109,8 +109,8 @@ ISR(ADC_vect)
    * instructions are not).  Anyway, we needed to move the increment
    * into a properly defined _inc function.
    */
-  volatile histogram_element_t *element = &(table[index]);
-  histogram_element_inc(element);
+  volatile table_element_t *element = &(table[index]);
+  table_element_inc(element);
 
   /* set pin to GND and release peak hold capacitor   */
   PORTD &=~ _BV(PD6);

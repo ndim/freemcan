@@ -59,19 +59,19 @@
  * Note that we have the table location and size determined by the
  * linker script time-series-table.x.
  */
-extern volatile histogram_element_t data_table[];
+extern volatile table_element_t data_table[];
 
 /** End of the table: Still needs rounding */
-extern volatile histogram_element_t data_table_end[];
+extern volatile table_element_t data_table_end[];
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
-volatile histogram_element_t *volatile table_end =
-  (histogram_element_t volatile *)((char *)data_table_end -
-                                   (sizeof(histogram_element_t)-1));
+volatile table_element_t *volatile table_end =
+  (table_element_t volatile *)((char *)data_table_end -
+                                   (sizeof(table_element_t)-1));
 
 /** Pointer to the current place to store the next value at */
-volatile histogram_element_t *volatile table_cur = data_table;
+volatile table_element_t *volatile table_cur = data_table;
 
 
 /** Actual size of #data_table in bytes
@@ -192,7 +192,7 @@ ISR(INT0_vect)
 
 
   if (table_cur < table_end) {
-    histogram_element_inc(table_cur);
+    table_element_inc(table_cur);
   }
 
 

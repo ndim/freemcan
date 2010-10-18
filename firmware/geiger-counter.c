@@ -55,7 +55,7 @@
  *
  * \see data_table
  */
-volatile histogram_element_t counter asm("data_table");
+volatile table_element_t counter asm("data_table");
 
 
 /** Actual size of #data_table in bytes
@@ -112,7 +112,7 @@ ISR(INT0_vect)
 
   _delay_ms(2);
 
-  histogram_element_inc(&counter);
+  table_element_inc(&counter);
 
   /* debounce any pending ints
      - preller während schaltflanke

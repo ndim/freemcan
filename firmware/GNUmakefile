@@ -142,7 +142,7 @@ ASFLAGS += -x assembler-with-cpp
 ########################################################################
 # The programs used
 
-AWK = awk
+AWK = gawk
 SED = sed
 ERL = erl
 CC = avr-gcc

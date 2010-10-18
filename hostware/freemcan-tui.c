@@ -262,6 +262,7 @@ void tui_fmlog_help(void)
   fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
         duration_list[duration_index].long_duration);
   fmlog("r           send command \"(r)eset\"");
+  fmlog("w           send command \"intermediate result\" and (w)rite data to file");
 }
 
 
@@ -388,11 +389,17 @@ void tui_do_io(void)
         tui_device_send_measure_command(duration_list[duration_index].long_duration);
         break;
       case FRAME_CMD_ABORT:
-      case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
       case ' ':
         tui_device_send_simple_command(buf[i]);
+        break;
+      case 'i':
+        tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+        break;
+      case 'w':
+        write_next_intermediate_packet = true;
+        tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
         break;
       default:
         /* Ignore all other input characters, but print a warning. */

@@ -26,7 +26,24 @@
 #ifndef FREEMCAN_EXPORT_H
 #define FREEMCAN_EXPORT_H
 
+#include <stdbool.h>
+
 #include "freemcan-packet.h"
+
+
+/** Flag that next 'I' packet is to be written
+ *
+ * Hackish, but works - as follows:
+ *
+ * The main loop requests intermediate values either with
+ * write_next_intermediate_packet set or cleared. If set,
+ * export_value_table() will clear write_next_intermediate_packet and
+ * write the packet to a file. If write_next_intermediate_packet is
+ * cleared, export_value_table() will not write intermediate values to
+ * a file.
+ */
+bool write_next_intermediate_packet;
+
 
 /** \brief Write the given value table to a newly created file
  * \ingroup freemcan_export

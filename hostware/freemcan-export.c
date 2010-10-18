@@ -105,14 +105,17 @@ void print_stats(FILE *file, const char *prefix, const char *eol,
 }
 
 
+bool write_next_intermediate_packet = false;
+
+
 /* documented in freemcan-export.h */
 void export_value_table(const packet_value_table_t *value_table_packet)
 {
   const size_t element_count = value_table_packet->element_count;
   FILE *datfile = NULL;
-  if ((value_table_packet->reason == PACKET_VALUE_TABLE_INTERMEDIATE) &&
-      (value_table_packet->type == VALUE_TABLE_TYPE_HISTOGRAM)) {
-    /* Hack to avoid spamming the filesystem with intermediate results */
+  if (write_next_intermediate_packet ||
+      (value_table_packet->reason != PACKET_VALUE_TABLE_INTERMEDIATE)) {
+    write_next_intermediate_packet = false;
     const char *fname = export_value_table_get_filename(value_table_packet, "dat");
     datfile = fopen(fname, "w");
     assert(datfile);

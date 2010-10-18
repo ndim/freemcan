@@ -44,6 +44,7 @@ Software Requirements
 
   * GNU make_
   * avr-gcc_ based AVR toolchain
+  * avr-binutils_ >= 2.19 (we use INSERT AFTER in linker scripts)
   * POSIX/GNU/Linux/Unix host system
   * gcc_ compiler for host system
 
@@ -59,6 +60,7 @@ need
   * sloccount_
 
 .. _avr-gcc:   http://gcc.gnu.org/
+.. _avr-binutils: http://sourceware.org/binutils/
 .. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
 .. _gcc:       http://gcc.gnu.org/
 .. _graphviz:  http://www.graphviz.org/

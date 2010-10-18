@@ -241,7 +241,7 @@ void fmlog_data24(const void *data, const size_t size)
 
 
 /* documented in freemcan-log.h */
-void fmlog_hist(const uint32_t *elements, const size_t count)
+void fmlog_value_table(const uint32_t *elements, const size_t count)
 {
   /* Find largest element in array */
   uint32_t max = 0;

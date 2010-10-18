@@ -470,7 +470,7 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
              reason, reason);
   }
   fmlog(buf, element_count, value_table_packet->duration);
-  fmlog_hist(value_table_packet->elements, element_count);
+  fmlog_value_table(value_table_packet->elements, element_count);
 
   /* export current value table to file(s) */
   export_value_table(value_table_packet);

@@ -120,17 +120,17 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
 }
 
 
-void packet_value_table_ref(packet_value_table_t *hist_pack)
+void packet_value_table_ref(packet_value_table_t *value_table_packet)
 {
-  assert(hist_pack->refs > 0);
-  hist_pack->refs++;
+  assert(value_table_packet->refs > 0);
+  value_table_packet->refs++;
 }
 
 
 static
-void packet_value_table_free(packet_value_table_t *hist_pack)
+void packet_value_table_free(packet_value_table_t *value_table_packet)
 {
-  free(hist_pack);
+  free(value_table_packet);
 }
 
 

@@ -82,21 +82,21 @@ typedef struct {
  * counted.
  */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
-                                         const time_t receive_time,
-                                         const uint8_t element_size,
-                                         const size_t element_count,
-                                         const uint16_t duration,
-                                         const uint16_t total_duration,
-                                         const void *elements)
+                                             const time_t receive_time,
+                                             const uint8_t element_size,
+                                             const size_t element_count,
+                                             const uint16_t duration,
+                                             const uint16_t total_duration,
+                                             const void *elements)
   __attribute__((malloc));
 
 
 /** Call this when you want to use value_table and store a pointer to it. */
-void packet_value_table_ref(packet_value_table_t *hist);
+void packet_value_table_ref(packet_value_table_t *value_table);
 
 
 /** Call this when you have finished using your pointer to value_table. */
-void packet_value_table_unref(packet_value_table_t *hist);
+void packet_value_table_unref(packet_value_table_t *value_table);
 
 
 /** Callback function type called when value table packet arrives
@@ -105,8 +105,8 @@ void packet_value_table_unref(packet_value_table_t *hist);
  * to use the packet after returning, and then is responsible for
  * calling #packet_value_table_unref when it has finished accessing it.
  */
-typedef void (*packet_handler_value_table_t)(packet_value_table_t *packet_histogram,
-                                           void *data);
+typedef void (*packet_handler_value_table_t)(packet_value_table_t *packet_value_table,
+                                             void *data);
 
 /** Callback function type called when state packet arrives */
 typedef void (*packet_handler_state_t)(const char *state, void *data);

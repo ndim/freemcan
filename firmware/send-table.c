@@ -34,7 +34,6 @@
 #include "frame-comm.h"
 #include "measurement-timer.h"
 #include "data-table.h"
-#include "table-element.h"
 
 
 /** \addtogroup firmware_comm
@@ -97,7 +96,7 @@ void send_table(const packet_value_table_reason_t reason)
 #endif
 
   packet_value_table_header_t header = {
-    ELEMENT_SIZE_IN_BYTES,
+    table_element_size,
     reason,
     value_table_type,
     duration,

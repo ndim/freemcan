@@ -35,6 +35,11 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
+
+/** Histogram element size */
+#define ELEMENT_SIZE_IN_BYTES 4
+
+
 #include "global.h"
 #include "packet-comm.h"
 #include "table-element.h"
@@ -71,6 +76,13 @@ const size_t sizeof_data_table = sizeof(counter);
  * \see data_table
  */
 packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
+
+
+/** Table element size
+ *
+ * \see data_table
+ */
+uint8_t table_element_size = ELEMENT_SIZE_IN_BYTES;
 
 
 /** Initialize peripherals

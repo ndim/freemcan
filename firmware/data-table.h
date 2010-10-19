@@ -50,6 +50,10 @@ extern size_t sizeof_data_table;
 extern packet_value_table_type_t value_table_type;
 
 
+/** The size of a single table element */
+extern uint8_t table_element_size;
+
+
 /** @} */
 
 #endif /* DATA_TABLE_H */

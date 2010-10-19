@@ -28,12 +28,9 @@
 #define TABLE_ELEMENT_H
 
 
-/** Histogram element size in bytes
- *
- * The code should support values of 2, 3, and 4, but we are focussing
- * on 3 from now on.
- */
-#define ELEMENT_SIZE_IN_BYTES 3
+#ifndef ELEMENT_SIZE_IN_BYTES
+# error Error: You MUST define ELEMENT_SIZE_IN_BYTES before #include "table-element.h"!
+#endif
 
 
 #if (ELEMENT_SIZE_IN_BYTES == 3)

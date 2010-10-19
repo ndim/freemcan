@@ -37,6 +37,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+
+/** Histogram element size */
+#define ELEMENT_SIZE_IN_BYTES 2
+
+
 #include "../hostware/compiler.h"
 #include "global.h"
 #include "packet-comm.h"
@@ -95,6 +100,13 @@ size_t sizeof_data_table __attribute__ (( section(".data.sizeof") )) =
  * \see data_table
  */
 packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
+
+
+/** Table element size
+ *
+ * \see data_table
+ */
+uint8_t table_element_size = ELEMENT_SIZE_IN_BYTES;
 
 
 /** Setup, needs to be called once on startup */

@@ -94,6 +94,43 @@ bool periodic_update_flag = false;
 unsigned long periodic_update_interval = 20;
 
 
+/** Size of last received packet */
+size_t last_received_size = 0;
+
+
+/** Last sent duration, used for calculating periodic update interval */
+uint16_t last_sent_duration = 0;
+
+
+static void recalculate_periodic_interval(void)
+{
+  const unsigned long last_periodic_update_interval = periodic_update_interval;
+  if (last_sent_duration) {
+    float tmp = 1.5*sqrt(last_sent_duration);
+    periodic_update_interval = tmp + ((last_received_size) / 11520UL);
+    if (periodic_update_interval < 5) {
+      periodic_update_interval = 5;
+    }
+  } else {
+    periodic_update_interval = 20;
+  }
+  if (last_periodic_update_interval != periodic_update_interval) {
+    fmlog("Periodic update interval updated from %lu to %lu",
+          last_periodic_update_interval, periodic_update_interval);
+  }
+}
+
+
+void update_last_received_size(const uint16_t size)
+{
+  if (size >= last_received_size) {
+    last_received_size = size;
+  }
+  recalculate_periodic_interval();
+}
+
+
+
 /** \section tui_durations TUI Measurement Duration handling
  * @{
  */
@@ -114,10 +151,6 @@ const duration_T duration_list[] = {
   { 3600, 3*3600},
   { 0, 0 }
 };
-
-
-/** Last sent duration, used for calculating periodic update interval */
-uint16_t last_sent_duration = 0;
 
 
 /** Index into list of measurement durations */
@@ -386,15 +419,7 @@ void tui_do_io(void)
       case 'p':
         periodic_update_flag = !periodic_update_flag;
         if (periodic_update_flag) {
-          if (last_sent_duration) {
-            float tmp = 3*sqrt(last_sent_duration);
-            periodic_update_interval = tmp + ((last_received_size) / 11520UL);
-            if (periodic_update_interval < 5) {
-              periodic_update_interval = 5;
-            }
-          } else {
-            periodic_update_interval = 20;
-          }
+          recalculate_periodic_interval();
           fmlog("Periodic updates now enabled (every %lu seconds)",
                 periodic_update_interval);
           tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
@@ -434,11 +459,13 @@ void tui_do_io(void)
       case FRAME_CMD_MEASURE: /* 'm' */
         /* "SHORT" measurement */
         last_sent_duration = duration_list[duration_index].short_duration;
+        recalculate_periodic_interval();
         tui_device_send_measure_command(last_sent_duration);
         break;
       case 'M': /* 'm' */
         /* "LONG" measurement */
         last_sent_duration = duration_list[duration_index].long_duration;
+        recalculate_periodic_interval();
         tui_device_send_measure_command(last_sent_duration);
         break;
       case FRAME_CMD_ABORT:

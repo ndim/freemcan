@@ -40,6 +40,9 @@ void tui_do_io(void);
 void tui_do_timeout(void);
 const char *main_init(int argc, char *argv[]);
 
+void update_last_received_size(const uint16_t size);
+
+
 
 extern packet_parser_t *tui_packet_parser;
 

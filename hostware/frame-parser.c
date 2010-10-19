@@ -39,9 +39,7 @@
 #include "frame-parser.h"
 #include "freemcan-log.h"
 #include "packet-parser.h"
-
-
-size_t last_received_size = 0;
+#include "freemcan-tui.h"
 
 
 /************************************************************************
@@ -239,7 +237,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
           }
           fmlog_data(ps->frame_wip->payload, size);
         }
-        last_received_size = ps->frame_wip->size;
+        update_last_received_size(ps->frame_wip->size);
         packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
       }
       frame_unref(ps->frame_wip);

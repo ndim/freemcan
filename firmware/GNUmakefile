@@ -304,14 +304,6 @@ fuses: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
 
 
 ########################################################################
-# Program the device with a firmware image
-
-program-% : PERSONALITY = $*
-program-%: firmware-%.hex firmware-%.eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
-
-
-########################################################################
 # AVR fuse extraction, reading, writing, comparing
 
 CLEANFILES += $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
@@ -404,20 +396,32 @@ checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
 ########################################################################
 # Firmware image formats and firmware image statistics
 
+FIRMWARE_FORMATS += hex
 firmware-%.hex: firmware-%.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
 
-firmware-%.eep: firmware-%.elf
-	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
-		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
+# FIRMWARE_FORMATS += eep
+# firmware-%.eep: firmware-%.elf
+# 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
+# 		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
 
 # Create extended listing file from ELF output file.
+FIRMWARE_FORMATS += lss
 firmware-%.lss: firmware-%.elf
 	$(OBJDUMP) -h -S $< > $@
 
 # Create a symbol table from ELF output file.
+FIRMWARE_FORMATS += sym
 firmware-%.sym: firmware-%.elf
 	$(NM) -n $< > $@
+
+
+########################################################################
+# Program the device with a firmware image
+
+program-% : PERSONALITY = $*
+program-%: $(foreach FORMAT, $(FIRMWARE_FORMATS), firmware-%.$(FORMAT)) check-ALL-%
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
 ########################################################################

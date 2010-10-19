@@ -84,6 +84,14 @@ bool quit_flag = false;
 bool enable_user_input_dump = false;
 
 
+/** Whether to trigger periodic updates */
+bool periodic_update_flag = false;
+
+
+/** Interval in seconds */
+unsigned long periodic_update_interval = 20;
+
+
 /** \section tui_durations TUI Measurement Duration handling
  * @{
  */
@@ -265,6 +273,7 @@ void tui_fmlog_help(void)
         duration_list[duration_index].short_duration);
   fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
         duration_list[duration_index].long_duration);
+  fmlog("p           toggle (p)eriodical requests of intermediate results");
   fmlog("r           send command \"(r)eset\"");
   fmlog("w           send command \"intermediate result\" and (w)rite data to file");
 }
@@ -367,6 +376,16 @@ void tui_do_io(void)
       case 'X':
         fmlog("Quitting the program.");
         quit_flag = true;
+        break;
+      case 'p':
+        periodic_update_flag = !periodic_update_flag;
+        if (periodic_update_flag) {
+          fmlog("Periodic updates now enabled (every %lu seconds)",
+                periodic_update_interval);
+          tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+        } else {
+          fmlog("Periodic updates now disabled");
+        }
         break;
       case '1':
         enable_layer1_dump = !enable_layer1_dump;

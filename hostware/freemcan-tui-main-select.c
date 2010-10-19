@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
   /** main loop */
   while (1) {
-    struct timeval tv = { .tv_sec = 20, .tv_usec = 0 };
+    struct timeval tv = { .tv_sec = periodic_update_interval, .tv_usec = 0 };
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
 
@@ -178,7 +178,8 @@ int main(int argc, char *argv[])
     max_fd = device_select_set_in(&in_fdset, max_fd);
     assert(max_fd >= 0);
 
-    const int n = select(max_fd+1, &in_fdset, NULL, NULL, &tv);
+    const int n = select(max_fd+1, &in_fdset, NULL, NULL,
+                         (periodic_update_flag)?(&tv):NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
         fmlog_error("select(2)");

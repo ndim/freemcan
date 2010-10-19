@@ -30,6 +30,9 @@
 #include "packet-parser.h"
 
 bool quit_flag;
+bool periodic_update_flag;
+unsigned long periodic_update_interval;
+
 
 void tui_init();
 void tui_fini();

@@ -43,6 +43,7 @@
 #include "measurement-timer.h"
 #include "uart-printf.h"
 #include "main.h"
+#include "table-element.h"
 
 
 #ifndef F_CPU

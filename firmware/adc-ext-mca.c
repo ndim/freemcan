@@ -37,6 +37,7 @@
 #include "global.h"
 #include "adc-ext-global.h"
 #include "packet-comm.h"
+#include "table-element.h"
 
 #include "ad7813.h"
 

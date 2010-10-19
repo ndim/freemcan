@@ -37,6 +37,7 @@
 #include "global.h"
 #include "adc-int-global.h"
 #include "packet-comm.h"
+#include "table-element.h"
 
 
 /** Number of elements in the histogram table */

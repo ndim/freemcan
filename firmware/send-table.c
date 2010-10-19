@@ -34,6 +34,7 @@
 #include "frame-comm.h"
 #include "measurement-timer.h"
 #include "data-table.h"
+#include "table-element.h"
 
 
 /** \addtogroup firmware_comm

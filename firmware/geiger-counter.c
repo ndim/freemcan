@@ -37,6 +37,7 @@
 
 #include "global.h"
 #include "packet-comm.h"
+#include "table-element.h"
 
 #ifndef F_CPU
 # error Need F_CPU defined for util/delay.h

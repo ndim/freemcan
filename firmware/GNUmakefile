@@ -180,7 +180,7 @@ AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDU
 
 
 ########################################################################
-# Default target and related "metatargets"
+# Default target
 
 .PHONY: all
 all: elf hex lss sym fuses checks
@@ -188,6 +188,10 @@ all: elf hex lss sym fuses checks
 # Legacy target
 .PHONY: ALL
 ALL: all
+
+
+########################################################################
+# "metatargets"
 
 .PHONY: elf hex eep lss sym fuses
 elf: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)

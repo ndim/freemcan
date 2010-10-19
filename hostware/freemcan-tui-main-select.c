@@ -33,6 +33,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "compiler.h"
+
 #include "freemcan-device.h"
 #include "freemcan-log.h"
 #include "freemcan-signals.h"
@@ -75,6 +77,12 @@ void tui_select_do_io(fd_set *in_fdset)
 }
 
 
+void tui_select_timeout(struct timeval *UP(tv))
+{
+  tui_do_timeout();
+}
+
+
 /**
  * \defgroup freemcan_device_select Device Handling for select(2) based main loop (Layer 1)
  * \ingroup mainloop_select
@@ -112,15 +120,20 @@ void device_select_do_io(fd_set *in_fdset)
 }
 
 
+extern int waiting_for;
+
+
 void tui_device_send_simple_command(const frame_cmd_t cmd)
 {
   device_send_command(device, cmd);
+  waiting_for++;
 }
 
 
 void tui_device_send_measure_command(const uint16_t seconds)
 {
   device_send_command_u16(device, FRAME_CMD_MEASURE, seconds);
+  waiting_for++;
 }
 
 
@@ -152,8 +165,11 @@ int main(int argc, char *argv[])
   /** startup messages */
   tui_startup_messages();
 
+  tui_device_send_simple_command(FRAME_CMD_STATE);
+
   /** main loop */
   while (1) {
+    struct timeval tv = { .tv_sec = periodic_update_interval, .tv_usec = 0 };
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
 
@@ -162,15 +178,15 @@ int main(int argc, char *argv[])
     max_fd = device_select_set_in(&in_fdset, max_fd);
     assert(max_fd >= 0);
 
-    const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
+    const int n = select(max_fd+1, &in_fdset, NULL, NULL,
+                         (periodic_update_flag)?(&tv):NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
         fmlog_error("select(2)");
         abort();
       }
     } else if (0 == n) { /* timeout */
-      fmlog("select(2) timeout");
-      abort();
+      tui_select_timeout(&tv);
     } else { /* n>0 */
       device_select_do_io(&in_fdset);
       tui_select_do_io(&in_fdset);

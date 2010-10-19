@@ -45,6 +45,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <math.h>
+
 #include <unistd.h>
 
 #include <termios.h>
@@ -72,12 +74,61 @@ static void packet_handler_text(const char *text, void *data);
 static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
 
 
+bool is_measuring = false;
+int waiting_for = 0;
+
+
 /** Quit flag for the main loop. */
 bool quit_flag = false;
 
 
 /** Whether to dump the user input into log */
 bool enable_user_input_dump = false;
+
+
+/** Whether to trigger periodic updates */
+bool periodic_update_flag = false;
+
+
+/** Interval in seconds */
+unsigned long periodic_update_interval = 20;
+
+
+/** Size of last received packet */
+size_t last_received_size = 0;
+
+
+/** Last sent duration, used for calculating periodic update interval */
+uint16_t last_sent_duration = 0;
+
+
+static void recalculate_periodic_interval(void)
+{
+  const unsigned long last_periodic_update_interval = periodic_update_interval;
+  if (last_sent_duration) {
+    float tmp = 1.5*sqrt(last_sent_duration);
+    periodic_update_interval = tmp + ((last_received_size) / 11520UL);
+    if (periodic_update_interval < 5) {
+      periodic_update_interval = 5;
+    }
+  } else {
+    periodic_update_interval = 20;
+  }
+  if (last_periodic_update_interval != periodic_update_interval) {
+    fmlog("Periodic update interval updated from %lu to %lu",
+          last_periodic_update_interval, periodic_update_interval);
+  }
+}
+
+
+void update_last_received_size(const uint16_t size)
+{
+  if (size >= last_received_size) {
+    last_received_size = size;
+  }
+  recalculate_periodic_interval();
+}
+
 
 
 /** \section tui_durations TUI Measurement Duration handling
@@ -261,7 +312,9 @@ void tui_fmlog_help(void)
         duration_list[duration_index].short_duration);
   fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
         duration_list[duration_index].long_duration);
+  fmlog("p           toggle (p)eriodical requests of intermediate results");
   fmlog("r           send command \"(r)eset\"");
+  fmlog("w           send command \"intermediate result\" and (w)rite data to file");
 }
 
 
@@ -316,6 +369,19 @@ void tui_fini()
  * @{
  */
 
+
+void tui_do_timeout(void)
+{
+  if (waiting_for > 2) {
+    /* Not connected, apparently. Implies not measuring, either. */
+    is_measuring = false;
+  }
+  if (is_measuring) {
+    tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+  }
+}
+
+
 /** Do TUI's IO stuff if necessary (from select or poll loop)
  */
 void tui_do_io(void)
@@ -350,6 +416,17 @@ void tui_do_io(void)
         fmlog("Quitting the program.");
         quit_flag = true;
         break;
+      case 'p':
+        periodic_update_flag = !periodic_update_flag;
+        if (periodic_update_flag) {
+          recalculate_periodic_interval();
+          fmlog("Periodic updates now enabled (every %lu seconds)",
+                periodic_update_interval);
+          tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+        } else {
+          fmlog("Periodic updates now disabled");
+        }
+        break;
       case '1':
         enable_layer1_dump = !enable_layer1_dump;
         fmlog("Layer 1 data dump now %s", enable_layer1_dump?"enabled":"disabled");
@@ -381,18 +458,28 @@ void tui_do_io(void)
         break;
       case FRAME_CMD_MEASURE: /* 'm' */
         /* "SHORT" measurement */
-        tui_device_send_measure_command(duration_list[duration_index].short_duration);
+        last_sent_duration = duration_list[duration_index].short_duration;
+        recalculate_periodic_interval();
+        tui_device_send_measure_command(last_sent_duration);
         break;
       case 'M': /* 'm' */
         /* "LONG" measurement */
-        tui_device_send_measure_command(duration_list[duration_index].long_duration);
+        last_sent_duration = duration_list[duration_index].long_duration;
+        recalculate_periodic_interval();
+        tui_device_send_measure_command(last_sent_duration);
         break;
       case FRAME_CMD_ABORT:
-      case FRAME_CMD_INTERMEDIATE:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
       case ' ':
         tui_device_send_simple_command(buf[i]);
+        break;
+      case 'i':
+        tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+        break;
+      case 'w':
+        write_next_intermediate_packet = true;
+        tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
         break;
       default:
         /* Ignore all other input characters, but print a warning. */
@@ -440,13 +527,26 @@ void atexit_func(void)
 /** State data packet handler (TUI specific) */
 static void packet_handler_state(const char *state, void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   fmlog("STATE: %s", state);
+  bool new_is_measuring = (strcmp("MEASURING", state) == 0);
+  if (new_is_measuring != is_measuring) {
+    if (new_is_measuring) {
+    } else {
+    }
+    is_measuring = new_is_measuring;
+  }
 }
 
 
 /** Text data packet handler (TUI specific) */
 static void packet_handler_text(const char *text, void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   fmlog("TEXT: %s", text);
 }
 
@@ -455,11 +555,15 @@ static void packet_handler_text(const char *text, void *UP(data))
 static void packet_handler_value_table(packet_value_table_t *value_table_packet,
                                        void *UP(data))
 {
+  if (waiting_for > 0) {
+    waiting_for--;
+  }
   packet_value_table_ref(value_table_packet);
 
   const size_t element_count = value_table_packet->element_count;
   const packet_value_table_reason_t reason = value_table_packet->reason;
   const packet_value_table_type_t type = value_table_packet->type;
+  last_sent_duration = value_table_packet->total_duration;
   char buf[128];
   char reason_str[16];
   if ((reason>=32)&&(reason<127)) {

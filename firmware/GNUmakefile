@@ -49,11 +49,6 @@ F_CPU ?= 16000000UL
 
 FORMAT = ihex
 
-PERSONALITIES += adc-ext-mca
-PERSONALITIES += adc-int-mca
-PERSONALITIES += geiger-counter
-PERSONALITIES += geiger-ts
-
 
 CFLAGS += -Os
 
@@ -236,28 +231,27 @@ LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 COMMON_X += check-data-stack-in-SRAM.x
 
 
+# ======================================================================
 # Firmware personality: MCA using external ADC
+PERSONALITIES += adc-ext-mca
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
+# ======================================================================
 # Firmware personality: MCA using internal ADC
+PERSONALITIES += adc-int-mca
 firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
+# ======================================================================
 # Firmware personality: Geiger Counter without time series
+PERSONALITIES += geiger-counter
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
-# Extract size of a single table element in bytes
-CLEANFILES += geiger-time-series.element-size.txt
-geiger-time-series.element-size.txt: geiger-time-series.o
-	@set -e; \
-	rm -f $@; \
-	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
-	echo $$(od -An -t u2 $@.$$$$) > $@; \
-	rm -f $@.$$$$
-
+# ======================================================================
 # Firmware personality: Geiger Counter with time series
+PERSONALITIES += geiger-ts
 firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
 firmware-geiger-ts.elf : time-series-table.x
 firmware-geiger-ts.elf : geiger-time-series.element-size.txt
@@ -271,6 +265,15 @@ firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
 	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
 	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
 	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
+
+# Extract size of a single table element in bytes
+CLEANFILES += geiger-time-series.element-size.txt
+geiger-time-series.element-size.txt: geiger-time-series.o
+	@set -e; \
+	rm -f $@; \
+	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
+	echo $$(od -An -t u2 $@.$$$$) > $@; \
+	rm -f $@.$$$$
 
 
 ########################################################################

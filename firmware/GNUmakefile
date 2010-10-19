@@ -47,12 +47,15 @@ F_CPU ?= 16000000UL
 # End of default settings
 
 
+# The firmware format we eventually feed to avrdude
 FORMAT = ihex
 
 
+# Optimize for size (or whatever gcc understands by that)
 CFLAGS += -Os
 
 
+# Our source code requires the F_CPU macro to be defined at all times
 CPPFLAGS += -DF_CPU=$(F_CPU)
 
 
@@ -60,6 +63,7 @@ CPPFLAGS += -DF_CPU=$(F_CPU)
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
 CFLAGS += -gstabs
+
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
@@ -70,7 +74,8 @@ CFLAGS += -std=gnu99
 
 
 # Place -D or -U options here
-CPPFLAGS +=
+# CPPFLAGS +=
+
 
 # Place -I options here
 CPPFLAGS += -I../include
@@ -89,7 +94,7 @@ CFLAGS += -fshort-enums
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
 
 
-#Additional libraries.
+# Additional libraries.
 
 # Minimalistic printf version
 # LDLIBS += -Wl,-u,vfprintf -lprintf_min
@@ -130,8 +135,10 @@ COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += software-version.o
 COMMON_OBJ += send-table.o
 
+
 # Add target processor to flags.
 CPPFLAGS += -mmcu=$(MCU)
+
 
 CPPFLAGS += -I.
 ASFLAGS += -x assembler-with-cpp

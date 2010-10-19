@@ -387,28 +387,13 @@ void tui_do_io(void)
         periodic_update_flag = !periodic_update_flag;
         if (periodic_update_flag) {
           if (last_sent_duration) {
-            periodic_update_interval = sqrt(last_sent_duration) + ((last_received_size) / 11520UL);
+            float tmp = 3*sqrt(last_sent_duration);
+            periodic_update_interval = tmp + ((last_received_size) / 11520UL);
             if (periodic_update_interval < 5) {
               periodic_update_interval = 5;
             }
           } else {
             periodic_update_interval = 20;
-          }
-          fmlog("Periodic updates now enabled (every %lu seconds)",
-                periodic_update_interval);
-          tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
-        } else {
-          fmlog("Periodic updates now disabled");
-        }
-        break;
-      case 'P':
-        periodic_update_flag = !periodic_update_flag;
-        if (periodic_update_flag) {
-          if (last_sent_duration) {
-            periodic_update_interval = last_sent_duration;
-          }
-          if (periodic_update_interval < 5) {
-            periodic_update_interval = 5;
           }
           fmlog("Periodic updates now enabled (every %lu seconds)",
                 periodic_update_interval);

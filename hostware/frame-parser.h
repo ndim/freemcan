@@ -37,6 +37,10 @@ struct _frame_parser_t;
 typedef struct _frame_parser_t frame_parser_t;
 
 
+/** Last received frame size, used for calculating periodic update interval */
+size_t last_received_size;
+
+
 #include "packet-parser.h"
 
 

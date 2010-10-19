@@ -45,6 +45,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <math.h>
+
 #include <unistd.h>
 
 #include <termios.h>
@@ -112,6 +114,10 @@ const duration_T duration_list[] = {
   { 3600, 3*3600},
   { 0, 0 }
 };
+
+
+/** Last sent duration, used for calculating periodic update interval */
+uint16_t last_sent_duration = 0;
 
 
 /** Index into list of measurement durations */
@@ -380,6 +386,30 @@ void tui_do_io(void)
       case 'p':
         periodic_update_flag = !periodic_update_flag;
         if (periodic_update_flag) {
+          if (last_sent_duration) {
+            periodic_update_interval = sqrt(last_sent_duration) + ((last_received_size) / 11520UL);
+            if (periodic_update_interval < 5) {
+              periodic_update_interval = 5;
+            }
+          } else {
+            periodic_update_interval = 20;
+          }
+          fmlog("Periodic updates now enabled (every %lu seconds)",
+                periodic_update_interval);
+          tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
+        } else {
+          fmlog("Periodic updates now disabled");
+        }
+        break;
+      case 'P':
+        periodic_update_flag = !periodic_update_flag;
+        if (periodic_update_flag) {
+          if (last_sent_duration) {
+            periodic_update_interval = last_sent_duration;
+          }
+          if (periodic_update_interval < 5) {
+            periodic_update_interval = 5;
+          }
           fmlog("Periodic updates now enabled (every %lu seconds)",
                 periodic_update_interval);
           tui_device_send_simple_command(FRAME_CMD_INTERMEDIATE);
@@ -418,11 +448,13 @@ void tui_do_io(void)
         break;
       case FRAME_CMD_MEASURE: /* 'm' */
         /* "SHORT" measurement */
-        tui_device_send_measure_command(duration_list[duration_index].short_duration);
+        last_sent_duration = duration_list[duration_index].short_duration;
+        tui_device_send_measure_command(last_sent_duration);
         break;
       case 'M': /* 'm' */
         /* "LONG" measurement */
-        tui_device_send_measure_command(duration_list[duration_index].long_duration);
+        last_sent_duration = duration_list[duration_index].long_duration;
+        tui_device_send_measure_command(last_sent_duration);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:
@@ -519,6 +551,7 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
   const size_t element_count = value_table_packet->element_count;
   const packet_value_table_reason_t reason = value_table_packet->reason;
   const packet_value_table_type_t type = value_table_packet->type;
+  last_sent_duration = value_table_packet->total_duration;
   char buf[128];
   char reason_str[16];
   if ((reason>=32)&&(reason<127)) {

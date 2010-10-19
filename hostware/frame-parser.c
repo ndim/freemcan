@@ -41,6 +41,9 @@
 #include "packet-parser.h"
 
 
+size_t last_received_size = 0;
+
+
 /************************************************************************
  * Frame Parser
  ************************************************************************/
@@ -236,6 +239,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
           }
           fmlog_data(ps->frame_wip->payload, size);
         }
+        last_received_size = ps->frame_wip->size;
         packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
       }
       frame_unref(ps->frame_wip);

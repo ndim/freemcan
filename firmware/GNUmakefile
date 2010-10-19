@@ -51,6 +51,10 @@ F_CPU ?= 16000000UL
 FORMAT = ihex
 
 
+########################################################################
+# Compilation flags
+
+
 # Optimize for size (or whatever gcc understands by that)
 CFLAGS += -Os
 
@@ -94,6 +98,18 @@ CFLAGS += -fshort-enums
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
 
 
+# Add target processor to flags.
+CPPFLAGS += -mmcu=$(MCU)
+
+
+CPPFLAGS += -I.
+ASFLAGS += -x assembler-with-cpp
+
+
+########################################################################
+# Link flags
+
+
 # Additional libraries.
 
 # Minimalistic printf version
@@ -123,25 +139,6 @@ LDLIBS += -lm
 
 # Create map file on linking
 LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
-
-
-# Define the common object files.
-# The object files specific to firmware personalities will not be listed here.
-COMMON_OBJ += main.o
-COMMON_OBJ += uart-comm.o
-COMMON_OBJ += frame-comm.o
-COMMON_OBJ += packet-comm.o
-COMMON_OBJ += wdt-softreset.o
-COMMON_OBJ += software-version.o
-COMMON_OBJ += send-table.o
-
-
-# Add target processor to flags.
-CPPFLAGS += -mmcu=$(MCU)
-
-
-CPPFLAGS += -I.
-ASFLAGS += -x assembler-with-cpp
 
 
 ########################################################################
@@ -225,6 +222,17 @@ invented-histogram.o: invented-histogram.bin
 
 ########################################################################
 # Link firmware images with different personalities
+
+
+# Define the common object files.
+# The object files specific to firmware personalities will not be listed here.
+COMMON_OBJ += main.o
+COMMON_OBJ += uart-comm.o
+COMMON_OBJ += frame-comm.o
+COMMON_OBJ += packet-comm.o
+COMMON_OBJ += wdt-softreset.o
+COMMON_OBJ += software-version.o
+COMMON_OBJ += send-table.o
 
 
 # Link time checks

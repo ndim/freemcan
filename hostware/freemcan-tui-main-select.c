@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
   /** main loop */
   while (1) {
-    struct timeval tv = { .tv_sec = 5, .tv_usec = 0 };
+    struct timeval tv = { .tv_sec = 20, .tv_usec = 0 };
     fd_set in_fdset;
     FD_ZERO(&in_fdset);
 

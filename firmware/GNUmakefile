@@ -18,6 +18,12 @@
 #
 # Relying on GNU make features now as I can't stand the compatible
 # make deficiencies.
+#
+# GNUmakefile structure:
+#   1. Variable definitions
+#   2. Default target
+#   3. Explicit rules
+#   4. Implicit/pattern rules and phony targets
 
 
 CFLAGS =
@@ -41,17 +47,19 @@ F_CPU ?= 16000000UL
 # End of default settings
 
 
+# The firmware format we eventually feed to avrdude
 FORMAT = ihex
 
-PERSONALITIES += adc-ext-mca
-PERSONALITIES += adc-int-mca
-PERSONALITIES += geiger-counter
-PERSONALITIES += geiger-ts
+
+########################################################################
+# Compilation flags
 
 
+# Optimize for size (or whatever gcc understands by that)
 CFLAGS += -Os
 
 
+# Our source code requires the F_CPU macro to be defined at all times
 CPPFLAGS += -DF_CPU=$(F_CPU)
 
 
@@ -59,6 +67,7 @@ CPPFLAGS += -DF_CPU=$(F_CPU)
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
 CFLAGS += -gstabs
+
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
@@ -69,7 +78,8 @@ CFLAGS += -std=gnu99
 
 
 # Place -D or -U options here
-CPPFLAGS +=
+# CPPFLAGS +=
+
 
 # Place -I options here
 CPPFLAGS += -I../include
@@ -88,7 +98,19 @@ CFLAGS += -fshort-enums
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
 
 
-#Additional libraries.
+# Add target processor to flags.
+CPPFLAGS += -mmcu=$(MCU)
+
+
+CPPFLAGS += -I.
+ASFLAGS += -x assembler-with-cpp
+
+
+########################################################################
+# Link flags
+
+
+# Additional libraries.
 
 # Minimalistic printf version
 # LDLIBS += -Wl,-u,vfprintf -lprintf_min
@@ -117,23 +139,6 @@ LDLIBS += -lm
 
 # Create map file on linking
 LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
-
-
-# Define the common object files.
-# The object files specific to firmware personalities will not be listed here.
-COMMON_OBJ += main.o
-COMMON_OBJ += uart-comm.o
-COMMON_OBJ += frame-comm.o
-COMMON_OBJ += packet-comm.o
-COMMON_OBJ += wdt-softreset.o
-COMMON_OBJ += software-version.o
-COMMON_OBJ += send-table.o
-
-# Add target processor to flags.
-CPPFLAGS += -mmcu=$(MCU)
-
-CPPFLAGS += -I.
-ASFLAGS += -x assembler-with-cpp
 
 
 ########################################################################
@@ -180,7 +185,7 @@ AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDU
 
 
 ########################################################################
-# Default target and related "metatargets"
+# Default target
 
 .PHONY: all
 all: elf hex lss sym fuses checks
@@ -189,6 +194,106 @@ all: elf hex lss sym fuses checks
 .PHONY: ALL
 ALL: all
 
+
+########################################################################
+# Optional firmware features
+
+ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
+COMMON_OBJ += uart-printf.o
+CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
+endif
+
+# BUG: Needs proper hooking up with new unified-firmware build system
+ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
+COMMON_OBJ += invented-histogram.o
+CPPFLAGS += -DINVENTED_HISTOGRAM
+endif
+
+CLEANFILES += invented-histogram.bin
+invented-histogram.bin: ../emulator/histogram_emulator.erl
+	$(MAKE) -C ../emulator histogram_emulator.beam
+	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
+
+invented-histogram.o: invented-histogram.bin
+	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
+		--rename-section .data=.text,contents,alloc,load,readonly,code \
+		"$<" "$@"
+
+
+########################################################################
+# Link firmware images with different personalities
+
+
+# Define the common object files.
+# The object files specific to firmware personalities will not be listed here.
+COMMON_OBJ += main.o
+COMMON_OBJ += uart-comm.o
+COMMON_OBJ += frame-comm.o
+COMMON_OBJ += packet-comm.o
+COMMON_OBJ += wdt-softreset.o
+COMMON_OBJ += software-version.o
+COMMON_OBJ += send-table.o
+
+
+# Link time checks
+# LDFLAGS += -Wl,--verbose
+LDFLAGS += -Wl,--defsym=RAM_END=$(RAM_END)
+LDFLAGS += -Wl,--defsym=MIN_STACK_SIZE=$(MIN_STACK_SIZE)
+LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
+
+# Check that (data+stack) fit into SRAM with a linker script ASSERT().
+# Requires RAM_END and MIN_STACK_SIZE to be --defsym'd.
+COMMON_X += check-data-stack-in-SRAM.x
+
+
+# ======================================================================
+# Firmware personality: MCA using external ADC
+PERSONALITIES += adc-ext-mca
+firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
+	$(LINK.c) $^ $(LDLIBS) --output $@
+
+# ======================================================================
+# Firmware personality: MCA using internal ADC
+PERSONALITIES += adc-int-mca
+firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
+	$(LINK.c) $^ $(LDLIBS) --output $@
+
+# ======================================================================
+# Firmware personality: Geiger Counter without time series
+PERSONALITIES += geiger-counter
+firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
+	$(LINK.c) $^ $(LDLIBS) --output $@
+
+# ======================================================================
+# Firmware personality: Geiger Counter with time series
+PERSONALITIES += geiger-ts
+firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
+firmware-geiger-ts.elf : time-series-table.x
+firmware-geiger-ts.elf : geiger-time-series.element-size.txt
+firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
+	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
+	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
+	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
+	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
+	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
+	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
+	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
+	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
+	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
+
+# Extract size of a single table element in bytes
+CLEANFILES += geiger-time-series.element-size.txt
+geiger-time-series.element-size.txt: geiger-time-series.o
+	@set -e; \
+	rm -f $@; \
+	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
+	echo $$(od -An -t u2 $@.$$$$) > $@; \
+	rm -f $@.$$$$
+
+
+########################################################################
+# "metatargets"
+
 .PHONY: elf hex eep lss sym fuses
 elf: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)
 hex: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).hex)
@@ -196,14 +301,6 @@ eep: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).eep)
 lss: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).lss)
 sym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).sym)
 fuses: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
-
-
-########################################################################
-# Program the device with a firmware image
-
-program-% : PERSONALITY = $*
-program-%: firmware-%.hex firmware-%.eep
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
 ########################################################################
@@ -252,101 +349,6 @@ read-fuses-%:
 
 
 ########################################################################
-# Optional firmware features
-
-ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
-COMMON_OBJ += uart-printf.o
-CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
-endif
-
-# BUG: Needs proper hooking up with new unified-firmware build system
-ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-COMMON_OBJ += invented-histogram.o
-CPPFLAGS += -DINVENTED_HISTOGRAM
-endif
-
-CLEANFILES += invented-histogram.bin
-invented-histogram.bin: ../emulator/histogram_emulator.erl
-	$(MAKE) -C ../emulator histogram_emulator.beam
-	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
-
-invented-histogram.o: invented-histogram.bin
-	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
-		--rename-section .data=.text,contents,alloc,load,readonly,code \
-		"$<" "$@"
-
-
-########################################################################
-# Firmware image formats and firmware image statistics
-
-firmware-%.hex: firmware-%.elf
-	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
-
-firmware-%.eep: firmware-%.elf
-	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
-		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
-
-# Create extended listing file from ELF output file.
-firmware-%.lss: firmware-%.elf
-	$(OBJDUMP) -h -S $< > $@
-
-# Create a symbol table from ELF output file.
-firmware-%.sym: firmware-%.elf
-	$(NM) -n $< > $@
-
-
-########################################################################
-# Link firmware images with different personalities
-
-
-# Link time checks
-# LDFLAGS += -Wl,--verbose
-LDFLAGS += -Wl,--defsym=RAM_END=$(RAM_END)
-LDFLAGS += -Wl,--defsym=MIN_STACK_SIZE=$(MIN_STACK_SIZE)
-LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
-
-# Check that (data+stack) fit into SRAM with a linker script ASSERT().
-# Requires RAM_END and MIN_STACK_SIZE to be --defsym'd.
-COMMON_X += check-data-stack-in-SRAM.x
-
-
-# Firmware personality: MCA using external ADC
-firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
-
-# Firmware personality: MCA using internal ADC
-firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
-
-# Firmware personality: Geiger Counter without time series
-firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
-
-# Extract size of a single table element in bytes
-CLEANFILES += geiger-time-series.element-size.txt
-geiger-time-series.element-size.txt: geiger-time-series.o
-	@set -e; \
-	rm -f $@; \
-	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
-	echo $$(od -An -t u2 $@.$$$$) > $@; \
-	rm -f $@.$$$$
-
-# Firmware personality: Geiger Counter with time series
-firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
-firmware-geiger-ts.elf : time-series-table.x
-firmware-geiger-ts.elf : geiger-time-series.element-size.txt
-firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) geiger-time-series.o
-	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
-	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
-	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
-	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
-	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
-	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
-	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
-	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
-	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
-
-########################################################################
 # Check the firmware images
 
 
@@ -389,6 +391,37 @@ check-ALL-%: check-ALL-%.check
 checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
 	@$(SIZE) $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf) \
 	| $(AWK) '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
+
+
+########################################################################
+# Firmware image formats and firmware image statistics
+
+FIRMWARE_FORMATS += hex
+firmware-%.hex: firmware-%.elf
+	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
+
+# FIRMWARE_FORMATS += eep
+# firmware-%.eep: firmware-%.elf
+# 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
+# 		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
+
+# Create extended listing file from ELF output file.
+FIRMWARE_FORMATS += lss
+firmware-%.lss: firmware-%.elf
+	$(OBJDUMP) -h -S $< > $@
+
+# Create a symbol table from ELF output file.
+FIRMWARE_FORMATS += sym
+firmware-%.sym: firmware-%.elf
+	$(NM) -n $< > $@
+
+
+########################################################################
+# Program the device with a firmware image
+
+program-% : PERSONALITY = $*
+program-%: $(foreach FORMAT, $(FIRMWARE_FORMATS), firmware-%.$(FORMAT)) check-ALL-%
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
 ########################################################################

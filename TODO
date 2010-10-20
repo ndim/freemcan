@@ -1,0 +1,35 @@
+hostware: For time series data, when receiving a value table, use
+          the receive time and the total_duration to generate proper
+          time stamps for the output file instead of just numbering
+          the value table elements.
+
+protocol: Transmit total table size in elements or something similar,
+          so that the hostware can figure out how long the currently
+          running time series measurement will still take.
+
+protocol: On startup, send machine readable information about
+          installed firmware personality (time series vs. histogram,
+          element size in bytes, number of elements in table)???
+          
+firmware: Start measurement without RS232 (pressing of a switch
+          or similar). Problem: With what duration - from EEPROM?
+
+firmware: Device Signature
+
+protocol: Migrate to CRC16 checksum using <util/crc16.h> on AVR,
+          and TBD on the host.
+
+hostware: Examine whether the checksum code can be made more simple
+          by working with pure functions of the prototype
+
+              uint16_t crc16_update(uint16_t crc, uint8_t byte)
+
+firmware: Use <util/setbaud.h> for calculating baud rate?
+
+firmware: Examine how doxygen copes with the new multiple parallel
+          definitions of the same function/variable in different
+          source files.
+
+firmware: Examine whether e.g. the adc-int and adc-ext histogram
+          definitions (which differ only in table size) can be unified
+          into a common source file.

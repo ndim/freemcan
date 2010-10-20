@@ -33,20 +33,32 @@ volatile uint64_t total_counter64;
 
 void histogram_init(void)
 {
+	__asm__ __volatile__("\tnop\n"::);
 	for (unsigned int i=0; i<MAX_ENTRIES; i++) {
 		histogram[i] = 0;
 	}
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter8  = 0;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter16 = 0;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter32 = 0;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter64 = 0;
+	__asm__ __volatile__("\tnop\n"::);
 }
 
 void histogram_update(const uint16_t value)
 {
+	__asm__ __volatile__("\tnop\n"::);
 	histogram[value]++;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter8++;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter16++;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter32++;
+	__asm__ __volatile__("\tnop\n"::);
 	total_counter64++;
+	__asm__ __volatile__("\tnop\n"::);
 }

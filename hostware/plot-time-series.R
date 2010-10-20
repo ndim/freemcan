@@ -55,7 +55,7 @@ pt1  <- function(x,k) {
 downsample <- function(x, k) {
   res <- c()
   for (i in seq(1, length(x)-k, k)) {
-    res = c(res, sum(x[seq(i, i+k-1)]))
+    res = c(res, sum(x[i:(i+k-1)]))
   }
   return(res)
 }
@@ -89,10 +89,11 @@ histdata<-read.table(filename, header=FALSE, sep="\t")
 # move the columns from dataframe into a single vector respectively and subtract the last (inclompete) measurement
 len <-  length(histdata[,1]) - 1
 channel <- histdata[,1][0:len]
+counts <- histdata[,2][0:len]
 
-counts <- downsample(histdata[,2][0:len], downsamplefactor)
-# FIXME: Select the proper channels
-length(channel) <- length(counts)
+counts <- downsample(counts, downsamplefactor)
+channel <- channel[seq(1, length(channel)-downsamplefactor, downsamplefactor)]
+
 pfcounts = pfact * counts
 q <- quantil(counts)
 cat("Quantil:", "min", q[1], "max", q[2], "mean", q[3], "\n")

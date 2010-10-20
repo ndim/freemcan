@@ -120,6 +120,7 @@ plot(hx, col = ifelse(((hx$breaks < pfq[1]) | (hx$breaks > pfq[2])), "blue", "re
 abline(v=pfq[1], col="darkgreen", lwd=2)
 abline(v=pfq[2], col="darkgreen", lwd=2)
 abline(v=pfq[3], col="darkgreen", lwd=2)
+text(pfq, max(hx$counts), round(pfq,1), col="black", lwd=1, pos=4)
 
 # The `locator' function waits for you to either click the mouse or hit enter (putting coordinates into x & y)
 z <- locator(1)

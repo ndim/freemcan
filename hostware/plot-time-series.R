@@ -108,18 +108,14 @@ plot(channel,pt1(pfcounts,5) , main = paste("Raw data from:",filename), type = "
 # plot raw counts over measurement into the same first plot
 lines(channel, pfcounts , type="l", col="darkgreen")
 # plot mean +- sigma lines
-abline(h=pfq[1], col="blue")
-abline(h=pfq[2], col="blue")
-abline(h=pfq[3], col="blue")
+abline(h=pfq, col="blue")
 
 # from the data create a histogram
 hx <- hist(pfcounts, breaks = 90, plot = FALSE)
 # plot the histogram into the second plot. plot blue if the bar is below one sigma otherwise red
 plot(hx, col = ifelse(((hx$breaks < pfq[1]) | (hx$breaks > pfq[2])), "blue", "red"), xlab=paste("cpm (counts per minute, scaled from original measurement period of", period, "seconds)"))
 # plot mean +- sigma lines
-abline(v=pfq[1], col="darkgreen", lwd=2)
-abline(v=pfq[2], col="darkgreen", lwd=2)
-abline(v=pfq[3], col="darkgreen", lwd=2)
+abline(v=pfq, col="darkgreen", lwd=2)
 text(pfq, max(hx$counts), round(pfq,1), col="black", lwd=1, pos=4)
 
 # The `locator' function waits for you to either click the mouse or hit enter (putting coordinates into x & y)

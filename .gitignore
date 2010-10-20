@@ -5,3 +5,5 @@ git-version.h
 data.*.dat
 hist.*.dat
 time.*.dat
+.RData
+.Rhistory

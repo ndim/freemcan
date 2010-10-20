@@ -16,6 +16,11 @@
 #
 #    Plot the latest file, presuming it is recorded at 30sec/value.
 #
+#  $ ./plot-time-series.R 30 4 time.foo.dat
+#
+#    Plot the file, downsampling by a factor of 4, i.e. from the
+#    30sec/value to 120sec/value.
+#
 
 
 # clear workspace
@@ -40,6 +45,22 @@ pt1  <- function(x,k) {
   return(x);
 }
 
+# Simply downsample by an integer factor of k by summing up
+# neighbouring values like
+#
+#      1 ...   k   -> 1
+#    k+1 ... 2*k-1 -> 2
+#  2*k+1 ... 3*k-1 -> 3
+#  etc.
+downsample <- function(x, k) {
+  res <- c()
+  for (i in seq(1, length(x)-k, k)) {
+    res = c(res, sum(x[seq(i, i+k-1)]))
+  }
+  return(res)
+}
+
+
 # calculate theoretical one sigma quantil of the distribution
 quantil <- function(x) {
   len <- length(x)
@@ -51,12 +72,15 @@ quantil <- function(x) {
   return(c(mean-sigma, mean+sigma, mean));
 }
 
+
 # \fixme: one should filter the correct command rather than give a fix position
 args <- commandArgs(TRUE)
-period <- as.numeric(args[1])
-filename <- args[2]
+filename <- ifelse(length(args) == 2, args[2], args[3])
+downsamplefactor <- ifelse(length(args) == 2, 1, as.numeric(args[2]))
+period <- downsamplefactor * as.numeric(args[1])
 cat("Period:", period, "\n")
 cat("Filename:", filename, "\n")
+cat("Downsample factor:", downsamplefactor, "\n")
 
 pfact <- 60.0 / period
 
@@ -65,7 +89,10 @@ histdata<-read.table(filename, header=FALSE, sep="\t")
 # move the columns from dataframe into a single vector respectively and subtract the last (inclompete) measurement
 len <-  length(histdata[,1]) - 1
 channel <- histdata[,1][0:len]
-counts <- histdata[,2][0:len]
+
+counts <- downsample(histdata[,2][0:len], downsamplefactor)
+# FIXME: Select the proper channels
+length(channel) <- length(counts)
 pfcounts = pfact * counts
 q <- quantil(counts)
 cat("Quantil:", "min", q[1], "max", q[2], "mean", q[3], "\n")

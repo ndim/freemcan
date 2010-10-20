@@ -3,6 +3,9 @@ hostware: For time series data, when receiving a value table, use
           time stamps for the output file instead of just numbering
           the value table elements.
 
+hostware: At least for time series value tables, link against libR.so
+          and directly let R plot statistics.
+
 protocol: Transmit total table size in elements or something similar,
           so that the hostware can figure out how long the currently
           running time series measurement will still take.

@@ -48,9 +48,9 @@ pt1  <- function(x,k) {
 # Simply downsample by an integer factor of k by summing up
 # neighbouring values like
 #
-#      1 ...   k   -> 1
-#    k+1 ... 2*k-1 -> 2
-#  2*k+1 ... 3*k-1 -> 3
+#      1 ...   k -> 1
+#    k+1 ... 2*k -> 2
+#  2*k+1 ... 3*k -> 3
 #  etc.
 downsample <- function(x, k) {
   res <- c()

@@ -39,7 +39,7 @@
 
 
 /** Histogram element size */
-#define ELEMENT_SIZE_IN_BYTES 2
+#define ELEMENT_SIZE_IN_BYTES 1
 
 
 #include "../hostware/compiler.h"

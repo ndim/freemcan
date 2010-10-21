@@ -33,16 +33,12 @@
 #endif
 
 
-#if (ELEMENT_SIZE_IN_BYTES == 3)
-
 /** Unsigned 24bit integer type
  *
  * This could be called a uint24_t, but we do not want to intrude on
  * that namespace.
  */
 typedef uint8_t freemcan_uint24_t[3];
-
-#endif
 
 
 /** Histogram element type */

@@ -47,7 +47,9 @@ typedef uint8_t freemcan_uint24_t[3];
 
 /** Histogram element type */
 typedef
-#if (ELEMENT_SIZE_IN_BYTES == 2)
+#if (ELEMENT_SIZE_IN_BYTES == 1)
+  uint8_t
+#elif (ELEMENT_SIZE_IN_BYTES == 2)
   uint16_t
 #elif (ELEMENT_SIZE_IN_BYTES == 3)
   freemcan_uint24_t

@@ -58,9 +58,6 @@ typedef struct {
    * time spent recording all but the last item in the time series. */
   unsigned int total_duration;
 
-  /** Maximum "good" value from elements[] array (ignores clamping value!) */
-  uint32_t max_value;
-
   /** total (maximum) table size (in bytes) */
   size_t total_table_size;
 

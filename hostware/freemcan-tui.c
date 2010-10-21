@@ -145,6 +145,7 @@ typedef struct {
 
 /** List of measurement durations */
 const duration_T duration_list[] = {
+  { 2, 3},
   { 10, 30},
   { 60, 150},
   { 600, 1200},

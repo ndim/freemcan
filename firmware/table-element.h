@@ -77,7 +77,7 @@ void table_element_zero(volatile freemcan_uint24_t *dest)
 
 inline static
 void table_element_copy(volatile freemcan_uint24_t *dest,
-                            volatile freemcan_uint24_t *source)
+                        volatile freemcan_uint24_t *source)
 {
   asm("\n\t"
       /* load and store 24 bit value in units of 8 bits */

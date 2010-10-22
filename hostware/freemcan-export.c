@@ -159,13 +159,14 @@ static
 void time_series_stats(FILE *datfile, const char *prefix, const char *eol,
                        const statistics_t *s)
 {
-  fprintf(datfile, "%stotal duration:             %.1f seconds = %.2f minutes = %.4f hours%s",
+  fprintf(datfile, "%sTotal statistics (so far)%s", prefix, eol);
+  fprintf(datfile, "%s  total duration:         %.1f seconds = %.2f minutes = %.4f hours%s",
           prefix, s->duration, s->duration/60.0, s->duration/3600.0, eol);
-  fprintf(datfile, "%stotal counts:               %.0f +- %1.2f counts (avg is within 1 sigma)%s",
+  fprintf(datfile, "%s  total counts:           %.0f +- %1.2f counts (avg is within 1 sigma)%s",
           prefix, s->counts, s->counts_error, eol);
-  fprintf(datfile, "%scounts per minute:          %1.2f +- %1.2f cpm (avg is within 1 sigma)%s",
+  fprintf(datfile, "%s  counts per minute:      %1.2f +- %1.2f cpm (avg is within 1 sigma)%s",
           prefix, s->avg_cpm, s->avg_cpm_error, eol);
-  fprintf(datfile, "%sstatistical error:          %1.1f %%%s",
+  fprintf(datfile, "%s  statistical error:      %1.1f %%%s",
           prefix, s->statistical_error, eol);
 }
 
@@ -220,6 +221,9 @@ void export_time_series_vtable(FILE *datfile, const packet_value_table_t *value_
             value_table_packet->total_duration);
     fprintf(datfile, "# time for last meas'mt:    %u\n",
             value_table_packet->duration);
+    const double time_to_go = elements_to_go * value_table_packet->total_duration;
+    fprintf(datfile, "# time to go:               %.1f seconds = %.2f minutes = %.4f hours\n",
+            time_to_go, time_to_go/60.0f, time_to_go/3600.0f);
   }
 
   statistics_t s;

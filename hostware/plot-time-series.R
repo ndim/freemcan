@@ -24,14 +24,20 @@
 
 
 # clear workspace
+
 rm(list = ls())
 
 
-# this is a poor mans infinite impulse response filter of first order (PT1).
-pt1  <- function(x,k) {
-  Ta <- 1
-  T <- k*Ta
-  n <- 2*T/Ta;
+
+# Infinite impulse response filter of first order (PT1)
+#
+# x: input data vector
+# k: ratio of halflife/sampling rate - ratio (k = T/Tsample)
+
+pt1 <- function(x,k) {
+  Ts <- 1
+  T <- k*Ts
+  n <- 2*T/Ts;
   a <- 1/(n+1);
   b <- (n-1)/(n+1);
 
@@ -44,7 +50,9 @@ pt1  <- function(x,k) {
   }
   return(x);
 }
+ 
 
+ 
 # Simply downsample by an integer factor of k by summing up
 # neighbouring values like
 #
@@ -52,6 +60,7 @@ pt1  <- function(x,k) {
 #    k+1 ... 2*k -> 2
 #  2*k+1 ... 3*k -> 3
 #  etc.
+
 downsample <- function(x, k) {
   res <- c()
   for (i in seq(1, length(x)-k, k)) {
@@ -61,8 +70,14 @@ downsample <- function(x, k) {
 }
 
 
-# calculate theoretical one sigma quantil of the distribution
-quantil <- function(x) {
+
+# calculate statistics of the input vector
+# 
+# assuming the input vector has a gaussian distribution (> 50 for each count)
+# one sigma is equal to the square root of the average
+#
+
+quantile <- function(x) {
   len <- length(x)
   cat("samples parsed:", len, "\n")
   mean <- mean(x)
@@ -71,6 +86,7 @@ quantil <- function(x) {
   cat("your one sigma probability is within: +/- ", sigma, " counts \n")
   return(c(mean-sigma, mean+sigma, mean));
 }
+
 
 
 # \fixme: one should filter the correct command rather than give a fix position
@@ -84,42 +100,65 @@ cat("Downsample factor:", downsamplefactor, "\n")
 
 pfact <- 60.0 / period
 
-# read log file as dataframe
+
+
+# read log file as dataframe and move the columns from dataframe into a single 
+# vector respectively and subtract the last (inclompete) measurement
+
 histdata<-read.table(filename, header=FALSE, sep="\t")
-# move the columns from dataframe into a single vector respectively and subtract the last (inclompete) measurement
 len <-  length(histdata[,1]) - 1
 channel <- histdata[,1][0:len]
 counts <- histdata[,2][0:len]
 
+
+
+# if downsampling is required replace data vector and the measurement number with the resized data
+
 counts <- downsample(counts, downsamplefactor)
 channel <- channel[seq(1, length(channel)-downsamplefactor, downsamplefactor)]
-
 pfcounts = pfact * counts
-q <- quantil(counts)
-cat("Quantil:", "min", q[1], "max", q[2], "mean", q[3], "\n")
+q <- quantile(counts)
+cat("Quantile:", "min", q[1], "max", q[2], "mean", q[3], "\n")
 pfq <- pfact * q
-cat("Quantil:", "min", pfq[1], "max", pfq[2], "mean", pfq[3], "\n")
+cat("Quantile:", "min", pfq[1], "max", pfq[2], "mean", pfq[3], "\n")
+
+
+
+# configure the plot output and plotting area (2 rows, 1 columns)
 
 x11(width=10,height=8)
-# 2 rows, 1 columns.
 par(mfrow=c(2,1))
 
-# plot low pass filtered counts over measurement
-plot(channel,pt1(pfcounts,5) , main = paste("Raw data from:",filename), type = "l",col = "red",xlab = "Number of measurement",ylab=paste("cpm (scaled from", period, "seconds)"), ylim=c(min(pfcounts),max(pfcounts)))
-# plot raw counts over measurement into the same first plot
-lines(channel, pfcounts , type="l", col="darkgreen")
-# plot mean +- sigma lines
-abline(h=pfq, col="blue")
 
-# from the data create a histogram
-hx <- hist(pfcounts, breaks = 90, plot = FALSE)
-# plot the histogram into the second plot. plot blue if the bar is below one sigma otherwise red
-plot(hx, col = ifelse(((hx$breaks < pfq[1]) | (hx$breaks > pfq[2])), "blue", "red"), xlab=paste("cpm (counts per minute, scaled from original measurement period of", period, "seconds)"))
-# plot mean +- sigma lines
-abline(v=pfq, col="darkgreen", lwd=2)
-text(pfq, max(hx$counts), round(pfq,1), col="black", lwd=1, pos=4)
 
-# The `locator' function waits for you to either click the mouse or hit enter (putting coordinates into x & y)
+# in the first plot the filtered rawdata and the unfiltered rawdata is plot including one sigma thresholds 
+
+plot(channel,pt1(pfcounts,5), type="l", col="red", main = paste("Datastream from:",filename), xlab="Number of measurement",
+     ylab="scaled data [counts/min]", ylim=c(min(pfcounts),max(pfcounts)))
+abline(h=pfq,lwd=0.5, lty="dashed", col="blue")
+par(new=TRUE)
+plot(channel, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n")
+axis(4)
+legend(x="topleft", bty="n", lty=c(1,1), col=c("red","darkgreen"), 
+       legend=c("doserate/count rate (filtered and scaled)", paste("raw data [counts/", period, "sec]")))
+
+
+
+# from the data a histogram is created and plotted in the second plot area.
+# the histogram is plot blue if the bar is below one sigma otherwise red
+
+pfq1 = quantile(counts)
+
+hx <- hist(counts, breaks = 90, plot = FALSE)
+plot(hx, col = ifelse(((hx$breaks < pfq1[1]) | (hx$breaks > pfq1[2])), "blue", "red"), 
+     xlab=paste("rawdata of", period, "seconds)"))
+abline(v=pfq1, col="darkgreen", lwd=1)
+text(pfq1, max(hx$counts), round(pfq1,1), col="black", lwd=1, pos=4)
+legend(x="topleft", bty="n", legend=c("1 Sigma = ", "Mean = ", "1 Sigma total = "))
+
+
+
+# The `locator' function waits for you to either click the mouse
 z <- locator(1)
 q()
 

@@ -101,7 +101,6 @@ cat("Downsample factor:", downsamplefactor, "\n")
 pfact <- 60.0 / period
 
 
-
 # read log file as dataframe and move the columns from dataframe into a single 
 # vector respectively and subtract the last (inclompete) measurement
 
@@ -110,7 +109,9 @@ len <-  length(histdata[,1]) - 1
 channel <- histdata[,1][0:len]
 counts <- histdata[,2][0:len]
 
-
+# one sigma of the overall distribution and accuracy of the overal mean value:
+overallmeanaccuracy <- (pfact*downsamplefactor)*sqrt(sum(counts))/len
+overallmean <- (pfact*downsamplefactor)*sum(counts)/len
 
 # if downsampling is required replace data vector and the measurement number with the resized data
 
@@ -123,39 +124,44 @@ pfq <- pfact * q
 cat("Quantile:", "min", pfq[1], "max", pfq[2], "mean", pfq[3], "\n")
 
 
-
 # configure the plot output and plotting area (2 rows, 1 columns)
 
 x11(width=10,height=8)
+#postscript(width=8.5, height=11, horizontal=FALSE)
 par(mfrow=c(2,1))
 
 
-
 # in the first plot the filtered rawdata and the unfiltered rawdata is plot including one sigma thresholds 
-
-plot(channel,pt1(pfcounts,5), type="l", col="red", main = paste("Datastream from:",filename), xlab="Number of measurement",
-     ylab="scaled data [counts/min]", ylim=c(min(pfcounts),max(pfcounts)))
-abline(h=pfq,lwd=0.5, lty="dashed", col="blue")
+par(mar=c(5, 5, 5, 5)) 
+plot(channel,pt1(pfcounts,4), type="l", col="red", main = paste("Datastream from:",filename), 
+     xlab="plot of data", ylab=" ", ylim=c(min(0),max(pfcounts)))
+mtext(paste("[counts /", period, "sec]"), side=2, line=3,cex=1)
 par(new=TRUE)
-plot(channel, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n")
+plot(channel, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n", 
+     ylim=c(min(0),max(counts)))
+abline(h=q,lwd=0.5, lty="dashed", col="blue")
+#axis(2,line=2,col="grey")
 axis(4)
-legend(x="topleft", bty="n", lty=c(1,1), col=c("red","darkgreen"), 
-       legend=c("doserate/count rate (filtered and scaled)", paste("raw data [counts/", period, "sec]")))
+legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
+       legend=c(paste("raw data unfiltered [counts per", period, "sec]"), "count rate [CPM] / doserate [nSv/h] filtered"))
+mtext("[cnts/min] or [nSv/h]", side=4, line=3)
 
 
-
-# from the data a histogram is created and plotted in the second plot area.
+# a histogram is created from data and plotted in the second plot area.
 # the histogram is plot blue if the bar is below one sigma otherwise red
 
-pfq1 = quantile(counts)
+# \fixme: if the mean value is < 50 we do have a poisson distribution and therfore
+# the right (+ sigma) threshold and color must be erase (if else)
 
 hx <- hist(counts, breaks = 90, plot = FALSE)
-plot(hx, col = ifelse(((hx$breaks < pfq1[1]) | (hx$breaks > pfq1[2])), "blue", "red"), 
+plot(hx, col = ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"), 
      xlab=paste("rawdata of", period, "seconds)"))
-abline(v=pfq1, col="darkgreen", lwd=1)
-text(pfq1, max(hx$counts), round(pfq1,1), col="black", lwd=1, pos=4)
-legend(x="topleft", bty="n", legend=c("1 Sigma = ", "Mean = ", "1 Sigma total = "))
-
+abline(v=q, col="darkgreen", lwd=1)
+text(q, max(hx$counts), round(q,1), col="black", lwd=1, pos=4)
+legend(x="topleft", bty="y",cex=0.8, legend=c(  
+       paste("overall mean:",round(overallmean,0),"CPM"),
+       "overall one sigma",
+       paste("accuracy:+/-",round(overallmeanaccuracy,2),"CPM") ))
 
 
 # The `locator' function waits for you to either click the mouse

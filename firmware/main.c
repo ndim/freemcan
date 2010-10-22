@@ -133,12 +133,25 @@ typedef enum {
   ST_READY,
   ST_timer0,
   ST_timer1,
+  ST_token0,
+  ST_token1,
+  ST_token2,
+  ST_token3,
   ST_checksum,
   ST_MEASURING,
   ST_MEASURING_nomsg,
   ST_DONE,
   ST_RESET
 } firmware_state_t;
+
+
+typedef union {
+  uint8_t  u8[4];
+  uint32_t u32;
+} token_t;
+
+
+uint32_t token;
 
 
 /** AVR firmware's main "loop" function
@@ -223,6 +236,22 @@ int main(void)
         break;
       case ST_timer1:
         timer1 = uart_getc();
+        next_state = ST_token0;
+        break;
+      case ST_token0:
+        ((token_t *)(&token))->u8[0] = uart_getc();
+        next_state = ST_token1;
+        break;
+      case ST_token1:
+        ((token_t *)(&token))->u8[1] = uart_getc();
+        next_state = ST_token2;
+        break;
+      case ST_token2:
+        ((token_t *)(&token))->u8[2] = uart_getc();
+        next_state = ST_token3;
+        break;
+      case ST_token3:
+        ((token_t *)(&token))->u8[3] = uart_getc();
         next_state = ST_checksum;
         break;
       case ST_checksum:

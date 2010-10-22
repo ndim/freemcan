@@ -33,16 +33,12 @@
 #endif
 
 
-#if (ELEMENT_SIZE_IN_BYTES == 3)
-
 /** Unsigned 24bit integer type
  *
  * This could be called a uint24_t, but we do not want to intrude on
  * that namespace.
  */
 typedef uint8_t freemcan_uint24_t[3];
-
-#endif
 
 
 /** Histogram element type */
@@ -81,7 +77,7 @@ void table_element_zero(volatile freemcan_uint24_t *dest)
 
 inline static
 void table_element_copy(volatile freemcan_uint24_t *dest,
-                            volatile freemcan_uint24_t *source)
+                        volatile freemcan_uint24_t *source)
 {
   asm("\n\t"
       /* load and store 24 bit value in units of 8 bits */

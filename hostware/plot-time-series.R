@@ -104,10 +104,10 @@ pfact <- 60.0 / period
 # read log file as dataframe and move the columns from dataframe into a single 
 # vector respectively and subtract the last (inclompete) measurement
 
-histdata<-read.table(filename, header=FALSE, sep="\t")
+histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
-channel <- histdata[,1][0:len]
-counts <- histdata[,2][0:len]
+times <- as.POSIXct(histdata$time_t[1:len], origin="1970-01-01")
+counts <- histdata$counts[1:len]
 
 # one sigma of the overall distribution and accuracy of the overal mean value:
 overallmeanaccuracy <- (pfact*downsamplefactor)*sqrt(sum(counts))/len
@@ -116,7 +116,8 @@ overallmean <- (pfact*downsamplefactor)*sum(counts)/len
 # if downsampling is required replace data vector and the measurement number with the resized data
 
 counts <- downsample(counts, downsamplefactor)
-channel <- channel[seq(1, length(channel)-downsamplefactor, downsamplefactor)]
+times <- times[seq(1, length(times)-downsamplefactor, downsamplefactor)]
+
 pfcounts = pfact * counts
 q <- quantile(counts)
 cat("Quantile:", "min", q[1], "max", q[2], "mean", q[3], "\n")
@@ -132,12 +133,13 @@ par(mfrow=c(2,1))
 
 
 # in the first plot the filtered rawdata and the unfiltered rawdata is plot including one sigma thresholds 
+
 par(mar=c(5, 5, 5, 5)) 
-plot(channel,pt1(pfcounts,4), type="l", col="red", main = paste("Datastream from:",filename), 
+plot(times,pt1(pfcounts,4), type="l", col="red", main = paste("Datastream from:",filename), 
      xlab="plot of data", ylab=" ", ylim=c(min(0),max(pfcounts)))
 mtext(paste("[counts /", period, "sec]"), side=2, line=3,cex=1)
 par(new=TRUE)
-plot(channel, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n", 
+plot(times, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n", 
      ylim=c(min(0),max(counts)))
 abline(h=q,lwd=0.5, lty="dashed", col="blue")
 #axis(2,line=2,col="grey")

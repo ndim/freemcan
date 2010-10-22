@@ -58,8 +58,11 @@ typedef struct {
    * time spent recording all but the last item in the time series. */
   unsigned int total_duration;
 
-  /** Maximum "good" value from elements[] array (ignores clamping value!) */
-  uint32_t max_value;
+  /** total (maximum) table size (in bytes) */
+  size_t total_table_size;
+
+  /** Token (value sent back unchanged) */
+  uint32_t token;
 
   /** Value table array (native endian uint32_t) */
   uint32_t elements[];
@@ -91,6 +94,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const size_t element_count,
                                              const uint16_t duration,
                                              const uint16_t total_duration,
+                                             const uint16_t total_table_size,
+                                             const uint32_t token,
                                              const void *elements)
   __attribute__((malloc));
 

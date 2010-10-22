@@ -90,9 +90,16 @@ static
 void export_common_vtable(FILE *datfile, const packet_value_table_t *value_table_packet)
 {
   if (datfile) {
-    const time_t start_time = value_table_packet->token;
-    const time_t receive_time = value_table_packet->receive_time;
-    const size_t orig_element_size = value_table_packet->orig_element_size;
+    const char *type_str = "unknown data type";
+    switch (value_table_packet->type) {
+    case VALUE_TABLE_TYPE_HISTOGRAM:
+      type_str = "histogram"; break;
+    case VALUE_TABLE_TYPE_TIME_SERIES:
+      type_str = "time series"; break;
+    }
+    fprintf(datfile, "# value table type:         '%c' (%s)\n",
+            value_table_packet->type, type_str);
+
     const char *reason_str = "unknown type";
     switch (value_table_packet->reason) {
     case PACKET_VALUE_TABLE_DONE:
@@ -107,11 +114,15 @@ void export_common_vtable(FILE *datfile, const packet_value_table_t *value_table
     fprintf(datfile, "# reason:                   '%c' (%s)\n",
             value_table_packet->reason, reason_str);
 
+    const time_t start_time = value_table_packet->token;
     fprintf(datfile, "# start_time:               %lu (%s)\n",
             start_time, time_rfc_3339(start_time));
+
+    const time_t receive_time = value_table_packet->receive_time;
     fprintf(datfile, "# receive_time:             %lu (%s)\n",
             receive_time, time_rfc_3339(receive_time));
 
+    const size_t orig_element_size = value_table_packet->orig_element_size;
     fprintf(datfile, "# orig_element_size:        %d byte (%d bit)\n",
             orig_element_size, 8*orig_element_size);
   }

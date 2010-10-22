@@ -96,15 +96,17 @@ void send_table(const packet_value_table_reason_t reason)
 #endif
 
   packet_value_table_header_t header = {
-    table_element_size,
+    data_table_info.element_size,
     reason,
-    value_table_type,
+    data_table_info.type,
     duration,
-    orig_timer_count
+    orig_timer_count,
+    data_table_info.total_size,
+    token
   };
-  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header)+sizeof_data_table);
+  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + data_table_info.size);
   uart_putb((const void *)&header, sizeof(header));
-  uart_putb((const void *)data_table, sizeof_data_table);
+  uart_putb((const void *)data_table, data_table_info.size);
   frame_end();
 }
 

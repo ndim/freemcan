@@ -105,17 +105,18 @@ pfact <- 60.0 / period
 # read log file as dataframe and move the columns from dataframe into a single 
 # vector respectively and subtract the last (inclompete) measurement
 
-histdata<-read.table(filename, header=FALSE, sep="\t")
+histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
-channel <- histdata[,1][0:len]
-counts <- histdata[,2][0:len]
+times <- as.POSIXct(histdata$time_t[1:len], origin="1970-01-01")
+counts <- histdata$counts[1:len]
 
 
 
 # if downsampling is required replace data vector and the measurement number with the resized data
 
 counts <- downsample(counts, downsamplefactor)
-channel <- channel[seq(1, length(channel)-downsamplefactor, downsamplefactor)]
+times <- times[seq(1, length(times)-downsamplefactor, downsamplefactor)]
+
 pfcounts = pfact * counts
 q <- quantile(counts)
 cat("Quantile:", "min", q[1], "max", q[2], "mean", q[3], "\n")
@@ -133,11 +134,11 @@ par(mfrow=c(2,1))
 
 # in the first plot the filtered rawdata and the unfiltered rawdata is plot including one sigma thresholds 
 
-plot(channel,pt1(pfcounts,5), type="l", col="red", main = paste("Datastream from:",filename), xlab="Number of measurement",
+plot(times, pt1(pfcounts,5), type="l", col="red", main = paste("Datastream from:",filename), xlab="time of measurement",
      ylab="scaled data [counts/min]", ylim=c(min(pfcounts),max(pfcounts)))
 abline(h=pfq,lwd=0.5, lty="dashed", col="blue")
 par(new=TRUE)
-plot(channel, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n")
+plot(times, counts, lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n")
 axis(4)
 legend(x="topleft", bty="n", lty=c(1,1), col=c("red","darkgreen"), 
        legend=c("doserate/count rate (filtered and scaled)", paste("raw data [counts/", period, "sec]")))

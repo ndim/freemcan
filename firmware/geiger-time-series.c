@@ -49,6 +49,7 @@
 #include "uart-printf.h"
 #include "main.h"
 #include "table-element.h"
+#include "data-table.h"
 
 
 #ifndef F_CPU
@@ -65,10 +66,37 @@
  * Note that we have the table location and size determined by the
  * linker script time-series-table.x.
  */
-extern volatile table_element_t data_table[];
+extern volatile table_element_t table[] asm("data_table");
 
 /** End of the table: Still needs rounding */
 extern volatile table_element_t data_table_end[];
+
+/** Pseudo symbol - just use its address */
+extern volatile char data_table_size[];
+
+
+
+/** Data table info
+ *
+ * \see data_table
+ *
+ * Note: We put this value into the .data.sizeof section in order to
+ *       easily automatically extract the data table element size
+ *       during the later build stages.
+ */
+data_table_info_t data_table_info __attribute__ (( section(".data.sizeof") )) = {
+  /** Actual size of #data_table in bytes
+   * We update this value whenever new time series data has been
+   * recorded. The initial value is "one element".
+   */
+  sizeof(table[0]),
+  /** Type of value table we send */
+  VALUE_TABLE_TYPE_TIME_SERIES,
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES,
+  /** Total number of bytes in table */
+  ((size_t)(&data_table_size))
+};
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
@@ -77,36 +105,7 @@ volatile table_element_t *volatile table_end =
                                    (sizeof(table_element_t)-1));
 
 /** Pointer to the current place to store the next value at */
-volatile table_element_t *volatile table_cur = data_table;
-
-
-/** Actual size of #data_table in bytes
- *
- * We update this value whenever new time series data has been
- * recorded. The initial value is "one element".
- *
- * \see data_table
- *
- * Note: We put this value into the .data.sizeof section in order to
- *       easily automatically extract the data table element size
- *       during the later build stages.
- */
-size_t sizeof_data_table __attribute__ (( section(".data.sizeof") )) =
-  sizeof(data_table[0]);
-
-
-/** Type of value table we send
- *
- * \see data_table
- */
-packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
-
-
-/** Table element size
- *
- * \see data_table
- */
-uint8_t table_element_size = ELEMENT_SIZE_IN_BYTES;
+volatile table_element_t *volatile table_cur = table;
 
 
 /** Setup, needs to be called once on startup */
@@ -143,7 +142,7 @@ void ts_print_status(void)
 {
 #ifdef VERBOSE_STARTUP_MESSAGES
   uprintf("<ts_print_status>");
-  uprintf("%-25s %p", "data_table", data_table);
+  uprintf("%-25s %p", "table",      table);
   uprintf("%-25s %p", "table_cur",  table_cur);
   uprintf("%-25s %p", "table_end",  table_end);
   const size_t UV(sizeof_table) = ((char*)table_end) - ((char*)table_cur);
@@ -237,7 +236,7 @@ ISR(TIMER1_COMPA_vect)
        * series, and restart the timer countdown. */
       table_cur++;
       if (table_cur < table_end) {
-        sizeof_data_table += sizeof(*table_cur);
+        data_table_info.size += sizeof(*table_cur);
         timer_count = orig_timer_count;
       } else {
         measurement_finished = 1;

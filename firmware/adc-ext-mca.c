@@ -43,6 +43,7 @@
 #include "adc-ext-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
+#include "data-table.h"
 
 #include "ad7813.h"
 
@@ -63,25 +64,17 @@
 volatile table_element_t table[MAX_COUNTER] asm("data_table");
 
 
-/** Actual size of #data_table in bytes
- *
- * \see data_table
- */
-const size_t sizeof_data_table = sizeof(table);
-
-
-/** Type of value table we send
- *
- * \see data_table
- */
-packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_HISTOGRAM;
-
-
-/** Table element size
- *
- * \see data_table
- */
-uint8_t table_element_size = ELEMENT_SIZE_IN_BYTES;
+/** See * \see data_table */
+data_table_info_t data_table_info = {
+  /** Actual size of #data_table in bytes */
+  sizeof(table),
+  /** Type of value table we send */
+  VALUE_TABLE_TYPE_HISTOGRAM,
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES,
+  /** Total number of bytes in table */
+  sizeof(table)
+};
 
 
 /** Initialize peripherals

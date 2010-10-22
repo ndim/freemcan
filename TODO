@@ -25,6 +25,7 @@ protocol: On startup, send machine readable information about
 
 firmware: Start measurement without RS232 (pressing of a switch
           or similar). Problem: With what duration - from EEPROM?
+	  Hardware: Pin PB0, internal (for now) pullup, switch to GND.
 
 firmware: Device Signature
 

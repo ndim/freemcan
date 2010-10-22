@@ -43,6 +43,8 @@
 #include "global.h"
 #include "packet-comm.h"
 #include "table-element.h"
+#include "data-table.h"
+
 
 #ifndef F_CPU
 # error Need F_CPU defined for util/delay.h
@@ -64,25 +66,19 @@
 volatile table_element_t counter asm("data_table");
 
 
-/** Actual size of #data_table in bytes
- *
- * \see data_table
- */
-const size_t sizeof_data_table = sizeof(counter);
 
 
-/** Type of value table we send
- *
- * \see data_table
- */
-packet_value_table_type_t value_table_type = VALUE_TABLE_TYPE_TIME_SERIES;
-
-
-/** Table element size
- *
- * \see data_table
- */
-uint8_t table_element_size = ELEMENT_SIZE_IN_BYTES;
+/** See * \see data_table */
+data_table_info_t data_table_info = {
+  /** Actual size of #data_table in bytes */
+  sizeof(counter),
+  /** Type of value table we send */
+  VALUE_TABLE_TYPE_TIME_SERIES,
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES,
+  /** Total number of elements in table */
+  sizeof(counter)
+};
 
 
 /** Initialize peripherals

@@ -44,6 +44,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const size_t element_count,
                                              const uint16_t duration,
                                              const uint16_t total_duration,
+                                             const uint16_t total_table_size,
+                                             const uint32_t token,
                                              const void *elements)
 {
   packet_value_table_t *result =
@@ -58,6 +60,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   result->orig_element_size = element_size;
   result->duration          = duration;
   result->total_duration    = total_duration;
+  result->total_table_size  = total_table_size;
+  result->token             = token;
 
   if (!elements) {
     result->max_value = 0;

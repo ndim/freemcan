@@ -42,16 +42,26 @@
 extern char data_table[];
 
 
-/** The size of the data #table in bytes */
-extern size_t sizeof_data_table;
+typedef struct {
+  /** The size of the #data_table in bytes */
+  size_t size;
+
+  /** The type of value table */
+  packet_value_table_type_t type;
+
+  /** The size of a single table element */
+  uint8_t element_size;
+
+  /** Total number of bytes in table */
+  size_t total_size;
+} data_table_info_t;
 
 
-/** The type of value table */
-extern packet_value_table_type_t value_table_type;
+extern data_table_info_t data_table_info;
 
 
-/** The size of a single table element */
-extern uint8_t table_element_size;
+/** set by main(), read by send_table(), unused by anybody else */
+extern uint32_t token;
 
 
 /** @} */

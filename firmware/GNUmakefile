@@ -287,7 +287,7 @@ geiger-time-series.element-size.txt: geiger-time-series.o
 	@set -e; \
 	rm -f $@; \
 	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
-	echo $$(od -An -t u2 $@.$$$$) > $@; \
+	od -An -t u2 $@.$$$$ | { read value restofline; echo "$$value"; } > $@; \
 	rm -f $@.$$$$
 
 

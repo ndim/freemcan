@@ -134,7 +134,7 @@
   ( \
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
-   (((uint32_t)'P')<<16) |			\
+   (((uint32_t)'p')<<16) |			\
    (((uint32_t)'k')<<24)			\
     )
 
@@ -142,7 +142,7 @@
  *
  * This is good for endianness independent char-by-char receivers.
  */
-#define FRAME_MAGIC_STR "FMPk"
+#define FRAME_MAGIC_STR "FMpk"
 
 /** Data frame types (data frame to host)
  *

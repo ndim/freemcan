@@ -132,7 +132,10 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 
 void tui_device_send_measure_command(const uint16_t seconds)
 {
-  device_send_command_u16(device, FRAME_CMD_MEASURE, seconds);
+  const time_t start_time = time(NULL);
+  /* We ignore the issues surrounding the 32bit vs 64bit time_t conversion */
+  const uint32_t token = (uint32_t)start_time;
+  device_send_command_u16_u32(device, FRAME_CMD_MEASURE, seconds, token);
   waiting_for++;
 }
 

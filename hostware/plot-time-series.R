@@ -3,25 +3,16 @@
 # Copyright (C) 2010 samplemaker
 # Copyright (C) 2010 Hans Ulrich Niedermann
 #
-# Usage: ./plot-time-series.R <period> <filename>
+# Usage: ./plot-time-series.R tbd
 #
 # Example usage:
 #
-#  $ ./plot-time-series.R 150 time.foobar.dat
+# ./plot-time-series.R secondspersample=150 filename=blubber.dat downsamplefactor= tubesensitivity=
 #
-#    Plot a data file of "time.foobar.dat" recorded with 150 seconds
-#    per value.
+#  tubesensitivity  <- doserate [nSv/h] / countrate [CPM] (can be left emtpty)
+#  downsamplefactor <- number of samples added together to get a new sample set (can be left emtpty)
+#  secondspersample <- count time for each sample
 #
-#  $ ./plot-time-series.R 30 $(ls -1 time.*.dat | tail -n1)
-#
-#    Plot the latest file, presuming it is recorded at 30sec/value.
-#
-#  $ ./plot-time-series.R 30 4 time.foo.dat
-#
-#    Plot the file, downsampling by a factor of 4, i.e. from the
-#    30sec/value to 120sec/value.
-#
-
 
 # clear workspace
 
@@ -111,6 +102,7 @@ quantile <- function(x) {
   len <- length(x)
   mean <- mean(x)
   sigma  <- sqrt(mean)
+  {
   if (mean<50) {
     #if the mean value is below 50 we will have rahter a poisson distribution
     return(c(mean-sigma, mean))
@@ -119,19 +111,36 @@ quantile <- function(x) {
     #if not we are going to get a gaussian distribution
     return(c(mean-sigma, mean+sigma, mean))
   }
+  }
 }
 
 
 
-# \fixme: one should filter the correct command rather than give a fix position
+# parse command line arguments
 args <- commandArgs(TRUE)
-filename <- ifelse(length(args) == 2, args[2], args[3])
-downsamplefactor <- ifelse(length(args) == 2, 1, as.numeric(args[2]))
-period <- downsamplefactor * as.numeric(args[1])
-cat("Period:", period, "\n")
-cat("Filename:", filename, "\n")
-cat("Downsample factor:", downsamplefactor, "\n")
+for (numarg in 1:length(args)) {
+  cmd = strsplit(args[numarg],split="=")
+  if(! is.na(cmd[[1]][2])) {
+    if (cmd[[1]][1] == "filename"){
+      assign(cmd[[1]][1],cmd[[1]][2])
+    }
+    else{
+      assign(cmd[[1]][1],as.numeric(cmd[[1]][2]))
+    }
+  }
+  else{
+    assign(cmd[[1]][1],FALSE)
+  }
+}
 
+# brake on error or set defaults for not specified args
+cat("seconds per sampel:", secondspersample, "\n")
+cat("filename:", filename, "\n")
+if (downsamplefactor == "FALSE"){downsamplefactor <- 1}
+cat("downsample factor:", downsamplefactor, "\n")
+cat("tube sensitivity:", tubesensitivity, "\n")
+
+period <- downsamplefactor * secondspersample
 pfact <- 60.0 / period
 
 
@@ -179,10 +188,13 @@ par(new=TRUE)
 countsfiltered <- pt1(counts,4)
 plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",filename), 
      xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
-mtext("[cnts/min] or [nSv/h]", side=4,adj=0, line=3)
+
+mtext(ifelse(tubesensitivity, "[nSv/h]", "[cnts/min]"), side=4,adj=0, line=3)
 
 #prepare the second axis: rescale and calculate the axis ticks
-newaxis <- axisrescaler(max(counts), pfact)
+
+newaxis <- axisrescaler(max(counts), ifelse(tubesensitivity, pfact*tubesensitivity, pfact))
+
 tickposition <- newaxis[,1]
 ticklabel <- newaxis[,2]
 axis(4,line=0,col="grey",at=tickposition, labels = ticklabel)
@@ -197,8 +209,8 @@ ticklabel = format(times[tickposition], format = "%H:%M", usetz = FALSE)
 axis(1,line=2.5,col="grey",at=tickposition, labels = ticklabel)
 
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
-       legend=c(paste("raw data unfiltered [counts per", period, "sec]"), "count rate [CPM] / doserate [nSv/h] filtered"))
-
+       legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 
+       ifelse(tubesensitivity, "doserate [nSv/h] filtered", "count rate [CPM] filtered")))
 
 # a histogram is created from data and plotted in the second plot area.
 # the histogram is plot blue if the bar is below one sigma otherwise red

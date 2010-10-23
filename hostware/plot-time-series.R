@@ -35,13 +35,12 @@ axisrescaler <- function(lim,scalefactor) {
   delta <- abs(maxdstlim)
   numdecades <- floor(log10(delta))
   base <- 10^(numdecades)
-  numticks <- floor(maxdstlim/base)
-  if (numticks<=5){
-    increment <- base
-  }
-  else{
-      increment <- 0.5*base
-  }
+  numticks <- floor(10*maxdstlim/base)
+  if (numticks < 15){increment <- 0.1*base } else {  
+      if (numticks < 30){increment <- 0.4*base } else {  
+          if (numticks < 60){ increment <- 0.5*base } else { 
+              increment <- base }}}
+  #cat(numticks,base,increment,"\n")		 
   ticklabels <-  seq(0, maxdstlim, increment)
   tickposition <- ticklabels/scalefactor
 

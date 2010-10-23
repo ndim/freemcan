@@ -108,6 +108,8 @@ histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
 times <- as.POSIXct(histdata$time_t[1:len], origin="1970-01-01")
 counts <- histdata$counts[1:len]
+index <- histdata$idx[0:len]
+
 
 # one sigma of the overall distribution and accuracy of the overal mean value:
 overallmeanaccuracy <- (pfact*downsamplefactor)*sqrt(sum(counts))/len
@@ -116,9 +118,9 @@ overallmean <- (pfact*downsamplefactor)*sum(counts)/len
 # if downsampling is required replace data vector and the measurement number with the resized data
 
 counts <- downsample(counts, downsamplefactor)
+index <- index[seq(1, length(index)-downsamplefactor, downsamplefactor)]
 times <- times[seq(1, length(times)-downsamplefactor, downsamplefactor)]
 
-pfcounts = pfact * counts
 q <- quantile(counts)
 cat("Quantile:", "min", q[1], "max", q[2], "mean", q[3], "\n")
 pfq <- pfact * q
@@ -134,19 +136,34 @@ par(mfrow=c(2,1))
 
 # in the first plot the filtered rawdata and the unfiltered rawdata is plot including one sigma thresholds 
 
-par(mar=c(5, 5, 5, 5)) 
-plot(times,pt1(pfcounts,4), type="l", col="red", main = paste("Datastream from:",filename), 
-     xlab="plot of data", ylab=" ", ylim=c(min(0),max(pfcounts)))
-mtext(paste("[counts /", period, "sec]"), side=2, line=3,cex=1)
-par(new=TRUE)
-plot(times, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n", 
+par(mar=c(5, 5, 5, 5))  #plot margins
+
+plot(index, counts ,lwd=0.5, col="darkgreen", type="l", ann=FALSE, yaxt="n", 
      ylim=c(min(0),max(counts)))
 abline(h=q,lwd=0.5, lty="dashed", col="blue")
-#axis(2,line=2,col="grey")
-axis(4)
+mtext(paste("[counts /", period, "sec]"), adj=0,side=2, line=3,cex=1)
+
+par(new=TRUE)
+# to have both curves on the same place in the plot area we do not rescale the curve itself
+# but only the axis. so we first of all make a second plot but without plotting the axis
+countsfiltered <- pt1(counts,4)
+plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",filename), 
+     xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
+mtext("[cnts/min] or [nSv/h]", side=4,adj=0, line=3)
+
+#prepare the second axis: rescale and calculate the axis ticks
+#\fixme: write a function that scales the axis properly 
+tickposition <-  seq(min(0), max(counts), max(counts)/3)
+ticklabel <- round(pfact * tickposition)
+axis(4,line=0,col="grey",at=tickposition, labels = ticklabel)
+
+#prepare a second x-axis with time stamps:
+tickposition <- seq(1, length(index)-1, (length(index)-1)/5)
+ticklabel <- times[tickposition]
+axis(1,line=2.7,col="grey",at=tickposition, labels = ticklabel)
+
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), "count rate [CPM] / doserate [nSv/h] filtered"))
-mtext("[cnts/min] or [nSv/h]", side=4, line=3)
 
 
 # a histogram is created from data and plotted in the second plot area.

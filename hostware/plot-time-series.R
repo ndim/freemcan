@@ -152,7 +152,7 @@ overallmean <- (pfact*downsamplefactor)*sum(counts)/len
 # if downsampling is required replace data vector and the measurement number with the resized data
 
 counts <- downsample(counts, downsamplefactor)
-index <- index[seq(1, length(index)-downsamplefactor, downsamplefactor)]
+index <- index[seq(1, length(index)-downsamplefactor, downsamplefactor)]/downsamplefactor
 times <- times[seq(1, length(times)-downsamplefactor, downsamplefactor)]
 
 q <- quantile(counts)

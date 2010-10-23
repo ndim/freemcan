@@ -28,6 +28,37 @@
 rm(list = ls())
 
 
+# returns useful tick and label locations based on the given axis rescaler
+#
+# lim: maximum point of the axis to be drawn (on the source plot in the source data set)
+#
+# tickposition: position of ticks on the source axis
+# labels: labels to put on the destiny (new axis)
+#\fixme: implement lim=c(min,max) to support not only axis beginning from "0"
+
+axisrescaler <- function(lim,scalefactor) {
+  # maximum of the destiny axis
+  maxdstlim <- lim*scalefactor
+  # find out in which decade we are going to plot the labels
+  delta <- abs(maxdstlim)
+  numdecades <- floor(log10(delta))
+  # base for increment
+  base <- 10^(numdecades)
+  # based on an increment of "base" decide either to make 5 of 10 ticks/labels
+  numticks <- floor(maxdstlim/base)
+  if (numticks<=5){
+    increment <- base
+  }
+  else{
+      increment <- 0.5*base
+  }
+  ticklabels <-  seq(0, maxdstlim, increment)
+  tickposition <- ticklabels/scalefactor
+
+  return(cbind(tickposition,ticklabels));
+}
+
+
 
 # Infinite impulse response filter of first order (PT1)
 #
@@ -106,7 +137,7 @@ pfact <- 60.0 / period
 
 histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
-times <- as.POSIXct(histdata$time_t[1:len], origin="1970-01-01")
+times <- as.POSIXlt(histdata$time_t[1:len], origin="1970-01-01")
 counts <- histdata$counts[1:len]
 index <- histdata$idx[0:len]
 
@@ -152,15 +183,19 @@ plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",
 mtext("[cnts/min] or [nSv/h]", side=4,adj=0, line=3)
 
 #prepare the second axis: rescale and calculate the axis ticks
-#\fixme: write a function that scales the axis properly 
-tickposition <-  seq(min(0), max(counts), max(counts)/3)
-ticklabel <- round(pfact * tickposition)
+newaxis <- axisrescaler(max(counts), pfact)
+tickposition <- newaxis[,1]
+ticklabel <- newaxis[,2]
 axis(4,line=0,col="grey",at=tickposition, labels = ticklabel)
 
-#prepare a second x-axis with time stamps:
-tickposition <- seq(1, length(index)-1, (length(index)-1)/5)
-ticklabel <- times[tickposition]
-axis(1,line=2.7,col="grey",at=tickposition, labels = ticklabel)
+#prepare a second x-axis with customized time stamps:
+tickposition <- seq(1, length(index)-1, (length(index)-1)/6)
+
+ticklabel = format(times[tickposition], format = "%H:%M", usetz = FALSE)
+
+# unclass(times[tickposition])
+
+axis(1,line=2.5,col="grey",at=tickposition, labels = ticklabel)
 
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), "count rate [CPM] / doserate [nSv/h] filtered"))

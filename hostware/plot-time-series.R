@@ -198,9 +198,10 @@ ticklabel <- newaxis[,2]
 axis(4,line=0,col="black",at=tickposition, labels = ticklabel)
 
 #prepare a second x-axis with customized time stamps:
-tickposition <- seq(1, length(index)-1, (length(index)-1)/6)
-ticklabel = format(times[tickposition], format = "%H:%M")
-axis(1,line=2.5,col="grey",at=tickposition, labels = ticklabel)
+tot <- length(index)
+ticksat <- c(1,tot/6,2*tot/6,3*tot/6,4*tot/6,5*tot/6,tot)
+ticklabel = format(times[ticksat], format = "%H:%M")
+axis(1,line=2.5,col="grey",at=ticksat, labels = ticklabel)
 
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 
@@ -213,12 +214,12 @@ hx <- hist(counts, breaks = 90, plot = FALSE)
 if (overallmean < 50){
   #poisson distribution coloring
   plot(hx,col=ifelse(((hx$breaks < q[1])), "blue", "red") ,
-       xlab=paste("rawdata of", period, "seconds)"))
+       xlab=paste("rawdata of", period, "seconds"))
 }
 else{
   #gaussian distribution coloring
   plot(hx,col=ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"),
-       xlab=paste("rawdata of", period, "seconds)"))
+       xlab=paste("rawdata of", period, "seconds"))
 }
 }
 abline(v=q, col="darkgreen", lwd=1)

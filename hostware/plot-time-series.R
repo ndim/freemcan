@@ -104,18 +104,21 @@ downsample <- function(x, k) {
 
 # calculate statistics of the input vector
 # 
-# assuming the input vector has a gaussian distribution (> 50 for each count)
 # one sigma is equal to the square root of the average
 #
 
 quantile <- function(x) {
   len <- length(x)
-  cat("samples parsed:", len, "\n")
   mean <- mean(x)
-  cat("mean value:", mean, "\n")
   sigma  <- sqrt(mean)
-  cat("your one sigma probability is within: +/- ", sigma, " counts \n")
-  return(c(mean-sigma, mean+sigma, mean));
+  if (mean<50) {
+    #if the mean value is below 50 we will have rahter a poisson distribution
+    return(c(mean-sigma, mean))
+  }
+  else{
+    #if not we are going to get a gaussian distribution
+    return(c(mean-sigma, mean+sigma, mean))
+  }
 }
 
 
@@ -153,10 +156,6 @@ index <- index[seq(1, length(index)-downsamplefactor, downsamplefactor)]
 times <- times[seq(1, length(times)-downsamplefactor, downsamplefactor)]
 
 q <- quantile(counts)
-cat("Quantile:", "min", q[1], "max", q[2], "mean", q[3], "\n")
-pfq <- pfact * q
-cat("Quantile:", "min", pfq[1], "max", pfq[2], "mean", pfq[3], "\n")
-
 
 # configure the plot output and plotting area (2 rows, 1 columns)
 
@@ -208,10 +207,23 @@ legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"),
 # the right (+ sigma) threshold and color must be erase (if else)
 
 hx <- hist(counts, breaks = 90, plot = FALSE)
-plot(hx, col = ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"), 
-     xlab=paste("rawdata of", period, "seconds)"))
+
+{
+if (overallmean < 50){
+  #poisson distribution coloring
+  plot(hx,col=ifelse(((hx$breaks < q[1])), "blue", "red") ,
+       xlab=paste("rawdata of", period, "seconds)"))
+}
+else{
+  #gaussian distribution coloring
+  plot(hx,col=ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"),
+       xlab=paste("rawdata of", period, "seconds)"))
+}
+}
+
 abline(v=q, col="darkgreen", lwd=1)
 text(q, max(hx$counts), round(q,1), col="black", lwd=1, pos=4)
+
 legend(x="topleft", bty="y",cex=0.8, legend=c(  
        paste("overall mean:",round(overallmean,0),"CPM"),
        "overall one sigma",

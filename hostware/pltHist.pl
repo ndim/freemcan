@@ -101,8 +101,8 @@ sub parse_and_difference_to_tmp
     # at the beginning of the string)
     next LINE1 if ($_ =~ /^#/);
     # numbers have to be separated by a tab
-    ($indx, $val) = split(/\t/,$_);
-    $matrix1[$indx] = $val;
+    my @data = split(/\t/,$_);
+    $matrix1[$data[0]] = $data[1];
   }
   #  a weaker solution would be:
   #     if (!($_ =~ /\s*#.*/)){
@@ -118,8 +118,8 @@ sub parse_and_difference_to_tmp
     # the anchor ^ means match at the beginning of the string with '#'
     next LINE2 if ($_ =~ /^#/);
     # separate numbers between a tab
-    ($indx, $val) = split(/\t/,$_);
-    $matrix2[$indx] = $val;
+    my @data = split(/\t/,$_);
+    $matrix2[$data[0]] = $data[1];
   }
   close (FILE2) ||
     die "cannot close $plotfile2 ";

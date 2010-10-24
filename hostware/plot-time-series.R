@@ -159,7 +159,7 @@ pfact <- 60.0 / period
 # vector respectively and subtract the last (inclompete) measurement
 histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
-times <- as.POSIXlt(histdata$time_t[1:len], origin="1970-01-01")
+times <- as.POSIXct(histdata$time_t[1:len], origin="1970-01-01")
 counts <- histdata$counts[1:len]
 index <- histdata$idx[1:len]
 
@@ -208,11 +208,19 @@ tickposition <- newaxis[,1]
 ticklabel <- newaxis[,2]
 axis(4,line=0,col="black",at=tickposition, labels = ticklabel)
 
+
+####################
 #prepare a second x-axis with customized time stamps:
-tot <- length(index)
-ticksat <- c(1,tot/6,2*tot/6,3*tot/6,4*tot/6,5*tot/6,tot)
-ticklabel = format(times[ticksat], format = "%H:%M")
-axis(1,line=2.5,col="grey",at=ticksat, labels = ticklabel)
+
+axisminutes = c((unclass(times[1]))/60,(unclass(times[length(times)])/60))
+axiscounts = c(0,length(index))
+newaxis <- axisrescaler(axiscounts,axisminutes)
+tickposition <- newaxis[,1]
+ticklabel <- newaxis[,2]
+test=as.POSIXct(unclass(ticklabel), origin="1970-01-01")
+ticklabel=format(test, format = "%H:%M")
+
+axis(1,line=2.5,col="grey",at=tickposition, labels = ticklabel)
 
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 

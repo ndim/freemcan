@@ -22,27 +22,32 @@ rm(list = ls())
 
 # returns useful tick and label locations based on the given axis to be scaled
 #
-# lim: maximum point of the axis to be drawn (on the source plot in the source data set)
+# limsrc: axis-borders (min max) of the source axis in the plotarea
+# limdst: axis-borders (min max) of the destiny axis with the new labels to be plot
 #
 # tickposition: position of ticks on the source axis
 # labels: labels to put on the destiny (new axis labeling)
-# \fixme: implement lim=c(min,max) to support not only axis beginning from "0"
 
-axisrescaler <- function(lim,scalefactor) {
+xdsttoxsrc <- function(xdst,limsrc,limdst){
+  return(limsrc[1]+(limsrc[2]-limsrc[1])*(xdst-limdst[1])/(limdst[2]-limdst[1]))
+}
+
+axisrescaler <- function(limsrc,limdst) {
   # find out the decade of the destiny axis and choose an increment
   # so that we get a "good looking scale"
-  maxdstlim <- lim*scalefactor
-  delta <- abs(maxdstlim)
+  delta <- (limdst[2]-limdst[1])
   numdecades <- floor(log10(delta))
   base <- 10^(numdecades)
-  numticks <- floor(10*maxdstlim/base)
+  numticks <- floor(10*delta/base)
   if (numticks < 15){increment <- 0.1*base } else {  
       if (numticks < 30){increment <- 0.4*base } else {  
           if (numticks < 60){ increment <- 0.5*base } else { 
               increment <- base }}}
-  #cat(numticks,base,increment,"\n")		 
-  ticklabels <-  seq(0, maxdstlim, increment)
-  tickposition <- ticklabels/scalefactor
+  #cat(numticks,base,increment,"\n")	
+  #cat(limsrc,limdst,"\n")	
+  lowlim <- increment*ceiling(limdst[1]/increment)
+  ticklabels <-  seq(lowlim, limdst[2], increment)
+  tickposition <- xdsttoxsrc(ticklabels,limsrc,limdst)
 
   return(cbind(tickposition,ticklabels));
 }
@@ -192,7 +197,13 @@ plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",
 mtext(ifelse(tubesensitivity, "[nSv/h]", "[cnts/min]"), side=4,adj=0, line=3)
 
 #prepare the second axis: rescale and calculate the axis ticks
-newaxis <- axisrescaler(max(counts), ifelse(tubesensitivity, pfact*tubesensitivity, pfact))
+{
+if (tubesensitivity == FALSE){
+   newaxis <- axisrescaler(c(0,max(counts)), c(0,pfact*max(counts)))
+}else{
+   newaxis <- axisrescaler(c(0,max(counts)), c(0,pfact*tubesensitivity*max(counts)))
+}
+}
 tickposition <- newaxis[,1]
 ticklabel <- newaxis[,2]
 axis(4,line=0,col="black",at=tickposition, labels = ticklabel)

@@ -364,7 +364,7 @@ MALLOC_HEAP_SIZE = 64
 # maximum stack size that can appear at runtime). We just about assume
 # this value, but have a consistency check lower down in the form of
 # the check-min-stack-size-%.check target.
-MIN_STACK_SIZE = 80
+MIN_STACK_SIZE = 118
 
 # Check that the minimum stack size we want accomodated in a firmware
 # (used for other checks) is actually less than the number of push
@@ -374,9 +374,13 @@ MIN_STACK_SIZE = 80
 CHECKS += min-stack-size
 check-min-stack-size-%.check: firmware-%.lss
 	@set -e; \
+	CALL_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\scall\s" $< | wc -l)"; \
+	RCALL_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\srcall\s" $< | wc -l)"; \
+	ALL_CALL_INSTRUCTION_COUNT="$$(expr "$$CALL_INSTRUCTION_COUNT" + "$$RCALL_INSTRUCTION_COUNT")"; \
 	PUSH_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\spush\sr[0-9]+" $< | wc -l)"; \
-	echo "CHECK($*): PUSH_INSTRUCTION_COUNT=$$PUSH_INSTRUCTION_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
-	test "$$PUSH_INSTRUCTION_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
+	TOTAL_COUNT="$$(expr "$$ALL_CALL_INSTRUCTION_COUNT" + "$$PUSH_INSTRUCTION_COUNT")"; \
+	echo "CHECK($*): PUSH_COUNT+2*CALL_COUNT=$$PUSH_INSTRUCTION_COUNT+2*$$ALL_CALL_INSTRUCTION_COUNT=$$TOTAL_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
+	test "$$TOTAL_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
 
 check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
 	@cat $^ > $@

@@ -347,6 +347,10 @@ read-fuses-%:
 		echo "    $$f=$$(cat "DEVICE-$*.$$f.txt")"; \
 	done
 
+.PHONY: compare-fuses program-fuses
+compare-fuses program-fuses:
+	$(MAKE) "$@-$(PERSONALITY)"
+
 
 ########################################################################
 # Check the firmware images
@@ -426,6 +430,10 @@ firmware-%.sym: firmware-%.elf
 program-% : PERSONALITY = $*
 program-%: $(foreach FORMAT, $(FIRMWARE_FORMATS), firmware-%.$(FORMAT)) check-ALL-%
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
+
+.PHONY: program program-eeprom
+program program-eeprom:
+	$(MAKE) "$@-$(PERSONALITY)"
 
 
 ########################################################################

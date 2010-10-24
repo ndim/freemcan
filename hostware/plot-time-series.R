@@ -226,18 +226,21 @@ legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"),
 # a histogram is created from data and plotted in the second plot area.
 # the histogram is plot blue if the bar is below one sigma otherwise red
 hx <- hist(counts, breaks = 90, plot = FALSE)
-{
+
 if (overallmean < 50){
   #poisson distribution coloring
   plot(hx,col=ifelse(((hx$breaks < q[1])), "blue", "red") ,
        xlab=paste("rawdata of", period, "seconds"))
-}
-else{
+}else{
   #gaussian distribution coloring
   plot(hx,col=ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"),
        xlab=paste("rawdata of", period, "seconds"))
+
+  x<-min(hx$breaks):max(hx$breaks)
+  s<-dnorm(q[3],mean=q[3],sd=(q[3]-q[1]))
+  lines(x,max(hx$counts)*dnorm(x,mean=q[3],sd=(q[3]-q[1]))/s,type="l",col="darkviolet" ) 
 }
-}
+
 abline(v=q, col="darkgreen", lwd=1)
 text(q, max(hx$counts), round(q,1), col="black", lwd=1, pos=4)
 

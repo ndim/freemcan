@@ -33,8 +33,9 @@ xdsttoxsrc <- function(xdst,limsrc,limdst){
 }
 
 axisrescaler <- function(limsrc,limdst) {
-  # find out the decade of the destiny axis and choose an increment
-  # so that we get a "good looking scale"
+  # find out the decade of the destiny axis, choose an amount of 
+  # ticks depending on the ratio between the new axis height and
+  # the decade
   delta <- (limdst[2]-limdst[1])
   numdecades <- floor(log10(delta))
   base <- 10^(numdecades)
@@ -43,8 +44,6 @@ axisrescaler <- function(limsrc,limdst) {
       if (numticks < 30){increment <- 0.4*base } else {  
           if (numticks < 60){ increment <- 0.5*base } else { 
               increment <- base }}}
-  #cat(numticks,base,increment,"\n")	
-  #cat(limsrc,limdst,"\n")	
   lowlim <- increment*ceiling(limdst[1]/increment)
   ticklabels <-  seq(lowlim, limdst[2], increment)
   tickposition <- xdsttoxsrc(ticklabels,limsrc,limdst)
@@ -208,19 +207,17 @@ tickposition <- newaxis[,1]
 ticklabel <- newaxis[,2]
 axis(4,line=0,col="black",at=tickposition, labels = ticklabel)
 
-
-####################
-#prepare a second x-axis with customized time stamps:
-
+# prepare a second x-axis with customized time stamps:
+# we therefore calculate the elapsed time in minutes and put this time
+# to the axisrescaler function to have "nice looking" axis labels
 axisminutes = c((unclass(times[1]))/60,(unclass(times[length(times)])/60))
 axiscounts = c(0,length(index))
 newaxis <- axisrescaler(axiscounts,axisminutes)
 tickposition <- newaxis[,1]
-ticklabel <- newaxis[,2]
-test=as.POSIXct(unclass(ticklabel), origin="1970-01-01")
-ticklabel=format(test, format = "%H:%M")
-
-axis(1,line=2.5,col="grey",at=tickposition, labels = ticklabel)
+ticklabel <- 60*newaxis[,2]
+ticklabel <- as.POSIXct(unclass(ticklabel), origin="1970-01-01")
+ticklabel <- format(ticklabel, format = "%H:%M")
+axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
 legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 

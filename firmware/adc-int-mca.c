@@ -62,8 +62,6 @@
 volatile table_element_t table[MAX_COUNTER] asm("data_table");
 
 
-
-
 /** See * \see data_table */
 data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes */

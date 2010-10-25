@@ -9,6 +9,9 @@
 #
 # ./plot-time-series.R secondspersample=150 filename=blubber.dat downsamplefactor= tubesensitivity=
 #
+# # Ludlum  44-2: tubesensitivity=0.060584
+# # VALVO ZP1320: tubesensitivity=76.4
+#
 #  tubesensitivity  <- doserate [nSv/h] / countrate [CPM] (can be left emtpty)
 #  downsamplefactor <- number of samples added together to get a new sample set (can be left emtpty)
 #  secondspersample <- count time for each sample
@@ -223,38 +226,50 @@ legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"),
        legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 
        ifelse(tubesensitivity, "doserate filtered [nSv/h]", "count rate filtered [CPM]")))
 
+if(tubesensitivity == FALSE){
+  legend(x="bottomright", bty="n",cex=0.8, legend=c(  
+         paste("overall average:",round(overallmean,2),"CPM"),
+         "overall one sigma-",
+         paste("accuracy:+/-",round(overallmeanaccuracy,2),"CPM")))
+}else{
+  legend(x="bottomright", bty="n",cex=0.8, legend=c(  
+         paste("overall average:",round(overallmean*tubesensitivity,2),"nSv/h"),
+         "overall one sigma-",
+         paste("accuracy:+/-",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
+}
+
 # a histogram is created from data and plotted in the second plot area.
 # the histogram is plot blue if the bar is below one sigma otherwise red
 hx <- hist(counts, breaks = 90, plot = FALSE)
-{
+
 if (overallmean < 50){
   #poisson distribution coloring
   plot(hx,col=ifelse(((hx$breaks < q[1])), "blue", "red") ,
        xlab=paste("rawdata of", period, "seconds"))
-}
-else{
-  #gaussian distribution coloring
-  plot(hx,col=ifelse(((hx$breaks < q[1]) | (hx$breaks > q[2])), "blue", "red"),
-       xlab=paste("rawdata of", period, "seconds"))
-}
-}
-abline(v=q, col="darkgreen", lwd=1)
-text(q, max(hx$counts), round(q,1), col="black", lwd=1, pos=4)
+}else{
+   #gaussian distribution
+   cntsd <- sd(counts)
+   cntmean <- q[3]
+   xhist <- c(min(hx$breaks),hx$breaks)
+   yhist <- c(0,hx$density,0)
+   xfit <- seq(min(counts),max(counts),length=100)
+   yfit <- dnorm(xfit,mean=cntmean,sd=sqrt(mean(counts)))
+   plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
+        col=ifelse(((hx$breaks < (cntmean-cntsd)) | (hx$breaks > (cntmean+cntsd))),
+        "blue", "red"), xlab=paste("Expected normal pdf and histogram of raw data samples per", period, 
+	"seconds"),ylab="density",main="Goodness of fit")
+   lines(xfit,yfit, col="darkgreen",lwd=1)
 
-{
-if(tubesensitivity == FALSE){
-  legend(x="topright", bty="y",cex=0.8, legend=c(  
-         paste("overall average:",round(overallmean,0),"CPM"),
-         "overall one sigma-",
-         paste("accuracy:+/-",round(overallmeanaccuracy,2),"CPM")))
+   lines(c(q[1],q[1]),c(0,dnorm(q[1],mean=q[3],sd=sqrt(mean(counts)))), 
+         col="darkgreen", lty="dashed", lwd=2)
+   lines(c(q[2],q[2]),c(0,dnorm(q[2],mean=q[3],sd=sqrt(mean(counts)))), 
+         col="darkgreen", lty="dashed", lwd=2)
+   lines(c(q[3],q[3]),c(0,dnorm(q[3],mean=q[3],sd=sqrt(mean(counts)))), 
+         col="darkgreen", lty="dashed", lwd=2)
+   #text(q, max(yhist,yfit), round(q,1), col="black", lwd=1, pos=4)
 }
-else{
-  legend(x="topright", bty="y",cex=0.8, legend=c(  
-         paste("overall average:",round(overallmean*tubesensitivity,0),"nSv/h"),
-         "overall one sigma-",
-         paste("accuracy:+/-",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
-}
-}
+
+
 
 # The `locator' function waits for you to either click the mouse
 z <- locator(1)

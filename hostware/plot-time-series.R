@@ -267,6 +267,11 @@ if (overallmean < 50){
    lines(c(q[3],q[3]),c(0,dnorm(q[3],mean=q[3],sd=sqrt(mean(counts)))), 
          col="darkgreen", lty="dashed", lwd=2)
    #text(q, max(yhist,yfit), round(q,1), col="black", lwd=1, pos=4)
+
+  legend(x="topright", bty="n",cex=0.8, legend=c(paste("standard deviation:",round(cntsd,0),"CPM"),  
+	 paste("sqrt(mean):",round(sqrt(mean(counts)),0),"CPM"),
+         paste("mean:",round(cntmean,0),"CPM")))
+
 }
 
 

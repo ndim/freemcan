@@ -6,10 +6,12 @@
 /*.efuse.txt
 /invented-histogram.bin
 /settings.mk
-/firmware-adc-ext-mca.*
-/firmware-adc-int-mca.*
-/firmware-adc-int-mca-timed.*
-/firmware-geiger-counter.*
-/firmware-geiger-ts.*
+/firmware-*.eep
+/firmware-*.elf
+/firmware-*.fuses
+/firmware-*.hex
+/firmware-*.lss
+/firmware-*.map
+/firmware-*.sym
 /check-*.check
 /geiger-time-series.element-size.txt

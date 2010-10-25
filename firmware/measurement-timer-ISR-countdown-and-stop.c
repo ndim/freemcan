@@ -31,6 +31,11 @@
 #include "main.h"
 
 
+volatile uint16_t timer_count;
+volatile uint16_t last_timer_count;
+volatile uint16_t orig_timer_count;
+
+
 /** 16 Bit timer ISR
  *
  * When timer has elapsed, the global #timer_flag (8bit, therefore

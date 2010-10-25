@@ -101,6 +101,9 @@
 #endif
 
 
+volatile uint8_t measurement_finished;
+
+
 /** Define AVR device fuses.
  *
  * CAUTION: These values are highly device dependent.

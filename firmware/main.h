@@ -44,7 +44,7 @@
  * It is an 8bit value, and thus accessible with atomic read/write
  * operations.
  */
-volatile uint8_t measurement_finished;
+extern volatile uint8_t measurement_finished;
 
 
 /** Notification function called when measurement has finished.

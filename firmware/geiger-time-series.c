@@ -222,6 +222,11 @@ ISR(INT0_vect)
 }
 
 
+volatile uint16_t timer_count;
+volatile uint16_t last_timer_count;
+volatile uint16_t orig_timer_count;
+
+
 ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */

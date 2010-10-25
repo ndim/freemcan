@@ -105,7 +105,7 @@ CFLAGS += -fshort-enums
 # CFLAGS += -mint8
 
 # Generate error on multiple definition of variable without "extern"
-# CFLAGS += -fno-common
+CFLAGS += -fno-common
 
 # Put extra commentary into the generated assembly code
 # CFLAGS += -fverbose-asm

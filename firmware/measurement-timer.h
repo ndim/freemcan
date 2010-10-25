@@ -47,7 +47,7 @@
  * Timer interrupt handler has exclusive access to read/writes
  * timer_count to decrement, once the timer ISR has been enabled.
  */
-volatile uint16_t timer_count;
+extern volatile uint16_t timer_count;
 
 
 /** Last value of timer counter
@@ -62,7 +62,7 @@ volatile uint16_t timer_count;
  * originally. However, a last_timer_count value of 0 should not make
  * a difference, so we now rely on the implicit initialization to 0.
  */
-volatile uint16_t last_timer_count;
+extern volatile uint16_t last_timer_count;
 
 
 /** Original timer count received in the command.
@@ -70,7 +70,7 @@ volatile uint16_t last_timer_count;
  * Used later for determining how much time has elapsed yet. Written
  * once only, when the command has been received.
  */
-volatile uint16_t orig_timer_count;
+extern volatile uint16_t orig_timer_count;
 
 
 /** Configure 16 bit timer to trigger an ISR every second

@@ -154,7 +154,7 @@ void io_init(void)
 ISR(ADC_vect)
 {
   /* downsampling of analog data as a multiple of timer_multiple      */
-  if (orig_timer_count == timer_multiple){
+  if (orig_timer_count == timer_multiple) {
       /* Read analog value */
       uint16_t result = ADCW;
       /* cut off 2, 1 or 0 LSB */

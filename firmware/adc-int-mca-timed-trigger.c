@@ -49,6 +49,9 @@
 #include "data-table.h"
 
 
+/** \bug adc-int-mca-timed does not work. Measurements lead to a reboot. */
+
+
 /** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
 

@@ -8,6 +8,7 @@
 /settings.mk
 /firmware-adc-ext-mca.*
 /firmware-adc-int-mca.*
+/firmware-adc-int-mca-timed.*
 /firmware-geiger-counter.*
 /firmware-geiger-ts.*
 /check-*.check

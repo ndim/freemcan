@@ -259,6 +259,12 @@ firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-coun
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
+# Firmware personality: MCA using internal ADC, timed trigger
+PERSONALITIES += adc-int-mca-timed
+firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) adc-int-mca-timed-trigger.o
+	$(LINK.c) $^ $(LDLIBS) --output $@
+
+# ======================================================================
 # Firmware personality: Geiger Counter without time series
 PERSONALITIES += geiger-counter
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)  measurement-timer-ISR-countdown-and-stop.o geiger-counter.o

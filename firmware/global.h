@@ -50,9 +50,17 @@
  *  Select a prescaler to have an compare match value as integer
  */
 #if (F_CPU == 18432000UL)
-# define TIMER_PRESCALER (5)
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_PRESCALER 4
+# else
+#  define TIMER_PRESCALER 5
+# endif
 #elif (F_CPU == 16000000UL)
-# define TIMER_PRESCALER (5)
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_PRESCALER 4
+# else
+#  define TIMER_PRESCALER 5
+# endif
 #else
 # error Unsupported F_CPU value
 #endif
@@ -62,13 +70,18 @@
  *
  *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
  *  E.g. (1sec*16000000Hz/1024) - 1 = 15624
+ *  E.g. (0.1sec*16000000Hz/256) - 1 = 6249
  *
  *  The data measurement is carried out in multiples of time_elapsed.
  */
 #if (F_CPU == 18432000UL)
 # define TIMER_COMPARE_MATCH_VAL 17999
 #elif (F_CPU == 16000000UL)
-# define TIMER_COMPARE_MATCH_VAL 15624
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_COMPARE_MATCH_VAL 6249
+# else
+#  define TIMER_COMPARE_MATCH_VAL 15624
+# endif
 #else
 # error Unsupported F_CPU value
 #endif

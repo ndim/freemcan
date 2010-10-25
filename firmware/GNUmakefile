@@ -90,8 +90,40 @@ CFLAGS += -Wstrict-prototypes
 # Some more flags that might be useful for tuning:
 # CFLAGS += -funsigned-char
 # CFLAGS += -funsigned-bitfields
+
+# Pack structure members together without holes
 # CFLAGS += -fpack-struct
+
+# Use 8bit integers for enum values (insted of standard int size)
 CFLAGS += -fshort-enums
+
+# Use only 8bit for the stack pointer
+# CFLAGS += -mtiny-stack
+
+# Violates the C standard, but gives sizeof(int) == sizeof(char) == 1
+# (segfaults the compiler)
+# CFLAGS += -mint8
+
+# Generate error on multiple definition of variable without "extern"
+# CFLAGS += -fno-common
+
+# Put extra commentary into the generated assembly code
+# CFLAGS += -fverbose-asm
+
+# Never generate code which refers to register r7
+# CFLAGS += -ffixed-r7
+
+# Called functions may clobber register r8
+# CFLAGS += -fcall-used-r8
+
+# Caller must save register r8
+# CFLAGS += -fcall-saved-r9
+
+# Make function prologues/epilogues subroutine calls
+# (smaller code size? not really.)
+# CFLAGS += -mcall-prologues
+
+# Generate listing file
 # CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
 
 

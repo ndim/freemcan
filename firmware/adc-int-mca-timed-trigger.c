@@ -120,19 +120,6 @@ volatile uint16_t last_timer_count = 1;
 volatile uint16_t orig_timer_count;
 
 
-/** Timer counter has reached zero.
- *
- * Used to signal from the timer ISR to the main program that the
- * timer has elapsed.
- *
- * Will be set to 1 when max_timer_count is exceeded, is 0 otherwise.
- * Written only once by timer interrupt handler. Read by main
- * loop. 8bit value, and thus accessible with atomic read/write
- * operations.
- */
-volatile uint8_t timer_flag;
-
-
 /** Initialize IO pins
  */
 void io_init(void)

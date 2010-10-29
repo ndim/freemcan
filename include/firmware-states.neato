@@ -2,19 +2,19 @@ digraph firmware_fsm {
   node [shape=ellipse, fontname=Helvetica, fontsize=10];
   edge [fontname=Helvetica, fontsize=10];
 
-  null      [pos="5.5,4!" shape=plaintext label=""];
-  booting   [pos="4,4!"];
-  ready     [pos="2,4!" label="READY"];
-  reset     [pos="2,2.5!" label="RESET"];
+  null      [pos="6.5,4!" shape=plaintext label=""];
+  booting   [pos="5,4!"];
+  ready     [pos="3,4!" label="READY"];
+  reset     [pos="3,2.5!" label="RESET"];
   timer0    [pos="0,4!"];
-  timer1    [pos="1,3!"];
+  timer1    [pos="1.65,3!"];
   token0    [pos="0,3!"];
-  token1    [pos="1,2!"];
+  token1    [pos="1.65,2!"];
   token2    [pos="0,2!"];
   token3    [pos="0,1!"];
   checksum  [pos="0,0!"];
-  measuring [pos="4,0!" label="MEASURING"];
-  done      [pos="4,2.5!" label="DONE"];
+  measuring [pos="5,0!" label="MEASURING"];
+  done      [pos="5,2.5!" label="DONE"];
 
   null -> booting [ style=bold label="power on"];
   reset -> booting [ label="\nhardware reset done\n-/-" style=bold ];

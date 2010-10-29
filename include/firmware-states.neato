@@ -7,7 +7,11 @@ digraph firmware_fsm {
   ready     [pos="2,4!" label="READY"];
   reset     [pos="2,2.5!" label="RESET"];
   timer0    [pos="0,4!"];
-  timer1    [pos="0,1.85!"];
+  timer1    [pos="1,3!"];
+  token0    [pos="0,3!"];
+  token1    [pos="1,2!"];
+  token2    [pos="0,2!"];
+  token3    [pos="0,1!"];
   checksum  [pos="0,0!"];
   measuring [pos="4,0!" label="MEASURING"];
   done      [pos="4,2.5!" label="DONE"];
@@ -18,8 +22,12 @@ digraph firmware_fsm {
   booting -> ready [ label="hw boot done\nstate 'READY'" style=bold ];
 
   ready -> timer0 [ label="cmd 'm'\n-/-" style=bold ];
-  timer0 -> timer1 [ label="timer byte 0\n-/-" style=bold ];
-  timer1 -> checksum [ label="timer byte 1\n-/-" style=bold ];
+  timer0 -> timer1   [ label="timer byte 0\n-/-" style=bold ];
+  timer1 -> token0   [ label="timer byte 1\n-/-" style=bold ];
+  token0 -> token1   [ label="token byte 0\n-/-" style=bold ];
+  token1 -> token2   [ label="token byte 1\n-/-" style=bold ];
+  token2 -> token3   [ label="token byte 2\n-/-" style=bold ];
+  token3 -> checksum [ label="token byte 3\n-/-" style=bold ];
   checksum -> measuring [ label="chksum byte, if match\nstart measurement, start timer, state 'MEASURING'" style=bold ];
   checksum -> reset [ color=red fontcolor=red label="chksum byte, if fail\ntext 'checksum fail', state 'RESET'" ];
 

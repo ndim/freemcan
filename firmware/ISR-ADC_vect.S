@@ -124,3 +124,10 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
  *   Assembly: 64
  *   C:        70
  */
+
+
+/*
+ * Local Variables:
+ * mode: asm
+ * End:
+ */

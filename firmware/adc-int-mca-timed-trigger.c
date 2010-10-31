@@ -38,15 +38,14 @@
 /** Histogram element size */
 #define ELEMENT_SIZE_IN_BYTES 3
 
-/** Make sure we use the sub 1 second timer resolution */
-#define TIMER_SUB_1SEC
-
 
 #include "global.h"
 #include "adc-int-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
+#include "wdt-softreset.h"
+#include "measurement-timer-adc-trigger.h"
 
 
 /** \bug adc-int-mca-timed does not work. Measurements lead to a reboot. */
@@ -79,56 +78,6 @@ data_table_info_t data_table_info = {
   /** Total number of elements in table */
   sizeof(table)/ELEMENT_SIZE_IN_BYTES
 };
-
-
-/** timer counter
- *
- * Initialized once by main() with value received from host
- * controller. Never touched by main() again after starting the timer
- * interrupt.
- *
- * Timer interrupt handler has exclusive access to read/writes
- * timer_count to decrement, once the timer ISR has been enabled.
- */
-volatile uint16_t timer_count;
-
-
-/** timer multiple
-  *
-  * Is send by hostware. Number of dropped analog samples (downsampling of
-  * analog signal sampled with timer1 time base)
-  */
-volatile uint16_t timer_multiple;
-
-
-/** Last value of timer counter
- *
- * Used for pseudo synchronized reading of the timer_count multi-byte
- * variable in the main program, while timer_count may be written to
- * by the timer ISR.
- *
- * \see get_duration, ISR(TIMER1_COMPA_vect)
- */
-volatile uint16_t last_timer_count = 1;
-
-
-/** Original timer count received in the command.
- *
- * Used later for determining how much time has elapsed yet. Written
- * once only, when the command has been received.
- */
-volatile uint16_t orig_timer_count;
-
-
-/** Initialize IO pins
- */
-void io_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void io_init(void)
-{
-  /* nothing */
-}
 
 
 /** AD conversion complete interrupt entry point
@@ -225,76 +174,6 @@ void adc_init(void)
 }
 
 
-/** Configure 16 bit timer to trigger an ISR every 0.1 second
- *
- * Configure "measurement in progress toggle LED-signal"
- */
-inline static
-void timer_init(const uint8_t timer0, const uint8_t timer1)
-{
-  /** Set up timer with the combined value we just got the bytes of.
-   *
-   * For some reasons, the following line triggers a bug with
-   * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
-   * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
-   * does not exhibit the buggy behaviour, BTW. So we do the
-   * assignments manually here.
-   *
-   * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
-   * timer_count = orig_timer_count;
-   */
-  asm("\n\t"
-      "sts orig_timer_count,   %[timer0]\n\t"
-      "sts orig_timer_count+1, %[timer1]\n\t"
-      "sts timer_count,   %[timer0]\n\t"
-      "sts timer_count+1, %[timer1]\n\t"
-      : /* output operands */
-      : /* input operands */
-        [timer0] "r" (timer0),
-        [timer1] "r" (timer1)
-      );
-
-  /* Prepare timer 0 control register A and B for
-     clear timer on compare match (CTC)                           */
-  TCCR1A = 0;
-  TCCR1B =  _BV(WGM12);
-
-  /* Configure "measurement in progress LED"                      */
-  /* configure pin 19 as an output */
-  DDRD |= (_BV(DDD5));
-  /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= _BV(COM1A0);
-
-  /* toggle pin on port PD4 in case of a compare match B  */
-  DDRD |= (_BV(DDD4));
-  TCCR1A |= _BV(COM1B0);
-
-  /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
-
-  /* Derive sample rate (time base) as a multiple of the base
-     compare match value for 0.1sec. Write to output compare
-     reg. A                                                       */
-  OCR1A = (TIMER_COMPARE_MATCH_VAL);
-
-  /* The ADC can only be triggered via compare register B.
-     Set the trigger point (compare match B) to 50% of
-     compare match A                                              */
-  OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
-
-  /* we do not need to jump to any ISRs since we do everything
-     inside the ADC callback function                             */
-
-  /* output compare match B interrupt enable                      */
-  //TIMSK1 |= BIT(OCIE1B);
-
-  /* output compare match A interrupt enable                      */
-  //TIMSK1 |= _BV(OCIE1A);
-}
-
-
 /** Do nothing */
 void on_measurement_finished(void)
 {
@@ -314,7 +193,6 @@ void all_init(void)
   __attribute__((section(".init7")));
 void all_init(void)
 {
-  io_init();
   adc_init();
 }
 

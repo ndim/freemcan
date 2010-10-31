@@ -251,6 +251,29 @@ ISR(TIMER1_COMPA_vect)
 }
 
 
+/** Get pseudo synchronized duration value
+ *
+ * \todo Cheap copy of the get_duration() method from
+ *       measurement-timer-ISR-countdown-and-stop.c - this should be
+ *       properly linked from somewhere.
+ *
+ * For now, we have placed this function right beside the timer ISR
+ * which needs to properly update the values for get_duration() to
+ * work.
+ */
+uint16_t get_duration(void)
+{
+  uint16_t a, b;
+  do {
+    a = timer_count;
+    b = last_timer_count;
+  } while ((b-a) != 1);
+  /* Now 'a' contains a valid value. Use it. */
+  const uint16_t duration = orig_timer_count - a;
+  return duration;
+}
+
+
 /** Setup of INT0
  *
  * INT0 via pin 16 is configured but not enabled

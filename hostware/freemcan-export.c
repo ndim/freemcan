@@ -56,6 +56,7 @@ char *export_value_table_get_filename(const packet_value_table_t *value_table_pa
   switch (value_table_packet->type) {
   case VALUE_TABLE_TYPE_HISTOGRAM:   prefix = "hist"; break;
   case VALUE_TABLE_TYPE_TIME_SERIES: prefix = "time"; break;
+  case VALUE_TABLE_TYPE_SAMPLES:     prefix = "samp"; break;
   }
 
   char date[128];
@@ -96,6 +97,8 @@ void export_common_vtable(FILE *datfile, const packet_value_table_t *value_table
       type_str = "histogram"; break;
     case VALUE_TABLE_TYPE_TIME_SERIES:
       type_str = "time series"; break;
+    case VALUE_TABLE_TYPE_SAMPLES:
+      type_str = "samples"; break;
     }
     fprintf(datfile, "# value table type:         '%c' (%s)\n",
             value_table_packet->type, type_str);
@@ -249,6 +252,33 @@ void export_time_series_vtable(FILE *datfile, const packet_value_table_t *value_
 }
 
 
+static
+void export_samples_vtable(FILE *datfile,
+                           const packet_value_table_t *value_table_packet)
+{
+  uint32_t max_value = 0;
+  uint32_t min_value = UINT32_MAX;
+  const size_t element_count = value_table_packet->element_count;
+  for (size_t i=0; i<element_count; i++) {
+    const uint32_t v = value_table_packet->elements[i];
+    if (v > max_value) {
+      max_value = v;
+    }
+    if (v < min_value) {
+      min_value = v;
+    }
+  }
+  if (datfile) {
+    fprintf(datfile, "# minimum value:            %u\n", min_value);
+    fprintf(datfile, "# maximum value:            %u\n", max_value);
+    for (size_t i=0; i<element_count; i++) {
+      /** \todo Write timestamps */
+      fprintf(datfile, "%u\t%u\n", i, value_table_packet->elements[i]);
+    }
+  }
+}
+
+
 bool write_next_intermediate_packet = false;
 
 
@@ -272,6 +302,9 @@ void export_value_table(const packet_value_table_t *value_table_packet)
     break;
   case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
     export_time_series_vtable(datfile, value_table_packet);
+    break;
+  case VALUE_TABLE_TYPE_SAMPLES: /* data table of samples */
+    export_samples_vtable(datfile, value_table_packet);
     break;
   }
 

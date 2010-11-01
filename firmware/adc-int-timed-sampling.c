@@ -1,5 +1,5 @@
-/** \file firmware/adc-int-mca-timed-trigger.c
- * \brief Internal ADC based MCA (triggered by timer)
+/** \file firmware/adc-int-timed-sampling.c
+ * \brief Internal ADC based timed ADC sampling
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,10 +19,10 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_int_mca_timed Internal ADC based MCA (timer triggered)
+ * \defgroup adc_int_timed_sampling Internal ADC based timed ADC sampling
  * \ingroup firmware
  *
- * Internal ADC code.
+ * Internal ADC based timed ADC sampling.
  *
  * @{
  */
@@ -36,7 +36,10 @@
 
 
 /** Histogram element size */
-#define ELEMENT_SIZE_IN_BYTES 3
+#define ELEMENT_SIZE_IN_BYTES 2
+
+/** Make sure we use the sub 1 second timer resolution */
+#define TIMER_SUB_1SEC
 
 
 #include "global.h"
@@ -44,26 +47,24 @@
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
-#include "wdt-softreset.h"
 #include "measurement-timer-adc-trigger.h"
+#include "main.h"
 
 
-/** \bug adc-int-mca-timed does not work. Measurements lead to a reboot. */
+/* forward declaration */
+inline static
+void timer_halt(void);
 
 
 /** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
 
 
-/** Histogram table
+/** Measurement valu table
  *
  * ATmega644P has 4Kbyte RAM.  When using 10bit ADC resolution,
  * MAX_COUNTER==1024 and 24bit values will still fit (3K table).
- *
- * For the definition of sizeof_table, see adc-int-histogram.c.
- *
- * \see data_table
- */
+ **/
 volatile table_element_t table[MAX_COUNTER] asm("data_table");
 
 
@@ -72,7 +73,7 @@ data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes */
   sizeof(table),
   /** Type of value table we send */
-  VALUE_TABLE_TYPE_HISTOGRAM,
+  VALUE_TABLE_TYPE_SAMPLES,
   /** Table element size */
   ELEMENT_SIZE_IN_BYTES,
   /** Total number of elements in table */
@@ -80,36 +81,48 @@ data_table_info_t data_table_info = {
 };
 
 
+/** num sample
+ *
+ * Number of the current sample in the table (index)
+ */
+volatile uint16_t num_sample;
+
+
 /** AD conversion complete interrupt entry point
-  *
-  * This function is called when an A/D conversion has completed.
-  * Downsampling of base analog samples and update of histogram table.
-  * Actually one could implement a low pass filter here before
-  * downsampling to fullfill shannons sample theoreme
-  */
+ *
+ * This function is called when an A/D conversion has completed.
+ * Downsampling of base analog samples and update of sample table.
+ * Actually one could implement a low pass filter here before
+ * downsampling to fullfill shannons sample theoreme
+ */
 ISR(ADC_vect)
 {
   /* downsampling of analog data as a multiple of timer_multiple      */
   if (orig_timer_count == timer_multiple) {
-      /* Read analog value */
-      uint16_t result = ADCW;
-      /* cut off 2, 1 or 0 LSB */
-      const uint16_t index = result >> (10-ADC_RESOLUTION);
-      /* For 24bit values, the source code looks a little more complicated
-       * than just table[index]++ (even though the generated machine
-       * instructions are not).  Anyway, we needed to move the increment
-       * into a properly defined _inc function.
-       */
-       volatile table_element_t *element = &(table[index]);
-       table_element_inc(element);
-       timer_multiple = 0;
+    /* Read analog value */
+    uint16_t result = ADCW;
+    if (!measurement_finished) {
+      /* Write to current position in table */
+      table[num_sample] = result >> (10-ADC_RESOLUTION);
+      num_sample++;
+      /* if the sample table is full                                  */
+      if (num_sample == MAX_COUNTER){
+        /* switch off any compare matches on B to stop sampling     */
+        timer_halt();
+        /* tell main() that measurement is over                     */
+        measurement_finished = 1;
+      } else {
+        timer_multiple = 0;
+      }
+    }
   } else {
-       timer_multiple++;
+    timer_multiple++;
   }
 
   /** \todo really necessary? */
-  /* Clear interrupt flag of timer1 compare match A & B manually since there is no
-     TIMER1_COMPB_vect ISR executed                                      */
+  /* Clear interrupt flag of timer1 compare match B manually since there is no
+     TIMER1_COMPB_vect ISR executed but the ADC is triggered on rising edge
+     of interrupt flag                                                */
   TIFR1 |= _BV(OCF1B);
   //TIFR1 |= _BV(OCF1A);
 }
@@ -141,7 +154,7 @@ void adc_init(void)
   /* bits ADPS0 .. ADPS2 */
   ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
              (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
-              ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
+             ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
 
   /* dummy read out (first conversion takes some time) */
   /* software triggered AD-Conversion */
@@ -166,9 +179,53 @@ void adc_init(void)
 }
 
 
-/** Do nothing */
+/** Switch off trigger B to stop any sampling of the analog signal
+ *
+ *
+ */
+inline static
+void timer_halt(void)
+{
+  const uint8_t old_tccr1b = TCCR1B;
+  /* pause the clock */
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+  /* Switch off trigger B to avoid an additional sampling of data */
+  OCR1B = TIMER_COMPARE_MATCH_VAL+1;
+  /* blinking for measurement is over */
+  OCR1A = TIMER_COMPARE_MATCH_VAL;
+  /* start counting from 0, needs clock to be paused */
+  TCNT1 = 0;
+  /* unpause the clock */
+  TCCR1B = old_tccr1b;
+}
+
+
+/** Reconfigure Timer to show the user that the measurement has been finished
+ *
+ *
+ */
+inline static
+void timer_init_quick(void)
+{
+  const uint8_t old_tccr1b = TCCR1B;
+  /* pause the clock */
+  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
+  /* Switch off trigger B to avoid an additional sampling of data */
+  OCR1B = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER+1;
+  /* blinking for measurement is over */
+  OCR1A = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER;
+  /* start counting from 0, needs clock to be paused */
+  TCNT1 = 0;
+  /* unpause the clock */
+  TCCR1B = old_tccr1b;
+}
+
+
+/** Callback */
 void on_measurement_finished(void)
 {
+  /* alert user */
+  timer_init_quick();
 }
 
 
@@ -186,7 +243,7 @@ void startup_messages(void)
   __attribute__ ((section(".init8")));
 void startup_messages(void)
 {
-  send_text_P(PSTR("adc-int-mca-timed-trigger"));
+  send_text_P(PSTR("adc-int-timed-sampling"));
 }
 
 

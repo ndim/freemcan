@@ -79,12 +79,16 @@
 #elif (F_CPU == 16000000UL)
 # ifdef TIMER_SUB_1SEC
 #  define TIMER_COMPARE_MATCH_VAL 6249
+/** Toggle a sign if the measurement is over */
+#  define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (62490 >> 2)
 # else
 #  define TIMER_COMPARE_MATCH_VAL 15624
 # endif
 #else
 # error Unsupported F_CPU value
 #endif
+
+
 
 
 /** @} */

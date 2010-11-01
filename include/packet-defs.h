@@ -62,10 +62,8 @@ typedef enum {
   /** Time series (e.g. repeated geiger counter) data */
   VALUE_TABLE_TYPE_TIME_SERIES = 'T',
 
-  /* O-Scope type PCM data
-   * VALUE_TABLE_TYPE_PCM = 'P',
-   */
-
+  /** Timed samples */
+  VALUE_TABLE_TYPE_SAMPLES = 'S'
 } packet_value_table_type_t;
 
 

@@ -115,14 +115,6 @@ ISR(ADC_vect)
 }
 
 
-/* runs open end */
-/*
-ISR(TIMER1_COMPA_vect)
-{
-}
-*/
-
-
 /** ADC initialisation and configuration
  *
  * ADC configured as auto trigger
@@ -177,14 +169,6 @@ void adc_init(void)
 /** Do nothing */
 void on_measurement_finished(void)
 {
-}
-
-
-/* just return the sample rate */
-inline static
-uint16_t get_duration(void)
-{
-  return orig_timer_count;
 }
 
 

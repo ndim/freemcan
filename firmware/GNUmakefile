@@ -299,8 +299,28 @@ firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc
 # ======================================================================
 # Firmware personality: MCA using internal ADC, timed trigger
 PERSONALITIES += adc-int-timed-sampling
+firmware-adc-int-timed-sampling.elf : LDFLAGS += -T time-series-table.x
+firmware-adc-int-timed-sampling.elf : time-series-table.x
+firmware-adc-int-timed-sampling.elf : adc-int-timed-sampling.element-size.txt
 firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc-trigger.o adc-int-timed-sampling.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
+	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
+	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
+	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
+	ELEMENT_SIZE_BYTES="$$(cat adc-int-timed-sampling.element-size.txt)"; \
+	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
+	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
+	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
+	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
+	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
+
+# Extract size of a single table element in bytes
+CLEANFILES += adc-int-timed-sampling.element-size.txt
+adc-int-timed-sampling.element-size.txt: adc-int-timed-sampling.o
+	@set -e; \
+	rm -f $@; \
+	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
+	od -An -t u2 $@.$$$$ | { read value restofline; echo "$$value"; } > $@; \
+	rm -f $@.$$$$
 
 # ======================================================================
 # Firmware personality: Geiger Counter without time series

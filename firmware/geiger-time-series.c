@@ -68,8 +68,10 @@
  */
 extern volatile table_element_t table[] asm("data_table");
 
+
 /** End of the table: Still needs rounding */
 extern volatile table_element_t data_table_end[];
+
 
 /** Pseudo symbol - just use its address */
 extern volatile char data_table_size[];

@@ -14,4 +14,4 @@
 /firmware-*.map
 /firmware-*.sym
 /check-*.check
-/geiger-time-series.element-size.txt
+/*.element-size.txt

@@ -1,3 +1,5 @@
+hostware: Dump outgoing bytes - perhaps even as pcap file? :)
+
 hostware: Allow setting measurement intervals on command line.
 
 hostware: Allow giving commands on command line.

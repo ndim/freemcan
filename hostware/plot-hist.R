@@ -124,9 +124,9 @@ if(bg == FALSE){
 }
 
 # configure the plot output and plotting area (2 rows, 1 columns)
-x11(width=8,height=8)
-# postscript(width=10, height=8, horizontal=TRUE)
-par(mfrow=c(2,1))
+x11(width=13,height=7)
+# postscript(width=13, height=7, horizontal=TRUE)
+par(mfrow=c(1,2))
 
 ### in the first chart the gamma spectra minus background is plot
 # par(mar=c(5, 5, 5, 5))  # plot area margins
@@ -137,7 +137,7 @@ if (logplot){
         ylim=c(1,max(counts)))
    loghlines(max(counts))
 }else{
-   plot(index,counts-counts_bg, type="l", col="red", main = paste("Gamma spectra from logged data"), 
+   plot(index,counts-counts_bg, type="h", col="red", main = paste("Gamma spectra from logged data"), 
         xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
 }
 
@@ -179,23 +179,20 @@ if(tubesensitivity == FALSE){
 
 
 ### second plot: plot unprocessed raw data
-plot(index_bg,counts_bg, type="l", col="darkgreen", main = paste("Data:",bg,filename), 
+plot(index_bg,counts_bg, lwd=0.5,type="l", col="darkblue", main = paste("Data:",bg,filename), 
      xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
 par(new=TRUE)
-plot(index, counts ,lwd=0.5, col="darkblue", type="l", ann=FALSE, yaxt="n", 
+plot(index, counts , col="darkgreen", type="l", ann=FALSE, yaxt="n", 
      ylim=c(min(0),max(counts)))
 mtext("total counts", adj=0,side=2, line=2.5,cex=1)
 axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
 # some most prominent gamma energies for natural decay chains
 # Th-232 decay with daughters 
-genergies <- cbind(c(239,"Pb-212"),c(338,"Ac-228"),c(510,"Tl-208"),c(583,"Tl-208"),
-                   c(727,"Bi-212"),c(911,"Ac-228"),c(965,"Ac-228"),c(1588,"Ac-228"),
-		   c(2614,"Tl-208"))
+genergies <- cbind(c(239,"Pb-212"),c(338,"Ac-228"),c(510,"Tl-208"),c(583,"Tl-208"),c(727,"Bi-212"),c(911,"Ac-228"),c(965,"Ac-228"),c(1588,"Ac-228"),c(2614,"Tl-208"))
+
 # Ore
-#genergies <- cbind(c(184,"U-235"),c(242,"Pb-214"),c(295,"Pb-214"),c(352,"Pb-214"),
-#                   c(610,"Bi-214"),c(770,"Bi-214"),c(935,"Bi-214"),c(1120,"Bi-214"),
-#		   c(1240,"Bi-214"),c(1380,"Bi-214"),c(1760,"Bi-214"))
+#genergies <- cbind(c(184,"U-235"),c(242,"Pb-214"),c(295,"Pb-214"),c(352,"Pb-214"),c(610,"Bi-214"),c(770,"Bi-214"),c(935,"Bi-214"),c(1120,"Bi-214"),c(1240,"Bi-214"),c(1380,"Bi-214"),c(1760,"Bi-214"))
 
 # channelNo <- (genergy-b)/m
 channels <- (as.integer(genergies[1,])-b)/m

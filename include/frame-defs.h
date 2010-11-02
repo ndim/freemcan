@@ -129,20 +129,27 @@
 /** Header magic marker value for data frames to host, AVR uint32_t version.
  *
  * This is good for the little endian AVR controller.
+ *
+ * Note: Must be kept in sync with #FRAME_MAGIC_STR.
  */
 #define FRAME_MAGIC_LE_U32  \
   ( \
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
    (((uint32_t)'p')<<16) |			\
-   (((uint32_t)'k')<<24)			\
+   (((uint32_t)'f')<<24)			\
     )
+
 
 /** Header magic marker value for data frames to host, string version.
  *
  * This is good for endianness independent char-by-char receivers.
+ *
+ * Note: Must be kept in sync with #FRAME_MAGIC_LE_U32.
+ * Note: Must not contain the same character twice.
  */
-#define FRAME_MAGIC_STR "FMpk"
+#define FRAME_MAGIC_STR "FMpf"
+
 
 /** Data frame types (data frame to host)
  *

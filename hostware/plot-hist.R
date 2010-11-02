@@ -7,15 +7,29 @@
 #
 # Example usage:
 #
-# ./plot-hist.R filename=hist.2010-11-01.17\:55\:01.R.dat bg=hist.2010-11-01.17\:34\:17.D.dat tubesensitivity= duration=1200
+# ./plot-hist.R filename=measurement.dat bg=background.dat tubesensitivity= duration=1200 logplot=1
 #
 # # Ludlum  44-2:  tubesensitivity = 0.060584
-# # Ludlum  44-11: tubesensitivity =
+# # Ludlum  44-11: tubesensitivity = 0.01178
 #
 
 # clear workspace
 
 rm(list = ls())
+
+# logarithmic ablines
+#
+loghlines <- function(max){
+  
+  numdecades <- ceiling(log10(max))
+  for (num in 1:numdecades) {
+  
+#    abline(h=seq(0,10^num,10^(num-1)), lty=3)
+    abline(h=seq(0,10^num,10^(num)), lty=3)
+  
+  }
+
+}
 
 
 
@@ -74,19 +88,22 @@ for (numarg in 1:length(args)) {
   }
 }
 
-# brake on incomplete input or set defaults for not specified args
-
+# brake on incomplete input or set defaults for non specified args
+cat("filename:",filename,"\n")
+cat("bg:",bg,"\n")
+cat("tubesensitivity:",tubesensitivity,"\n")
+cat("duration:",duration,"\n")
 
 # read log file as dataframe and move the columns from dataframe into a single 
 # vector respectively and subtract the last (inclompete) measurement
 histdata<-read.table(filename, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
-#skip last channel (residual counts)
+# skip last channel (residual counts)
 counts <- histdata$count[seq(1,len,1)]
 index <- histdata$channel[seq(1,len,1)]
 
 if(bg == FALSE){
-  #if there is no background data available set bg to zero
+  # if there is no background data available set bg to zero
   len_bg <-  len
   counts_bg <- rep(0, len)
   index_bg <- histdata$channel[seq(1,len,1)]
@@ -97,7 +114,7 @@ if(bg == FALSE){
 }else{
   histdata_bg<-read.table(bg, header=TRUE, sep="\t")
   len_bg <-  length(histdata_bg[,1]) - 1
-  #skip last channel
+  # skip last channel
   counts_bg <- histdata_bg$count[seq(1,len_bg,1)]
   index_bg <- histdata_bg$channel[seq(1,len_bg,1)]
   # one sigma of the overall distribution and accuracy of the overal mean value:
@@ -112,15 +129,23 @@ x11(width=8,height=8)
 par(mfrow=c(2,1))
 
 ### in the first chart the gamma spectra minus background is plot
-#par(mar=c(5, 5, 5, 5))  #plot area margins
+# par(mar=c(5, 5, 5, 5))  # plot area margins
 
-plot(index,counts-counts_bg, type="l", col="red", main = paste("Gamma spectra from logged data"), 
-     xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
+if (logplot){
+   plot(index,counts-counts_bg, log = "y", type="l", col="red", 
+        main = paste("Gamma spectra from logged data"), xlab=" ", ylab=" ", 
+        ylim=c(1,max(counts)))
+   loghlines(max(counts))
+}else{
+   plot(index,counts-counts_bg, type="l", col="red", main = paste("Gamma spectra from logged data"), 
+        xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
+}
 
 # two calibration points for energy axis
 genergies <- cbind(c(88,239),c(213,583))
 abline(v=genergies[1,], lty="dashed",lwd=1, col="darkgrey")
-text(genergies[1,], counts[genergies[1,]], paste(genergies[2,],"keV"), col="black", lwd=1, pos=4, cex=0.8)
+text(genergies[1,], counts[genergies[1,]], paste(genergies[2,],"keV"), 
+     col="black", lwd=1, pos=4, cex=0.8)
 
 # from the two calibration points calculate the transfer function between channel & energy
 # genergy <- b+m*channel
@@ -153,23 +178,30 @@ if(tubesensitivity == FALSE){
 }
 
 
-### second plot: unprocessed raw data
+### second plot: plot unprocessed raw data
 plot(index_bg,counts_bg, type="l", col="darkgreen", main = paste("Data:",bg,filename), 
      xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
 par(new=TRUE)
 plot(index, counts ,lwd=0.5, col="darkblue", type="l", ann=FALSE, yaxt="n", 
      ylim=c(min(0),max(counts)))
+mtext("total counts", adj=0,side=2, line=2.5,cex=1)
 axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
-#some prominent gamma energies for Th-232 decay chain 
-genergies <- cbind(c(239,"Pb-212"),c(727,"Bi-212"),c(911,"Ac-228"),c(969,"Ac-228"),c(338,"Ac-228"),c(583,"Tl-208"))
+# some most prominent gamma energies for natural decay chains
+# Th-232 decay with daughters 
+genergies <- cbind(c(239,"Pb-212"),c(338,"Ac-228"),c(510,"Tl-208"),c(583,"Tl-208"),
+                   c(727,"Bi-212"),c(911,"Ac-228"),c(965,"Ac-228"),c(1588,"Ac-228"),
+		   c(2614,"Tl-208"))
+# Ore
+#genergies <- cbind(c(184,"U-235"),c(242,"Pb-214"),c(295,"Pb-214"),c(352,"Pb-214"),
+#                   c(610,"Bi-214"),c(770,"Bi-214"),c(935,"Bi-214"),c(1120,"Bi-214"),
+#		   c(1240,"Bi-214"),c(1380,"Bi-214"),c(1760,"Bi-214"))
+
 # channelNo <- (genergy-b)/m
 channels <- (as.integer(genergies[1,])-b)/m
 abline(v=channels, lty="dashed",lwd=1, col="darkgrey")
 text(channels, 0.6*max(counts), paste(genergies[2,],"(",genergies[1,],"keV)"), col="black", 
      lwd=1, pos=4,cex = 0.6, srt = 90)
-
-mtext("total counts", adj=0,side=2, line=2.5,cex=1)
 
 # The `locator' function waits for you to either click the mouse
 z <- locator(1)

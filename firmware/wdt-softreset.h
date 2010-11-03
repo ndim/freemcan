@@ -33,6 +33,9 @@
 /** Trigger AVR reset via watchdog device. */
 static inline
 void wdt_soft_reset(void)
+  __attribute__((noreturn));
+static inline
+void wdt_soft_reset(void)
 {
   do {
     wdt_enable(WDTO_15MS);

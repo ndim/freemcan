@@ -306,6 +306,7 @@ void tui_fmlog_help(void)
   fmlog("9           toggle dump of user input (typed characters)");
   fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
   fmlog("a           send command \"(a)bort\"");
+  fmlog("e           write measurement parameters to (e)eprom");
   fmlog("f           request (f)irmware personality information");
   fmlog("i           send command \"(i)ntermediate result\"");
   fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
@@ -462,6 +463,11 @@ void tui_do_io(void)
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
         tui_device_send_measure_command(last_sent_duration);
+        break;
+      case 'e':
+        last_sent_duration = duration_list[duration_index];
+        recalculate_periodic_interval();
+        tui_device_send_params_command(last_sent_duration);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:

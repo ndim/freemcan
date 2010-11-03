@@ -140,6 +140,18 @@ void tui_device_send_measure_command(const uint16_t seconds)
 }
 
 
+void tui_device_send_params_command(const uint16_t seconds)
+{
+  /* We cannot know when the measurement will be started with these
+   * parameters, so we clearly mark this one with a token that cannot
+   * be mistaken for a contemporary time_t value.
+   */
+  const uint32_t token = 0x00000000;
+  device_send_command_u16_u32(device, FRAME_CMD_PARAMS, seconds, token);
+  waiting_for++;
+}
+
+
 /** @} */
 
 

@@ -32,6 +32,7 @@
 #define TIMER_SUB_1SEC
 
 #include "global.h"
+#include "data-table.h"
 #include "measurement-timer-adc-trigger.h"
 #include "packet-comm.h"
 #include "wdt-softreset.h"
@@ -130,6 +131,16 @@ void timer_init(const uint16_t timer_value)
 
   /* output compare match A interrupt enable                      */
   //TIMSK1 |= _BV(OCIE1A);
+}
+
+
+/** \bug Handle two uint16_t values from parameters: measurement
+ *       duration and skip_samples.
+ */
+void personality_start_measurement_sram(void)
+{
+  const uint16_t timer_value = *((uint16_t *)(&personality_param_sram[4]));
+  timer_init(timer_value);
 }
 
 

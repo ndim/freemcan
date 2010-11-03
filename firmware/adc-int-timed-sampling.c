@@ -95,16 +95,10 @@ data_table_info_t data_table_info = {
 
 
 /** See * \see data_table */
-packet_personality_info_t personality_info = {
-  /** Total number of bytes in table */
-  ((size_t)(&data_table_size)),
-  /** Table element size */
-  ELEMENT_SIZE_IN_BYTES
-};
-
-
-/** \see data_table */
-PERSONALITY_NAME("adc-int-timed-sampling");
+PERSONALITY("adc-int-timed-sampling",
+            2,
+            ((size_t)(&data_table_size)),
+            ELEMENT_SIZE_IN_BYTES);
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */

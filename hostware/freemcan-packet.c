@@ -40,6 +40,7 @@
 /** \todo Why don't we do the endianness conversion here? */
 personality_info_t *personality_info_new(const uint16_t sizeof_table,
                                          const uint16_t sizeof_value,
+                                         const uint8_t param_data_size,
                                          const uint16_t personality_name_size,
                                          const char *personality_name)
 {
@@ -50,6 +51,7 @@ personality_info_t *personality_info_new(const uint16_t sizeof_table,
   result->refs         = 1;
   result->sizeof_table = sizeof_table;
   result->sizeof_value = sizeof_value;
+  result->param_data_size = param_data_size;
   result->personality_name[0] = '\0';
   strncat(result->personality_name, personality_name, personality_name_size);
 

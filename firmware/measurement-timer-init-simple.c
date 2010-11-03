@@ -28,6 +28,7 @@
  */
 
 
+#include "data-table.h"
 #include "measurement-timer.h"
 
 
@@ -66,6 +67,13 @@ void timer_init(const uint16_t timer_value)
 
   /* output compare match A interrupt enable                      */
   TIMSK1 |= _BV(OCIE1A);
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const uint16_t timer_value = *((uint16_t *)(&personality_param_sram[4]));
+  timer_init(timer_value);
 }
 
 

@@ -95,6 +95,7 @@
 #include "measurement-timer.h"
 #include "send-table.h"
 #include "main.h"
+#include "data-table.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -102,10 +103,6 @@
 #else
 # error Unsupported MCU!
 #endif
-
-
-/** Maximum allowed size of command parameters in bytes */
-#define MAX_COMMAND_PARAM_LENGTH 8
 
 
 volatile uint8_t measurement_finished;
@@ -135,25 +132,18 @@ void io_init_unused_pins(void)
 }
 
 
-void personality_start_measurement_16(const uint16_t timer_value)
+void general_personality_start_measurement_sram(void)
 {
   sei();
-  timer_init(timer_value);
+  personality_start_measurement_sram();
 }
 
 
-__asm__(".weak personality_start_measurement_16_16");
-void personality_start_measurement_16_16(const uint16_t UP(p0),
-                                         const uint16_t UP(p1))
+void general_personality_start_measurement_eeprom(void)
 {
-  send_text_P(PSTR("Non-implemented personality_start_measurement_16_16"));
-}
-
-
-__asm__(".weak personality_start_measurement_eeprom");
-void personality_start_measurement_eeprom(void)
-{
-  send_text_P(PSTR("Non-implemented personality_start_measurement_eeprom()"));
+  eeprom_read_block(personality_param_sram, personality_param_eeprom,
+                    personality_param_size);
+  general_personality_start_measurement_sram();
 }
 
 
@@ -168,18 +158,6 @@ typedef enum {
   STP_ERROR
   /* STP_RESET not actually modelled as a state */
 } firmware_packet_state_t;
-
-
-/** Broken stuff */
-size_t eeprom_param_size EEMEM;
-
-
-/** Broken stuff */
-char eeprom_params[MAX_COMMAND_PARAM_LENGTH] EEMEM;
-
-
-/** Storage for the measurement's token value */
-uint32_t token;
 
 
 /** Firmware FSM event handler for finished measurement */
@@ -220,8 +198,7 @@ const char PSTR_RESET[]     PROGMEM = "RESET";
  */
 inline static
 firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
-                                   const uint8_t cmd, const uint8_t length,
-                                   const uint8_t *const data)
+                                   const uint8_t cmd, const uint8_t length)
 {
   /* temp vars */
   const frame_cmd_t c = (frame_cmd_t)cmd;
@@ -248,40 +225,17 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
       next_pstate = STP_READY;
       break;
     case FRAME_CMD_PARAMS:
-      if ((data != NULL) && (length < sizeof(eeprom_params))) {
-        send_state_P(PSTR("PARAMS"));
-        eeprom_update_word(&eeprom_param_size, length);
-        eeprom_update_block(data, eeprom_params, length);
-      }
+      /* The param length has already been checked by the frame parser */
+      send_state_P(PSTR("PARAMS"));
+      eeprom_update_block(personality_param_sram,
+                          personality_param_eeprom, length);
       next_pstate = STP_READY;
       break;
     case FRAME_CMD_MEASURE:
-      if (1) {
-        token = *((uint32_t *)(&data[0]));
-        const uint16_t p0 = *((uint16_t *)(&data[4]));
-        const uint16_t p1 = *((uint16_t *)(&data[6]));
-        uprintf("Msmt params: 0x%08"PRIx32" 0x%04"PRIx16" 0x%04"PRIx16
-                " (%"PRIu32" %"PRIu16" %"PRIu16")",
-                token, p0, p1,
-                token, p0, p1);
-        switch (length) {
-        case 6:
-          personality_start_measurement_16(p0);
-          send_state_P(PSTR_MEASURING);
-          next_pstate = STP_MEASURING;
-          break;
-        case 8:
-          personality_start_measurement_16_16(p0, p1);
-          send_state_P(PSTR_MEASURING);
-          next_pstate = STP_MEASURING;
-          break;
-        default:
-          send_text_P(PSTR("Invalid param length"));
-          send_state_P(PSTR_RESET);
-          wdt_soft_reset();
-          break;
-        }
-      }
+      /* The param length has already been checked by the frame parser */
+      general_personality_start_measurement_sram();
+      send_state_P(PSTR_MEASURING);
+      next_pstate = STP_MEASURING;
       break;
     case FRAME_CMD_RESET:
       send_state_P(PSTR_RESET);
@@ -425,8 +379,6 @@ int main(void)
   uint8_t cmd = 0;
   /** Stored data for current frame */
   uint8_t len = 0;
-  /** Data buffer */
-  uint8_t data[MAX_COMMAND_PARAM_LENGTH];
 
   /* Packet FSM State */
   firmware_packet_state_t pstate = STP_READY;
@@ -467,17 +419,17 @@ int main(void)
         len = byte;
         if (len == 0) {
           next_fstate = STF_CHECKSUM;
-        } else if (len < sizeof(data)) {
+        } else if (len == personality_param_size) {
           idx = 0;
           next_fstate = STF_PARAM;
         } else {
-          /* whoever sent us that oversized data frame made an error */
+          /* whoever sent us that wrongly sized data frame made an error */
           goto error_restart;
         }
         break;
       case STF_PARAM:
         uart_recv_checksum_update(byte);
-        data[idx++] = byte;
+        personality_param_sram[idx++] = byte;
         if (idx < len) {
           next_fstate = STF_PARAM;
         } else {
@@ -487,7 +439,7 @@ int main(void)
       case STF_CHECKSUM:
         if (uart_recv_checksum_check(byte)) {
           /* checksum successful */
-          pstate = eat_packet(pstate, cmd, len, data);
+          pstate = eat_packet(pstate, cmd, len);
           goto restart;
         } else {
           /** \todo Find a way to report checksum failure without

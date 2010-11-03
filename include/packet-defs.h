@@ -123,7 +123,8 @@ typedef struct {
 typedef struct {
   uint16_t sizeof_table;
   uint16_t sizeof_value;
-  /** \todo Units of time */
+  /* uint8_t seconds_per_unit, units_per_second; */
+  uint8_t param_data_size;
 } __attribute__ ((packed)) packet_personality_info_t;
 
 

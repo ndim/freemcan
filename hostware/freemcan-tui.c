@@ -559,9 +559,10 @@ static void packet_handler_text(const char *text, void *UP(data))
 static void packet_handler_personality_info(personality_info_t *pi,
                                             void *UP(data))
 {
-  fmlog("PERSONALITY INFO: personality_name:%s sizeof_table:%u sizeof_value:%u",
-        pi->personality_name,
-        pi->sizeof_table, pi->sizeof_value);
+  fmlog("PERSONALITY INFO: personality_name:%s",
+        pi->personality_name);
+  fmlog("                  sizeof_table:%u sizeof_value:%u param_data_size:%u",
+        pi->sizeof_table, pi->sizeof_value, pi->param_data_size);
   fmlog("                  %u elements of %ubits each",
         pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
   if (personality_info) {

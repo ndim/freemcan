@@ -79,16 +79,10 @@ data_table_info_t data_table_info = {
 
 
 /** See * \see data_table */
-packet_personality_info_t personality_info = {
-  /** Total number of bytes in table */
-  sizeof(table),
-  /** Table element size */
-  ELEMENT_SIZE_IN_BYTES
-};
-
-
-/** \see data_table */
-PERSONALITY_NAME("adc-int-mca-timed");
+PERSONALITY("adc-int-mca-timed",
+            2+2,
+            sizeof(table),
+            ELEMENT_SIZE_IN_BYTES);
 
 
 /** AD conversion complete interrupt entry point

@@ -78,16 +78,10 @@ data_table_info_t data_table_info = {
 
 
 /** See * \see data_table */
-packet_personality_info_t personality_info = {
-  /** Total number of elements in table */
-  sizeof(counter),
-  /** Table element size */
-  ELEMENT_SIZE_IN_BYTES
-};
-
-
-/** \see data_table */
-PERSONALITY_NAME("geiger-counter");
+PERSONALITY("geiger-counter",
+            2,
+            sizeof(counter),
+            ELEMENT_SIZE_IN_BYTES);
 
 
 /** Initialize peripherals

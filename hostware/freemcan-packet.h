@@ -35,6 +35,7 @@ typedef struct {
   int refs;
   size_t sizeof_table;
   size_t sizeof_value;
+  size_t param_data_size;
   char personality_name[];
 } personality_info_t;
 
@@ -117,6 +118,7 @@ void packet_value_table_unref(packet_value_table_t *value_table);
  */
 personality_info_t *personality_info_new(const uint16_t sizeof_table,
                                          const uint16_t sizeof_value,
+                                         const uint8_t param_data_size,
                                          const uint16_t personality_name_size,
                                          const char *personality_name)
   __attribute__((malloc));

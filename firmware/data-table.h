@@ -30,17 +30,45 @@
 
 
 #include <stdlib.h>
+#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 
 #include "packet-defs.h"
 
 
-#define PERSONALITY_NAME(STRING)                                \
-  const char personality_name[] PROGMEM = STRING;                \
-  const uint8_t personality_name_length = sizeof(STRING)-1
+/** Declare all personality information
+ *
+ * \param NAME Personality name as string, e.g. "adc-int-mca"
+ * \param PARAM_SIZE Measurement parameter size (except for token),
+ *                   expected to be sent with a FRAME_CMD_MEASURE command,
+ *                   e.g. 2 for a single 16bit timer value
+ * \param MAX_BYTES_PER_TABLE Maximum size of data table in bytes
+ *                            (in bytes to make use of compile time constants)
+ * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
+ */
+#define PERSONALITY(NAME,                                           \
+                    PARAM_SIZE,                                     \
+                    MAX_BYTES_PER_TABLE,                            \
+                    TABLE_ELEMENT_SIZE)                             \
+  const packet_personality_info_t personality_info = {              \
+    MAX_BYTES_PER_TABLE,                                            \
+    TABLE_ELEMENT_SIZE,                                             \
+    PARAM_SIZE                                                      \
+  };                                                                \
+  const char personality_name[] PROGMEM = NAME;                     \
+  const uint8_t personality_name_length = sizeof(NAME)-1;           \
+  uint8_t personality_param_sram[4+(PARAM_SIZE)];                   \
+  uint8_t personality_param_eeprom[4+(PARAM_SIZE)] EEMEM;           \
+  const uint8_t personality_param_size = (4+(PARAM_SIZE))
 
 extern const char personality_name[] PROGMEM;
 extern const uint8_t personality_name_length;
+
+extern const uint8_t personality_param_size;
+extern uint8_t personality_param_sram[];
+extern uint8_t personality_param_eeprom[] EEMEM;
+
+extern const packet_personality_info_t personality_info;
 
 
 /** The data table as an opaque array of bytes
@@ -64,13 +92,6 @@ typedef struct {
 
 
 extern data_table_info_t data_table_info;
-
-
-/** set by main(), read by send_table(), unused by anybody else */
-extern uint32_t token;
-
-
-extern packet_personality_info_t personality_info;
 
 
 /** @} */

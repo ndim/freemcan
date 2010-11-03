@@ -59,7 +59,7 @@
 /* If baud error is too high revert to double speed mode */
 #if ((BAUD_ERROR<(1000-UART_RELTOL)) || (BAUD_ERROR>(1000+UART_RELTOL)))
   #define USE_2X 1
-  #warning baud error too high: reverting to asynchronous double speed mode
+  /* #warning baud error too high: reverting to asynchronous double speed mode */
 #else
   #define USE_2X 0
 #endif

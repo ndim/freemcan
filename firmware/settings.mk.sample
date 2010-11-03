@@ -30,3 +30,6 @@
 
 # The device/port avrdude is to use for programming the AVR MCU.
 # AVRDUDE_PORT = /dev/ttyS0
+
+# Abort compilation on warnings
+# CFLAGS += -Werror

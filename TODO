@@ -46,3 +46,11 @@ firmware: Examine how doxygen copes with the new multiple parallel
 firmware: Examine whether e.g. the adc-int and adc-ext histogram
           definitions (which differ only in table size) can be unified
           into a common source file.
+
+firmware: Generate build-time configuration information summaries on
+          the actual constants, clock frequencies etc. actually used
+          in the build. Idea: Put numerical values into const data
+          sections named something like ".configinfo.uart_baudrate",
+          and then extract all ".configinfo.*" sections at build time
+          to make them into config info reports (and avoid linking
+          these sections into the actual firmware images).

@@ -136,21 +136,19 @@ void update_last_received_size(const uint16_t size)
  */
 
 
-/** Entry for a list of measurement durations */
-typedef struct {
-  uint16_t short_duration;
-  uint16_t long_duration;
-} duration_T;
-
-
 /** List of measurement durations */
-const duration_T duration_list[] = {
-  { 2, 3},
-  { 10, 30},
-  { 60, 150},
-  { 600, 1200},
-  { 3600, 3*3600},
-  { 0, 0 }
+const uint16_t duration_list[] = {
+  2,
+  3,
+  10,
+  30,
+  60,
+  150,
+  600,
+  1200,
+  3600,
+  3*3600,
+  0
 };
 
 
@@ -162,9 +160,8 @@ unsigned int duration_index = 0;
 static
 void fmlog_durations(void)
 {
-  fmlog("Measurement durations in seconds: short=%u, long=%u",
-        duration_list[duration_index].short_duration,
-        duration_list[duration_index].long_duration);
+  fmlog("Measurement duration in device clock periods: %u",
+        duration_list[duration_index]);
 }
 
 
@@ -309,10 +306,8 @@ void tui_fmlog_help(void)
   fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
   fmlog("a           send command \"(a)bort\"");
   fmlog("i           send command \"(i)ntermediate result\"");
-  fmlog("m           send command \"start (m)easurement\" (short duration: %u seconds)",
-        duration_list[duration_index].short_duration);
-  fmlog("M           send command \"start (m)easurement\" (long duration: %u seconds)",
-        duration_list[duration_index].long_duration);
+  fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
+        duration_list[duration_index]);
   fmlog("p           toggle (p)eriodical requests of intermediate results");
   fmlog("r           send command \"(r)eset\"");
   fmlog("w           send command \"intermediate result\" and (w)rite data to file");
@@ -446,7 +441,7 @@ void tui_do_io(void)
         tui_fmlog_help();
         break;
       case '+':
-        if (duration_list[duration_index+1].short_duration != 0) {
+        if (duration_list[duration_index+1] != 0) {
           ++duration_index;
           fmlog_durations();
         }
@@ -457,15 +452,8 @@ void tui_do_io(void)
           fmlog_durations();
         }
         break;
-      case FRAME_CMD_MEASURE: /* 'm' */
-        /* "SHORT" measurement */
-        last_sent_duration = duration_list[duration_index].short_duration;
-        recalculate_periodic_interval();
-        tui_device_send_measure_command(last_sent_duration);
-        break;
-      case 'M': /* 'm' */
-        /* "LONG" measurement */
-        last_sent_duration = duration_list[duration_index].long_duration;
+      case 'm':
+        last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
         tui_device_send_measure_command(last_sent_duration);
         break;

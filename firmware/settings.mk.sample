@@ -21,6 +21,8 @@
 # F_CPU = 16000000UL
 # 18.432 MHz - Popular when RS232 timing precision is required
 # F_CPU = 18432000UL
+# 20 MHz - The maximum the ATmega644 supports
+# F_CPU = 20000000UL
 
 # The programmer type avrdude is to use for programming the AVR MCU.
 # Run "avrdude -c help" for a list of supported programmers.

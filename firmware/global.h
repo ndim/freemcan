@@ -49,7 +49,13 @@
  *
  *  Select a prescaler to have an compare match value as integer
  */
-#if (F_CPU == 18432000UL)
+#if   (F_CPU == 20000000UL)
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_PRESCALER 4
+# else
+#  define TIMER_PRESCALER 5
+# endif
+#elif (F_CPU == 18432000UL)
 # ifdef TIMER_SUB_1SEC
 #  define TIMER_PRESCALER 4
 # else
@@ -73,14 +79,40 @@
  *  E.g. (0.1sec*16000000Hz/256) - 1 = 6249
  *
  *  The data measurement is carried out in multiples of time_elapsed.
+ *
+ * Lazy people can calculate these constants using Erlang as follows:
+ * $ erl
+ * 1> Freqs = [ 20000000, 18432000, 16000000 ].
+ * [20000000,18432000,16000000]
+ * 2> Speeds = [ {0.1, 256}, {1.0, 1024} ].
+ * [{0.1,256},{1.0,1024}]
+ * 3> [ {Per, F_CPU, Per*F_CPU/Div-1} || F_CPU <- Freqs, {Per,Div} <- Speeds ].
+ * [{0.1,20000000,7811.5},
+ *  {1.0,20000000,19530.25},
+ *  {0.1,18432000,7199.0},
+ *  {1.0,18432000,17999.0},
+ *  {0.1,16000000,6249.0},
+ *  {1.0,16000000,15624.0}]
+ * 4> q().
+ * ok
+ * $
+ *
  */
-#if (F_CPU == 18432000UL)
-# define TIMER_COMPARE_MATCH_VAL 17999
+#if   (F_CPU == 20000000UL)
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_COMPARE_MATCH_VAL 7811
+# else
+#  define TIMER_COMPARE_MATCH_VAL 19530
+#endif
+#elif (F_CPU == 18432000UL)
+# ifdef TIMER_SUB_1SEC
+#  define TIMER_COMPARE_MATCH_VAL 7199
+# else
+#  define TIMER_COMPARE_MATCH_VAL 17999
+# endif
 #elif (F_CPU == 16000000UL)
 # ifdef TIMER_SUB_1SEC
 #  define TIMER_COMPARE_MATCH_VAL 6249
-/** Toggle a sign if the measurement is over */
-#  define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER (62490 >> 2)
 # else
 #  define TIMER_COMPARE_MATCH_VAL 15624
 # endif
@@ -88,6 +120,13 @@
 # error Unsupported F_CPU value
 #endif
 
+
+
+/** Toggle a sign if the measurement is over */
+#ifdef TIMER_SUB_1SEC
+# define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER \
+  (((TIMER_COMPARE_MATCH_VAL)*10UL)>>2)
+#endif
 
 
 

@@ -424,7 +424,10 @@ int main(void)
           next_fstate = STF_PARAM;
         } else {
           /* whoever sent us that wrongly sized data frame made an error */
-          goto error_restart;
+          /** \todo Find a way to report errors without resorting to
+           *        sending free text. */
+          send_text_P(PSTR("param length mismatch"));
+          goto error_restart_nomsg;
         }
         break;
       case STF_PARAM:
@@ -448,16 +451,8 @@ int main(void)
           goto error_restart_nomsg;
         }
         break;
-      default:
-        goto error_restart;
-        break;
       }
       goto skip_errors;
-
-    error_restart:
-      /** \todo Find a way to report errors without
-       *        resorting to sending free text. */
-      send_text_P(PSTR("frame parser error"));
 
     error_restart_nomsg:
 

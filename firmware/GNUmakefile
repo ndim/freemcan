@@ -34,17 +34,28 @@ PERSONALITIES =
 
 include ../common.mk
 
-# Override settings by defining them in settings.mk. For an example of
+# Define local settings by defining them in settings.mk. For an example of
 # settings to define in settings.mk, see the settings.mk.sample
-# file. Things not defined in settings.mk will be later defined with
-# ?= later in this Makefile.  AVRDUDE_PROGRAMMER, AVRDUDE_PORT, F_CPU,
-# MCU are good candidates for settings.mk.
+# file.
+#
+# If you have not defined the required things in your local
+# settings.mk, the build will abort with an appropriate error message.
 -include settings.mk
 
-MCU ?= atmega644p
-F_CPU ?= 16000000UL
+# Function to mark required settings.mk variables
+DEFINITION_REQUIRED = \
+	$(if $($(1)),\
+	$(info LOCAL: $(1)=$($(1))),\
+	$(error LOCAL build config variable $(1) is undefined. You may want to add/uncomment a few lines in your settings.mk file (copy settings.mk.sample if settings.mk does not exist)))
 
-# End of default settings
+# List of all required LOCAL build config variables settings.mk needs
+# to define.
+$(call DEFINITION_REQUIRED,AVRDUDE_PORT)
+$(call DEFINITION_REQUIRED,AVRDUDE_PROGRAMMER)
+$(call DEFINITION_REQUIRED,F_CPU)
+$(call DEFINITION_REQUIRED,MCU)
+
+# End of local settings
 
 
 # The firmware format we eventually feed to avrdude
@@ -189,14 +200,10 @@ OD = od
 
 
 ########################################################################
-# Programming support using avrdude. Settings and variables.
-
-AVRDUDE_PROGRAMMER ?= ponyser
-AVRDUDE_PORT ?= /dev/ttyS0
+# Programming support using avrdude.
 
 AVRDUDE_WRITE_FLASH = -U flash:w:firmware-$(PERSONALITY).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:firmware-$(PERSONALITY).eep
-
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,

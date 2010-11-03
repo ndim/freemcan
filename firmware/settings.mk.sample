@@ -3,6 +3,9 @@
 #
 # settings.mk.sample both documents the options and makes it easy to
 # set up your own customized settings.mk.
+#
+# Note that if you change any of these settings, you might need to
+# "make clean" before any new builds can produce working output files.
 
 # Microcontroller type
 # MCU = atmega644

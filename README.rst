@@ -72,23 +72,7 @@ need
 Usage
 -----
 
-After building, you need to write the firmware to your hardware. To do that,
-generate a file firmware/settings.mk with your local avrdude settings,
-such as e.g.
-
-    AVRDUDE_PROGRAMMER = ponyser
-    AVRDUDE_PORT = /dev/ttyS0
-    MCU = atmega644
-
-You can also use all GNU make syntax in that file to set those
-variables, e.g. if you need to determine AVRDUDE_PORT via running a
-shell script.
-
-Then
-
-  $ cd firmware
-
-and run the local make targets to write the firmware to your hardware.
+TBA.
 
 
 

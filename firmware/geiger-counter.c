@@ -66,8 +66,6 @@
 volatile table_element_t counter asm("data_table");
 
 
-
-
 /** See * \see data_table */
 data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes */

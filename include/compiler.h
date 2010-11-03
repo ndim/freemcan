@@ -1,4 +1,4 @@
-/** \file hostware/compiler.h
+/** \file include/compiler.h
  * \brief Compiler Specific Definitions
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -24,7 +24,6 @@
 
 
 /** \defgroup compiler_defs Compiler Specific Definitions
- * \ingroup hostware_generic
  *
  * @{
  */

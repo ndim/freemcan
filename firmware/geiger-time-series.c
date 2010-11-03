@@ -42,7 +42,7 @@
 #define ELEMENT_SIZE_IN_BYTES 1
 
 
-#include "../hostware/compiler.h"
+#include "compiler.h"
 #include "global.h"
 #include "packet-comm.h"
 #include "measurement-timer.h"

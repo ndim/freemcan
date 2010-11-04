@@ -99,9 +99,9 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const time_t receive_time,
                                              const uint8_t element_size,
                                              const size_t element_count,
-                                             const uint16_t duration,
-                                             const uint16_t total_duration,
-                                             const uint32_t token,
+                                             const uint16_t _duration,
+                                             const uint16_t _total_duration,
+                                             const uint32_t _token,
                                              const void *elements)
   __attribute__((malloc));
 
@@ -116,10 +116,10 @@ void packet_value_table_unref(packet_value_table_t *value_table);
 
 /** Create (allocate and initialize) a new personality_info_t instance.
  */
-personality_info_t *personality_info_new(const uint16_t sizeof_table,
-                                         const uint16_t sizeof_value,
+personality_info_t *personality_info_new(const uint16_t _sizeof_table,
+                                         const uint16_t _sizeof_value,
                                          const uint8_t param_data_size,
-                                         const uint16_t personality_name_size,
+                                         const uint16_t _personality_name_size,
                                          const char *personality_name)
   __attribute__((malloc));
 

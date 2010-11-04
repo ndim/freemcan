@@ -140,9 +140,9 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
                                                           time(NULL),
                                                           header->element_size,
                                                           element_count,
-                                                          letoh16(header->duration),
-                                                          letoh16(header->total_duration),
-                                                          letoh32(header->token),
+                                                          header->duration,
+                                                          header->total_duration,
+                                                          header->token,
                                                           &(frame->payload[sizeof(*header)]));
       self->packet_handler_value_table(vtab, self->packet_handler_data);
       packet_value_table_unref(vtab);

@@ -1,9 +1,5 @@
 hostware: Allow setting measurement intervals on command line.
 
-hostware: Endianness on sending.
-
-hostware: Endianness on receiving.
-
 hostware: Allow giving commands on command line.
 
 hostware: Ignore tty input after receiving an <esc>. Idea: Ignore

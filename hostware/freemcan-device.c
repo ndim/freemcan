@@ -256,14 +256,14 @@ void device_send_command_u16_u32(device_t *self, const frame_cmd_t cmd,
   checksum_t *cs = checksum_new();
   uint8_t cmd8 = cmd;
   uint8_t len8 = 6;
-  uint16_t pp16 = p16;
-  uint32_t pp32 = p32;
+  uint16_t _p16 = htole16(p16);
+  uint32_t _p32 = htole32(p32);
   struct iovec out[6] = {
     { FRAME_MAGIC_STR, 4 },
     { &cmd8, 1 },
     { &len8, 1 },
-    { &pp32, 4 },
-    { &pp16, 2 }
+    { &_p32, 4 },
+    { &_p16, 2 }
   };
   for (int i=0; i<5; i++) {
     checksum_update_iovec(cs, &out[i]);

@@ -324,20 +324,20 @@ void tui_fmlog_help(void)
   fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
   fmlog("2           toggle hexdump of received layer 2 data (frames)");
   fmlog("9           toggle dump of user input (typed characters)");
-  fmlog("+/-         increase/decrease measurement duration of 'm' command");
-  fmlog("./,         increase/decrease number of samples to skip");
+  if (personality_info) {
+    fmlog("+/-         increase/decrease measurement duration (%.3f seconds)",
+          duration_list[duration_index]*(1.0f/((float)personality_info->units_per_second)));
+  } else {
+    fmlog("+/-         increase/decrease measurement duration (%u clock periods)",
+          duration_list[duration_index]);
+  }
+  fmlog("./,         increase/decrease number of samples to skip (%u)", skip_samples);
   fmlog("a           send command \"(a)bort\"");
   fmlog("e           write measurement parameters to (e)eprom");
   fmlog("E           read measurement parameters from (e)eprom");
-  fmlog("f           request (f)irmware personality information");
+  fmlog("f           request personality in(f)ormation");
   fmlog("i           send command \"(i)ntermediate result\"");
-  if (personality_info) {
-    fmlog("m           send command \"start (m)easurement\" (duration: %.3f seconds)",
-          duration_list[duration_index]*(1.0f/((float)personality_info->units_per_second)));
-  } else {
-    fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
-          duration_list[duration_index]);
-  }
+  fmlog("m           send command \"start (m)easurement\" with adequate parameters");
   fmlog("p           toggle (p)eriodical requests of intermediate results");
   fmlog("r           send command \"(r)eset\"");
   fmlog("w           send command \"intermediate result\" and (w)rite data to file");

@@ -545,7 +545,6 @@ void tui_do_io(void)
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
-      case ' ':
         tui_device_send_simple_command(buf[i]);
         break;
       case 'i':

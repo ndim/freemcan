@@ -432,6 +432,7 @@ int main(void)
   while (1) {
     if (measurement_finished) {
       pstate = eat_measurement_finished(pstate);
+      measurement_finished = 0;
     } else if (bit_is_set(UCSR0A, RXC0)) {
 
       /* A byte arrived via UART, so fetch it */

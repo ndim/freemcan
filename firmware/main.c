@@ -455,6 +455,7 @@ int main(void)
 
     if (measurement_finished) {
       pstate = eat_measurement_finished(pstate);
+      measurement_finished = 0;
     } else if (!switch_is_inactive) {
       pstate = eat_switch_pressed(pstate);
     } else if (bit_is_set(UCSR0A, RXC0)) {

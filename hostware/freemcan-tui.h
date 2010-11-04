@@ -49,13 +49,13 @@ extern packet_parser_t *tui_packet_parser;
 
 void tui_device_send_simple_command(const frame_cmd_t cmd);
 
-void tui_device_send_measure_command_seconds(const uint16_t seconds);
-void tui_device_send_params_command_seconds(const uint16_t seconds);
+void tui_device_send_measure_command_16(const uint16_t a);
+void tui_device_send_params_command_16(const uint16_t a);
 
-void tui_device_send_measure_command_seconds_skip(const uint16_t seconds,
-                                                  const uint16_t skip_samples);
-void tui_device_send_params_command_seconds_skip(const uint16_t seconds,
-                                                  const uint16_t skip_samples);
+void tui_device_send_measure_command_16_16(const uint16_t a,
+                                           const uint16_t b);
+void tui_device_send_params_command_16_16(const uint16_t a,
+                                          const uint16_t b);
 
 
 void tui_startup_messages(void);

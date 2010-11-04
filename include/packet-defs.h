@@ -131,8 +131,9 @@ typedef struct {
   uint16_t sizeof_value;
   /** Time units per second */
   uint8_t units_per_second;
-  /** Size of measurement command's parameter block */
-  uint8_t param_data_size;
+  /** Size of measurement command's parameter elements */
+  uint8_t param_data_size_timer_count;
+  uint8_t param_data_size_skip_samples;
 } __attribute__ ((packed)) packet_personality_info_t;
 
 

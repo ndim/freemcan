@@ -138,27 +138,34 @@ void timer_init(void)
 }
 
 
+/** \todo Should give out a reasonable value */
+uint16_t get_duration(void)
+{
+  return 0;
+}
+
+
 /** \bug Handle two uint16_t values from parameters: measurement
  *       duration and skip_samples.
  */
 void personality_start_measurement_sram(void)
 {
-  const void *timer_count_vp = &personality_param_sram[0];
-  const uint16_t *timer_count_p = timer_count_vp;
-  orig_timer_count = timer_count = *timer_count_p;
+  size_t ofs = 0;
 
-  const void *skip_samples_vp = &personality_param_sram[2];
-  const uint16_t *skip_samples_p = skip_samples_vp;
-  orig_skip_samples = skip_samples = *skip_samples_p;
+  if (personality_info.param_data_size_timer_count == 2) {
+    const void *timer_count_vp = &personality_param_sram[ofs];
+    const uint16_t *timer_count_p = timer_count_vp;
+    orig_timer_count = timer_count = *timer_count_p;
+    ofs += 2;
+  }
+
+  if (personality_info.param_data_size_skip_samples == 2) {
+    const void *skip_samples_vp = &personality_param_sram[ofs];
+    const uint16_t *skip_samples_p = skip_samples_vp;
+    orig_skip_samples = skip_samples = *skip_samples_p;
+  }
 
   timer_init();
-}
-
-
-/** \todo Should give out a reasonable value */
-uint16_t get_duration(void)
-{
-  return 0;
 }
 
 

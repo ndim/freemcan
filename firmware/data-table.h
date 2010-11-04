@@ -39,9 +39,8 @@
 /** Declare all personality information
  *
  * \param NAME Personality name as string, e.g. "adc-int-mca"
- * \param PARAM_SIZE Measurement parameter size (except for token),
- *                   expected to be sent with a FRAME_CMD_MEASURE command,
- *                   e.g. 2 for a single 16bit timer value
+ * \param PARAM_SIZE_TIMER_COUNT Size of timer_count param in bytes (0 or 2)
+ * \param PARAM_SIZE_SKIP_SAMPLES Size of skip_samples param in bytes (0 or 2)
  * \param UNITS_PER_SECOND Timer units per second, e.g. 1 (for 1sec timer period
  *                         or 10 (for 0.1sec timer period).
  * \param MAX_BYTES_PER_TABLE Maximum size of data table in bytes
@@ -49,7 +48,8 @@
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
  */
 #define PERSONALITY(NAME,                                           \
-                    PARAM_SIZE,                                     \
+                    PARAM_SIZE_TIMER_COUNT,                         \
+                    PARAM_SIZE_SKIP_SAMPLES,                        \
                     UNITS_PER_SECOND,                               \
                     MAX_BYTES_PER_TABLE,                            \
                     TABLE_ELEMENT_SIZE)                             \
@@ -57,11 +57,12 @@
     MAX_BYTES_PER_TABLE,                                            \
     TABLE_ELEMENT_SIZE,                                             \
     UNITS_PER_SECOND,                                               \
-    PARAM_SIZE                                                      \
+    PARAM_SIZE_TIMER_COUNT,                                         \
+    PARAM_SIZE_SKIP_SAMPLES                                         \
   };                                                                \
   const char personality_name[] PROGMEM = NAME;                     \
   const uint8_t personality_name_length = sizeof(NAME)-1;           \
-  const uint8_t personality_param_size = (PARAM_SIZE)
+  const uint8_t personality_param_size = (PARAM_SIZE_TIMER_COUNT+PARAM_SIZE_SKIP_SAMPLES)
 
 extern const char personality_name[] PROGMEM;
 extern const uint8_t personality_name_length;

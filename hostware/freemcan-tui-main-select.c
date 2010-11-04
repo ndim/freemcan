@@ -132,27 +132,27 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
-  uint16_t _seconds;
+  uint16_t _a;
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
-} __attribute__((packed)) measure_params_seconds_t;
+} __attribute__((packed)) measure_params_16_t;
 
 
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
-  uint16_t _seconds;
-  uint16_t _skip_samples;
+  uint16_t _a;
+  uint16_t _b;
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
-} __attribute__((packed)) measure_params_seconds_skip_t;
+} __attribute__((packed)) measure_params_16_16_t;
 
 
-void tui_device_send_measure_command_seconds(const uint16_t seconds)
+void tui_device_send_measure_command_16(const uint16_t a)
 {
-  measure_params_seconds_t params = {
-    htole16(seconds),
+  measure_params_16_t params = {
+    htole16(a),
     time(NULL)
   };
   device_send_command_with_params(device, FRAME_CMD_MEASURE,
@@ -161,10 +161,10 @@ void tui_device_send_measure_command_seconds(const uint16_t seconds)
 }
 
 
-void tui_device_send_params_command_seconds(const uint16_t seconds)
+void tui_device_send_params_command_16(const uint16_t a)
 {
-  measure_params_seconds_t params = {
-    htole16(seconds),
+  measure_params_16_t params = {
+    htole16(a),
     /* We cannot know when the measurement will be started with these
      * parameters, so we clearly mark this one with a start_time of 0
      * which cannot be mistaken for a contemporary time_t value.
@@ -177,12 +177,12 @@ void tui_device_send_params_command_seconds(const uint16_t seconds)
 }
 
 
-void tui_device_send_measure_command_seconds_skip(const uint16_t seconds,
-                                                  const uint16_t skip_samples)
+void tui_device_send_measure_command_16_16(const uint16_t a,
+                                           const uint16_t b)
 {
-  measure_params_seconds_skip_t params = {
-    htole16(seconds),
-    htole16(skip_samples),
+  measure_params_16_16_t params = {
+    htole16(a),
+    htole16(b),
     time(NULL)
   };
   device_send_command_with_params(device, FRAME_CMD_MEASURE,
@@ -191,12 +191,12 @@ void tui_device_send_measure_command_seconds_skip(const uint16_t seconds,
 }
 
 
-void tui_device_send_params_command_seconds_skip(const uint16_t seconds,
-                                                 const uint16_t skip_samples)
+void tui_device_send_params_command_16_16(const uint16_t a,
+                                          const uint16_t b)
 {
-  measure_params_seconds_skip_t params = {
-    htole16(seconds),
-    htole16(skip_samples),
+  measure_params_16_16_t params = {
+    htole16(a),
+    htole16(b),
     /* We cannot know when the measurement will be started with these
      * parameters, so we clearly mark this one with a start_time of 0
      * which cannot be mistaken for a contemporary time_t value.

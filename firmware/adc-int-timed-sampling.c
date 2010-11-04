@@ -91,9 +91,7 @@ data_table_info_t data_table_info = {
 
 /** See * \see data_table */
 PERSONALITY("adc-int-timed-sampling",
-            /** \bug Workaround, we need just one 16bit param for
-             *       skip_samples and no timer_count! */
-            2+2,
+            0,2,
             10,
             ((size_t)(&data_table_size)),
             ELEMENT_SIZE_IN_BYTES);

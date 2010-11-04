@@ -500,32 +500,38 @@ void tui_do_io(void)
       case 'm':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        switch (personality_info->param_data_size) {
-        case 2:
-          tui_device_send_measure_command_seconds(last_sent_duration);
-          break;
-        case 4:
-          tui_device_send_measure_command_seconds_skip(last_sent_duration, skip_samples);
-          break;
-        default:
-          fmlog("Invalid personality_info->param_data_size = %u",
-                personality_info->param_data_size);
+        if ((personality_info->param_data_size_timer_count == 2) &&
+            (personality_info->param_data_size_skip_samples == 2)) {
+          tui_device_send_measure_command_16_16(last_sent_duration, skip_samples);
+        } else if ((personality_info->param_data_size_timer_count == 0) &&
+            (personality_info->param_data_size_skip_samples == 2)) {
+          tui_device_send_measure_command_16(skip_samples);
+        } else if ((personality_info->param_data_size_timer_count == 2) &&
+            (personality_info->param_data_size_skip_samples == 0)) {
+          tui_device_send_measure_command_16(last_sent_duration);
+        } else {
+          fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
+                personality_info->param_data_size_timer_count,
+                personality_info->param_data_size_skip_samples);
           break;
         }
         break;
       case 'e':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        switch (personality_info->param_data_size) {
-        case 2:
-          tui_device_send_params_command_seconds(last_sent_duration);
-          break;
-        case 4:
-          tui_device_send_params_command_seconds_skip(last_sent_duration, skip_samples);
-          break;
-        default:
-          fmlog("Invalid personality_info->param_data_size = %u",
-                personality_info->param_data_size);
+        if ((personality_info->param_data_size_timer_count == 2) &&
+            (personality_info->param_data_size_skip_samples == 2)) {
+          tui_device_send_params_command_16_16(last_sent_duration, skip_samples);
+        } else if ((personality_info->param_data_size_timer_count == 0) &&
+            (personality_info->param_data_size_skip_samples == 2)) {
+          tui_device_send_params_command_16(skip_samples);
+        } else if ((personality_info->param_data_size_timer_count == 2) &&
+            (personality_info->param_data_size_skip_samples == 0)) {
+          tui_device_send_params_command_16(last_sent_duration);
+        } else {
+          fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
+                personality_info->param_data_size_timer_count,
+                personality_info->param_data_size_skip_samples);
           break;
         }
         break;
@@ -631,9 +637,12 @@ static void packet_handler_personality_info(personality_info_t *pi,
 {
   fmlog("<PERSONALITY INFO: personality_name:\"%s\" units_per_second=%u",
         pi->personality_name, pi->units_per_second);
-  fmlog("<                  sizeof_table:%u sizeof_value:%u param_data_size:%u",
-        pi->sizeof_table, pi->sizeof_value, pi->param_data_size);
+  fmlog("<                  sizeof_table:%u sizeof_value:%u",
+        pi->sizeof_table, pi->sizeof_value);
+  fmlog("<                  sz(timer_count):%u sz(skip_samples):%u",
+        pi->param_data_size_timer_count, pi->param_data_size_skip_samples);
   fmlog("<                  %u elements of %ubits each",
+
         pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
   if (personality_info) {
     personality_info_unref(personality_info);

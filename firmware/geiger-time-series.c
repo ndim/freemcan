@@ -97,7 +97,7 @@ data_table_info_t data_table_info = {
 
 /** See * \see data_table */
 PERSONALITY("geiger-time-series",
-            2,
+            2,0,
             1,
             ((size_t)(&data_table_size)),
             ELEMENT_SIZE_IN_BYTES);

@@ -75,7 +75,7 @@ data_table_info_t data_table_info = {
 
 /** See * \see data_table */
 PERSONALITY("adc-int-mca",
-            2,
+            2,0,
             1,
             sizeof(table),
             ELEMENT_SIZE_IN_BYTES);

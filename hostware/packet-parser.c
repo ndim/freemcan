@@ -108,7 +108,8 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
       personality_info_t *pi = personality_info_new(ppi->sizeof_table,
                                                     ppi->sizeof_value,
                                                     ppi->units_per_second,
-                                                    ppi->param_data_size,
+                                                    ppi->param_data_size_timer_count,
+                                                    ppi->param_data_size_skip_samples,
                                                     personality_name_size,
                                                     (const char *)&(frame->payload[sizeof(*ppi)]));
       self->packet_handler_personality_info(pi, self->packet_handler_data);

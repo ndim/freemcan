@@ -132,10 +132,14 @@ void io_init_unused_pins(void)
 }
 
 
+uint8_t personality_param_sram[MAX_PARAM_LENGTH];
+uint8_t personality_param_eeprom[MAX_PARAM_LENGTH] EEMEM;
+
+
 void params_copy_from_eeprom_to_sram(void)
 {
   eeprom_read_block(personality_param_sram, personality_param_eeprom,
-                    personality_param_size);
+                    MAX_PARAM_LENGTH);
 }
 
 
@@ -433,7 +437,8 @@ int main(void)
         len = byte;
         if (len == 0) {
           next_fstate = STF_CHECKSUM;
-        } else if (len == personality_param_size) {
+        } else if ((len >= personality_param_size) &&
+                   (len < MAX_PARAM_LENGTH)) {
           idx = 0;
           next_fstate = STF_PARAM;
         } else {

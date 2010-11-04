@@ -229,13 +229,13 @@ void step_fsm(frame_parser_t *ps, const char ch)
           const frame_type_t type = ps->frame_wip->type;
           const uint16_t size     = ps->frame_wip->size;
           if ((32<=type) && (type<127)) {
-            fmlog("Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
+            fmlog("<Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
                   type, type, type, size, size);
           } else {
-            fmlog("Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
+            fmlog("<Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
                   type, type, size, size);
           }
-          fmlog_data(ps->frame_wip->payload, size);
+          fmlog_data("<<", ps->frame_wip->payload, size);
         }
         update_last_received_size(ps->frame_wip->size);
         packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
@@ -269,8 +269,8 @@ void frame_parser_bytes(frame_parser_t *self,
 {
   const char *cbuf = (const char *)buf;
   if (enable_layer1_dump) {
-    fmlog("Received 0x%04x=%d bytes of layer 1 data", size, size);
-    fmlog_data(buf, size);
+    fmlog("<Received 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog_data("<<", buf, size);
   }
   for (size_t i=0; i<size; i++) {
     step_fsm(self, cbuf[i]);

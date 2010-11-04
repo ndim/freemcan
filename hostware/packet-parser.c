@@ -153,9 +153,9 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
    * after the switch() statement itself. (We might have received an
    * unhandled value from a remote system.) */
   }
-  fmlog("Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
+  fmlog("<Received frame of unknown type %c (%d=0x%x), size %d=0x%x",
         frame->type, frame->type, frame->type, frame->size, frame->size);
-  fmlog_data((void *)frame->payload, frame->size);
+  fmlog_data("<<", (void *)frame->payload, frame->size);
 }
 
 

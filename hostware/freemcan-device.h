@@ -82,9 +82,9 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
  * \param cmd The #frame_cmd_t to send.
  * \param param The uint16_t parameter.
  */
-void device_send_command_u16_u32(device_t *self, const frame_cmd_t cmd,
-                                 const uint16_t p16, const uint32_t p32)
-  __attribute__(( nonnull(1) ));
+void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
+                                     void *params, const size_t param_size)
+  __attribute__(( nonnull(1,3) ));
 
 
 /** Do the actual IO

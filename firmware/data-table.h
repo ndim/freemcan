@@ -57,16 +57,14 @@
   };                                                                \
   const char personality_name[] PROGMEM = NAME;                     \
   const uint8_t personality_name_length = sizeof(NAME)-1;           \
-  uint8_t personality_param_sram[4+(PARAM_SIZE)];                   \
-  uint8_t personality_param_eeprom[4+(PARAM_SIZE)] EEMEM;           \
-  const uint8_t personality_param_size = (4+(PARAM_SIZE))
+  const uint8_t personality_param_size = (PARAM_SIZE)
 
 extern const char personality_name[] PROGMEM;
 extern const uint8_t personality_name_length;
 
 extern const uint8_t personality_param_size;
-extern uint8_t personality_param_sram[];
-extern uint8_t personality_param_eeprom[] EEMEM;
+extern uint8_t personality_param_sram[MAX_PARAM_LENGTH];
+extern uint8_t personality_param_eeprom[MAX_PARAM_LENGTH] EEMEM;
 
 extern const packet_personality_info_t personality_info;
 

@@ -57,19 +57,19 @@ void fmlog_error(const char *format, ...)
                   nonnull(1) ));
 
 /** Log a block of data as bytes */
-void fmlog_data(const void *data, const size_t size);
+void fmlog_data(const char *prefix, const void *data, const size_t size);
 
 /** Log a block of data as 16 bit integers */
-void fmlog_data16(const void *data, const size_t size);
+void fmlog_data16(const char *prefix, const void *data, const size_t size);
 
 /** Log a block of data as 16 bit integers */
-void fmlog_data24(const void *data, const size_t size);
+void fmlog_data24(const char *prefix, const void *data, const size_t size);
 
 /** Log a block of data as 32 bit integers */
-void fmlog_data32(const void *data, const size_t size);
+void fmlog_data32(const char *prefix, const void *data, const size_t size);
 
 /** Log value table data */
-void fmlog_value_table(const uint32_t *elements, const size_t count);
+void fmlog_value_table(const char *prefix, const uint32_t *elements, const size_t count);
 
 /** @} */
 

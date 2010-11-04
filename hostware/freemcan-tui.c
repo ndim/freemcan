@@ -402,8 +402,8 @@ void tui_do_io(void)
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
     if (enable_user_input_dump) {
-      fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
-      fmlog_data(buf, read_bytes);
+      fmlog("<Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
+      fmlog_data("<<", buf, read_bytes);
     }
     for (ssize_t i=0; i<read_bytes; i++) {
       /* handle a few key input things internally */
@@ -542,7 +542,7 @@ static void packet_handler_state(const char *state, void *UP(data))
   if (waiting_for > 0) {
     waiting_for--;
   }
-  fmlog("STATE: %s", state);
+  fmlog("<STATE: %s", state);
   bool new_is_measuring = (strcmp("MEASURING", state) == 0);
   if (new_is_measuring != is_measuring) {
     if (new_is_measuring) {
@@ -559,7 +559,7 @@ static void packet_handler_text(const char *text, void *UP(data))
   if (waiting_for > 0) {
     waiting_for--;
   }
-  fmlog("TEXT: %s", text);
+  fmlog("<TEXT: %s", text);
 }
 
 
@@ -568,8 +568,8 @@ static void packet_handler_params_from_eeprom(const void *params,
                                               const size_t size,
                                               void *UP(data))
 {
-  fmlog("EEPROM PARAMS");
-  fmlog_data(params, size);
+  fmlog("<EEPROM PARAMS:");
+  fmlog_data("<<", params, size);
 }
 
 
@@ -577,11 +577,11 @@ static void packet_handler_params_from_eeprom(const void *params,
 static void packet_handler_personality_info(personality_info_t *pi,
                                             void *UP(data))
 {
-  fmlog("PERSONALITY INFO: personality_name:%s",
+  fmlog("<PERSONALITY INFO: personality_name:%s",
         pi->personality_name);
-  fmlog("                  sizeof_table:%u sizeof_value:%u param_data_size:%u",
+  fmlog("<                  sizeof_table:%u sizeof_value:%u param_data_size:%u",
         pi->sizeof_table, pi->sizeof_value, pi->param_data_size);
-  fmlog("                  %u elements of %ubits each",
+  fmlog("<                  %u elements of %ubits each",
         pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
   if (personality_info) {
     personality_info_unref(personality_info);
@@ -618,11 +618,11 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
     snprintf(type_str, sizeof(type_str), "0x%02x=%d", type, type);
   }
   snprintf(buf, sizeof(buf),
-           "Received %s type value table for reason %s: %%d elements, %%d seconds:",
+           "<Received %s type value table for reason %s: %%d elements, %%d seconds:",
            type_str, reason_str);
 
   fmlog(buf, element_count, value_table_packet->duration);
-  fmlog_value_table(value_table_packet->elements, element_count);
+  fmlog_value_table("< ", value_table_packet->elements, element_count);
 
   /* export current value table to file(s) */
   export_value_table(personality_info, value_table_packet);

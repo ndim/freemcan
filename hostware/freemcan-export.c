@@ -239,7 +239,7 @@ void export_time_series_vtable(FILE *datfile,
   s.avg_cpm_error = s.avg_cpm*s.counts_error/s.counts;
   s.statistical_error = 100.0 * s.avg_cpm_error / s.avg_cpm;
 
-  time_series_stats(stdout,  "     ", "\r\n", &s);
+  time_series_stats(stdout,  "<    ", "\r\n", &s);
   if (datfile) {
     time_series_stats(datfile, "# ",    "\n",   &s);
 

@@ -139,8 +139,9 @@ void timer_init(const uint16_t timer_value)
  */
 void personality_start_measurement_sram(void)
 {
-  const uint16_t timer_value = *((uint16_t *)(&personality_param_sram[4]));
-  timer_init(timer_value);
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer_value = voidp;
+  timer_init(*timer_value);
 }
 
 

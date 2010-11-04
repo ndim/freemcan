@@ -73,8 +73,8 @@ void send_text_P(PGM_P msg)
 void send_eeprom_params_in_sram(void)
 {
   frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM,
-	      personality_param_size);
-  uart_putb((const void *)personality_param_sram, personality_param_size);
+	      MAX_PARAM_LENGTH);
+  uart_putb((const void *)personality_param_sram, MAX_PARAM_LENGTH);
   frame_end();
 }
 

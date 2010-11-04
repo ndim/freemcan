@@ -130,24 +130,39 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 }
 
 
+typedef struct {
+  /* to be read by firmware, needs endianness conversion */
+  uint16_t _seconds;
+
+  /* sent back as-is, not interpreted by firmware in any way */
+  time_t start_time;
+} __attribute__((packed)) measure_params_t;
+
+
 void tui_device_send_measure_command(const uint16_t seconds)
 {
-  const time_t start_time = time(NULL);
-  /* We ignore the issues surrounding the 32bit vs 64bit time_t conversion */
-  const uint32_t token = (uint32_t)start_time;
-  device_send_command_u16_u32(device, FRAME_CMD_MEASURE, seconds, token);
+  measure_params_t params = {
+    htole16(seconds),
+    time(NULL)
+  };
+  device_send_command_with_params(device, FRAME_CMD_MEASURE,
+                                  &params, sizeof(params));
   waiting_for++;
 }
 
 
 void tui_device_send_params_command(const uint16_t seconds)
 {
-  /* We cannot know when the measurement will be started with these
-   * parameters, so we clearly mark this one with a token that cannot
-   * be mistaken for a contemporary time_t value.
-   */
-  const uint32_t token = 0x00000000;
-  device_send_command_u16_u32(device, FRAME_CMD_PARAMS_TO_EEPROM, seconds, token);
+  measure_params_t params = {
+    htole16(seconds),
+    /* We cannot know when the measurement will be started with these
+     * parameters, so we clearly mark this one with a start_time of 0
+     * which cannot be mistaken for a contemporary time_t value.
+     */
+    0
+  };
+  device_send_command_with_params(device, FRAME_CMD_MEASURE,
+                                  &params, sizeof(params));
   waiting_for++;
 }
 

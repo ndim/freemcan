@@ -196,14 +196,14 @@ ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
       memcpy(&buf[ofs], iov[i].iov_base, iov[i].iov_len);
       ofs += iov[i].iov_len;
     }
-    fmlog("Sending 0x%04x=%d bytes of layer 1 data", size, size);
-    fmlog_data(buf, size);
+    fmlog(">Sending 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog_data(">>", buf, size);
     free(buf);
   }
   if (enable_layer2_dump) {
     static bool done_once = false;
     if (!done_once) {
-      fmlog("Sending data (layer 2 dump not implemented yet, use layer 1 dump for sending)");
+      fmlog(">Sending data (layer 2 dump not implemented yet, use layer 1 dump for sending)");
       done_once = true;
     }
   }
@@ -215,7 +215,7 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
 {
   const int fd = self->fd;
   if (fd > 0) {
-    fmlog("Sending '%c' command to device", cmd);
+    fmlog(">Sending '%c' command to device", cmd);
   } else {
     fmlog("Not sending '%c' command to closed device", cmd);
     return;
@@ -240,39 +240,36 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
 }
 
 
-void device_send_command_u16_u32(device_t *self, const frame_cmd_t cmd,
-                                 const uint16_t p16, const uint32_t p32)
+void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
+                                     void *params, const size_t param_size)
 {
   const int fd = self->fd;
   if (fd > 0) {
-    fmlog("Sending '%c'(%u=0x%x, %u=0x%x) command to device",
-          cmd, p16, p16, p32, p32);
+    fmlog(">Sending '%c' command to device with params", cmd);
+    fmlog_data(">>", params, param_size);
   } else {
-    fmlog("Not sending '%c'(%u=0x%x, %u=0x%x) command to closed device",
-          cmd, p16, p16, p32, p32);
+    fmlog("|Not sending '%c' command to closed device", cmd);
+    fmlog_data(">|", params, param_size);
     return;
   }
 
   checksum_t *cs = checksum_new();
   uint8_t cmd8 = cmd;
-  uint8_t len8 = 6;
-  uint16_t _p16 = htole16(p16);
-  uint32_t _p32 = htole32(p32);
-  struct iovec out[6] = {
+  uint8_t len8 = param_size;
+  struct iovec out[5] = {
     { FRAME_MAGIC_STR, 4 },
     { &cmd8, 1 },
     { &len8, 1 },
-    { &_p32, 4 },
-    { &_p16, 2 }
+    { params, param_size }
   };
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<4; i++) {
     checksum_update_iovec(cs, &out[i]);
   }
   uint8_t checksum = checksum_get(cs);
   checksum_unref(cs);
-  out[5].iov_base = (void *)&checksum;
-  out[5].iov_len = sizeof(checksum);
-  my_writev(fd, out, 6);
+  out[4].iov_base = (void *)&checksum;
+  out[4].iov_len = sizeof(checksum);
+  my_writev(fd, out, 5);
 }
 
 
@@ -294,8 +291,8 @@ void device_do_io(device_t *self)
       /* Logging this by default becomes tedious quickly with larger
        * amounts of data, so we comment this out for now.
        */
-      fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
-      fmlog_data(buf, read_bytes);
+      fmlog("<Received %d bytes from device at fd %d", read_bytes, fd);
+      fmlog_data("<<", buf, read_bytes);
     }
     frame_parser_bytes(self->frame_parser, buf, read_bytes);
 }

@@ -88,6 +88,10 @@ typedef enum {
 } packet_value_table_reason_t;
 
 
+/** Maximum length of parameter block in bytes */
+#define MAX_PARAM_LENGTH 16
+
+
 /** Value table packet header
  *
  * \todo Verify the compiler does not do strange alignment things.

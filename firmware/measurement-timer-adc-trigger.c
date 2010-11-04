@@ -32,6 +32,7 @@
 #define TIMER_SUB_1SEC
 
 #include "global.h"
+#include "data-table.h"
 #include "measurement-timer-adc-trigger.h"
 #include "packet-comm.h"
 #include "wdt-softreset.h"
@@ -49,12 +50,8 @@
 volatile uint16_t timer_count;
 
 
-/** timer multiple
-  *
-  * Is send by hostware. Number of dropped analog samples (downsampling of
-  * analog signal sampled with timer1 time base)
-  */
-volatile uint16_t timer_multiple;
+/** timer counter */
+volatile uint16_t timer_count;
 
 
 /** Last value of timer counter
@@ -76,39 +73,27 @@ volatile uint16_t last_timer_count = 1;
 volatile uint16_t orig_timer_count;
 
 
+/** FIXME
+ *
+ * Is sent by hostware. Number of dropped analog samples (downsampling of
+ * analog signal sampled with timer1 time base)
+ */
+volatile uint16_t orig_skip_samples;
+volatile uint16_t skip_samples;
+
+
 /** Configure 16 bit timer to trigger an ISR every 0.1 second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
-void timer_init(const uint8_t timer0, const uint8_t timer1)
+void timer_init(void)
 {
-  /** Set up timer with the combined value we just got the bytes of.
-   *
-   * For some reasons, the following line triggers a bug with
-   * the avr-gcc 4.4.2 and 4.5.0 we have available on Fedora
-   * 12 and Fedora 13. Debian Lenny (5.05)'s avr-gcc 4.3.2
-   * does not exhibit the buggy behaviour, BTW. So we do the
-   * assignments manually here.
-   *
-   * orig_timer_count = (((uint16_t)timer1)<<8) | timer0;
-   * timer_count = orig_timer_count;
-   */
-  asm("\n\t"
-      "sts orig_timer_count,   %[timer0]\n\t"
-      "sts orig_timer_count+1, %[timer1]\n\t"
-      "sts timer_count,   %[timer0]\n\t"
-      "sts timer_count+1, %[timer1]\n\t"
-      : /* output operands */
-      : /* input operands */
-        [timer0] "r" (timer0),
-        [timer1] "r" (timer1)
-      );
-
-  /** Safeguard: We cannot handle 0 or 1 count measurements. */
+  /** Safeguard: We cannot handle 0 or 1 count measurements. *
   if (orig_timer_count <= 1) {
     send_text_P(PSTR("Unsupported timer value <= 1"));
     wdt_soft_reset();
   }
+  */
 
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
@@ -157,6 +142,30 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
 uint16_t get_duration(void)
 {
   return 0;
+}
+
+
+/** \bug Handle two uint16_t values from parameters: measurement
+ *       duration and skip_samples.
+ */
+void personality_start_measurement_sram(void)
+{
+  size_t ofs = 0;
+
+  if (personality_info.param_data_size_timer_count == 2) {
+    const void *timer_count_vp = &personality_param_sram[ofs];
+    const uint16_t *timer_count_p = timer_count_vp;
+    orig_timer_count = timer_count = *timer_count_p;
+    ofs += 2;
+  }
+
+  if (personality_info.param_data_size_skip_samples == 2) {
+    const void *skip_samples_vp = &personality_param_sram[ofs];
+    const uint16_t *skip_samples_p = skip_samples_vp;
+    orig_skip_samples = skip_samples = *skip_samples_p;
+  }
+
+  timer_init();
 }
 
 

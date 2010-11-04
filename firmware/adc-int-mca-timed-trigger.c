@@ -46,6 +46,7 @@
 #include "data-table.h"
 #include "wdt-softreset.h"
 #include "measurement-timer-adc-trigger.h"
+#include "main.h"
 
 
 /** \bug adc-int-mca-timed does not work. Measurements lead to a reboot. */
@@ -74,10 +75,20 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES,
-  /** Total number of elements in table */
-  sizeof(table)/ELEMENT_SIZE_IN_BYTES
+  ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+PERSONALITY("adc-int-mca-timed",
+            2,2,
+            10,
+            sizeof(table),
+            ELEMENT_SIZE_IN_BYTES);
+
+
+/** \todo Needs proper inclusion */
+extern volatile uint16_t last_timer_count;
 
 
 /** AD conversion complete interrupt entry point
@@ -89,22 +100,31 @@ data_table_info_t data_table_info = {
   */
 ISR(ADC_vect)
 {
-  /* downsampling of analog data as a multiple of timer_multiple      */
-  if (orig_timer_count == timer_multiple) {
-      /* Read analog value */
-      uint16_t result = ADCW;
-      /* cut off 2, 1 or 0 LSB */
-      const uint16_t index = result >> (10-ADC_RESOLUTION);
-      /* For 24bit values, the source code looks a little more complicated
-       * than just table[index]++ (even though the generated machine
-       * instructions are not).  Anyway, we needed to move the increment
-       * into a properly defined _inc function.
-       */
-       volatile table_element_t *element = &(table[index]);
-       table_element_inc(element);
-       timer_multiple = 0;
+  /* downsampling of analog data via skip_samples */
+  if (skip_samples == 0) {
+    /* Read analog value */
+    uint16_t result = ADCW;
+    /* cut off 2, 1 or 0 LSB */
+    const uint16_t index = result >> (10-ADC_RESOLUTION);
+    /* For 24bit values, the source code looks a little more complicated
+     * than just table[index]++ (even though the generated machine
+     * instructions are not).  Anyway, we needed to move the increment
+     * into a properly defined _inc function.
+     */
+    volatile table_element_t *element = &(table[index]);
+    table_element_inc(element);
+    skip_samples = orig_skip_samples;
   } else {
-       timer_multiple++;
+    skip_samples--;
+  }
+
+  /* measurement duration */
+  if (!measurement_finished) {
+    last_timer_count = timer_count;
+    timer_count--;
+    if (timer_count == 0) {
+      measurement_finished = 1;
+    }
   }
 
   /** \todo really necessary? */
@@ -178,15 +198,6 @@ void all_init(void)
 void all_init(void)
 {
   adc_init();
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("adc-int-mca-timed-trigger"));
 }
 
 

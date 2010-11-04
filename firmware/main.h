@@ -55,6 +55,10 @@ extern volatile uint8_t measurement_finished;
 void on_measurement_finished(void);
 
 
+void personality_start_measurement_sram(void);
+void personality_start_measurement_eeprom(void);
+
+
 #endif /* MAIN_H */
 
 /** @} */

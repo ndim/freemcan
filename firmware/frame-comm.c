@@ -37,7 +37,7 @@ void frame_start(const frame_type_t frame_type,
                  const size_t payload_size)
 {
   /* reset the checksum state */
-  uart_checksum_reset();
+  uart_send_checksum_reset();
 
   /* Send frame header magic value.  The uint32_t type avoids the
    * global .data space use a char array would cause. */
@@ -58,7 +58,7 @@ void frame_start(const frame_type_t frame_type,
 void frame_end(void)
 {
   /* send the final checksum */
-  uart_checksum_send();
+  uart_send_checksum();
 }
 
 

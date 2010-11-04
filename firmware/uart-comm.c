@@ -35,6 +35,7 @@
 #include "global.h"
 
 #include "uart-defs.h"
+#include "checksum.h"
 
 
 /* We want to avoid switching to double speed mode as long as
@@ -84,6 +85,10 @@
 #define UBRRH_VALUE (UBRR_VALUE >> 8)
 
 
+static checksum_accu_t cs_accu_send;
+static checksum_accu_t cs_accu_recv;
+
+
 /** USART0 initialisation to 8 databits no parity
  *
  */
@@ -108,56 +113,40 @@ void uart_init(void)
    * UART_BAUDRATE. Also disable multi device mode, and do not clear
    * the TXC0 bit (you would *clear* TXC0 bit by writing a 1). */
   UCSR0A = (USE_2X<<U2X0);
-}
 
-
-/** Checksum accumulator */
-static uint16_t checksum_accu;
-
-
-/** Reset checksum state */
-void uart_checksum_reset(void)
-{
-  checksum_accu = 0x3e59;
-}
-
-
-/** Update checksum
- *
- * \todo Use a good checksum algorithm with good values.
- *
- * We are calling this function twice - so not inlining the code saves
- * us some bytes that need to be programmed into the uC. For some
- * reason, gcc inlines the code anyway.
- */
-static
-void uart_checksum_update(const char c)
-{
-  const uint8_t  n = (uint8_t)c;
-  const uint16_t x = 8*n+2*n+n;
-  const uint16_t r = (checksum_accu << 3) | (checksum_accu >> 13);
-  const uint16_t v = r ^ x;
-  checksum_accu = v;
+  cs_accu_send = checksum_reset();
+  cs_accu_recv = checksum_reset();
 }
 
 
 /** Send checksum */
-void uart_checksum_send(void)
+void uart_send_checksum(void)
 {
-  const uint8_t v = checksum_accu & 0xff;
+  const uint8_t v = cs_accu_send & 0xff;
   uart_putc((const char)v);
 }
 
 
-/** Receive a byte and verify whether it matches the checksum
+/** Check whether received byte c and matches the checksum
  *
- * \return boolean value in uint8_t
+ * \return boolean value in char
  */
-char uart_checksum_recv(void)
+char uart_recv_checksum_check(const uint8_t data)
 {
-  const uint8_t v = checksum_accu & 0xff;
-  const uint8_t c = uart_getc();
-  return (v == c);
+  const uint8_t v = cs_accu_recv & 0xff;
+  return (v == data);
+}
+
+
+void uart_send_checksum_reset(void)
+{
+  cs_accu_send = checksum_reset();
+}
+
+
+void uart_recv_checksum_reset(void)
+{
+  cs_accu_recv = checksum_reset();
 }
 
 
@@ -170,8 +159,8 @@ void uart_putc(const char c)
     /* put the char */
     UDR0 = c;
 
-    /* here would be the place to update the checksum state with c */
-    uart_checksum_update(c);
+    /* update the checksum state with c */
+    cs_accu_send = checksum_update(cs_accu_send, c);
 }
 
 
@@ -192,6 +181,13 @@ void uart_putb_P(PGM_VOID_P buf, size_t len)
 }
 
 
+/* update the checksum state with ch */
+void uart_recv_checksum_update(const char ch)
+{
+  cs_accu_recv = checksum_update(cs_accu_recv, ch);
+}
+
+
 /** Read a character from the UART */
 char uart_getc()
 {
@@ -201,9 +197,9 @@ char uart_getc()
     /* Get the character */
     const char ch = UDR0;
 
-    uart_checksum_update(ch);
     return ch;
 }
+
 
 /** @} */
 

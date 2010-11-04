@@ -145,7 +145,7 @@ static char printable(const char ch)
 
 
 /* Print hexdump of data block */
-void fmlog_data(const void *data, const size_t size)
+void fmlog_data(const char *prefix, const void *data, const size_t size)
 {
   const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=16) {
@@ -169,12 +169,12 @@ void fmlog_data(const void *data, const size_t size)
         idx += sprintf(&buf[idx], " ");
       }
     }
-    fmlog("%s", buf);
+    fmlog("%s%s", prefix, buf);
   }
 }
 
 
-void fmlog_data32(const void *data, const size_t size)
+void fmlog_data32(const char *prefix, const void *data, const size_t size)
 {
   const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=16) {
@@ -190,12 +190,12 @@ void fmlog_data32(const void *data, const size_t size)
         idx += sprintf(&(buf[idx]), " " "    " "    ");
       }
     }
-    fmlog("%s", buf);
+    fmlog("%s%s", prefix, buf);
   }
 }
 
 
-void fmlog_data16(const void *data, const size_t size)
+void fmlog_data16(const char *prefix, const void *data, const size_t size)
 {
   const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=16) {
@@ -211,12 +211,12 @@ void fmlog_data16(const void *data, const size_t size)
         idx += sprintf(&(buf[idx]), " " "    ");
       }
     }
-    fmlog("%s", buf);
+    fmlog("%s%s", prefix, buf);
   }
 }
 
 
-void fmlog_data24(const void *data, const size_t size)
+void fmlog_data24(const char *prefix, const void *data, const size_t size)
 {
   const uint8_t *b = (const uint8_t *)data;
   for (size_t y=0; y<size; y+=24) {
@@ -235,13 +235,13 @@ void fmlog_data24(const void *data, const size_t size)
         idx += sprintf(&(buf[idx]), " " "    " "  ");
       }
     }
-    fmlog("%s", buf);
+    fmlog("%s%s", prefix, buf);
   }
 }
 
 
 /* documented in freemcan-log.h */
-void fmlog_value_table(const uint32_t *elements, const size_t count)
+void fmlog_value_table(const char *prefix, const uint32_t *elements, const size_t count)
 {
   /* Find largest element in array */
   uint32_t max = 0;
@@ -278,7 +278,7 @@ void fmlog_value_table(const uint32_t *elements, const size_t count)
       }
       idx += sprintf(&(line[idx]), fmt, elements[y+x]);
     }
-    fmlog("%s", line);
+    fmlog("%s%s", prefix, line);
   }
 }
 

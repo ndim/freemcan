@@ -130,12 +130,51 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 }
 
 
-void tui_device_send_measure_command(const uint16_t seconds)
+typedef struct {
+  /* to be read by firmware, needs endianness conversion */
+  uint16_t _a;
+
+  /* sent back as-is, not interpreted by firmware in any way */
+  time_t start_time;
+} __attribute__((packed)) measure_params_16_t;
+
+
+typedef struct {
+  /* to be read by firmware, needs endianness conversion */
+  uint16_t _a;
+  uint16_t _b;
+
+  /* sent back as-is, not interpreted by firmware in any way */
+  time_t start_time;
+} __attribute__((packed)) measure_params_16_16_t;
+
+
+void tui_device_send_command_16(const frame_cmd_t cmd,
+                                const time_t ts,
+                                const uint16_t a)
 {
-  const time_t start_time = time(NULL);
-  /* We ignore the issues surrounding the 32bit vs 64bit time_t conversion */
-  const uint32_t token = (uint32_t)start_time;
-  device_send_command_u16_u32(device, FRAME_CMD_MEASURE, seconds, token);
+  measure_params_16_t params = {
+    htole16(a),
+    ts
+  };
+  device_send_command_with_params(device, cmd,
+                                  &params, sizeof(params));
+  waiting_for++;
+}
+
+
+void tui_device_send_command_16_16(const frame_cmd_t cmd,
+                                   const time_t ts,
+                                   const uint16_t a,
+                                   const uint16_t b)
+{
+  measure_params_16_16_t params = {
+    htole16(a),
+    htole16(b),
+    ts
+  };
+  device_send_command_with_params(device, cmd,
+                                  &params, sizeof(params));
   waiting_for++;
 }
 
@@ -168,6 +207,7 @@ int main(int argc, char *argv[])
   /** startup messages */
   tui_startup_messages();
 
+  tui_device_send_simple_command(FRAME_CMD_PERSONALITY_INFO);
   tui_device_send_simple_command(FRAME_CMD_STATE);
 
   /** main loop */

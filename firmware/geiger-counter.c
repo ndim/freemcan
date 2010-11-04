@@ -73,10 +73,16 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_TIME_SERIES,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES,
-  /** Total number of elements in table */
-  sizeof(counter)
+  ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+PERSONALITY("geiger-counter",
+            2,0,
+            1,
+            sizeof(counter),
+            ELEMENT_SIZE_IN_BYTES);
 
 
 /** Initialize peripherals
@@ -175,15 +181,6 @@ void trigger_src_conf(void)
      * register). we do not want to jump to the ISR in case of an interrupt
      * so we do not set this bit  */
     EIMSK |= (_BV(INT0));
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("geiger-counter"));
 }
 
 

@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/uio.h>
 
 
 #include "freemcan-checksum.h"
@@ -170,57 +171,105 @@ void device_close(device_t *self)
 }
 
 
+void checksum_update_iovec(checksum_t *cs, struct iovec *iov)
+{
+  const uint8_t *buf = iov->iov_base;
+  const size_t  size = iov->iov_len;
+  for (size_t i=0; i<size; i++) {
+    checksum_update(cs, buf[i]);
+  }
+}
+
+
+extern bool enable_layer1_dump;
+
+ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+  if (enable_layer1_dump) {
+    size_t size = 0;
+    for (int i=0; i<iovcnt; i++) {
+      size += iov[i].iov_len;
+    }
+    uint8_t *buf = malloc(size);
+    assert(buf != NULL);
+    for (ssize_t i=0, ofs=0; i<iovcnt; i++) {
+      memcpy(&buf[ofs], iov[i].iov_base, iov[i].iov_len);
+      ofs += iov[i].iov_len;
+    }
+    fmlog(">Sending 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog_data(">>", buf, size);
+    free(buf);
+  }
+  if (enable_layer2_dump) {
+    static bool done_once = false;
+    if (!done_once) {
+      fmlog(">Sending data (layer 2 dump not implemented yet, use layer 1 dump for sending)");
+      done_once = true;
+    }
+  }
+  return writev(fd, iov, iovcnt);
+}
+
+
 void device_send_command(device_t *self, const frame_cmd_t cmd)
 {
   const int fd = self->fd;
   if (fd > 0) {
-    fmlog("Sending '%c' command to device", cmd);
+    fmlog(">Sending '%c' command to device", cmd);
   } else {
     fmlog("Not sending '%c' command to closed device", cmd);
     return;
   }
 
-  const uint8_t cmd8 = cmd;
-  write(fd, &cmd8, 1);
+  checksum_t *cs = checksum_new();
+  uint8_t cmd8 = cmd;
+  uint8_t len8 = 0;
+  struct iovec out[4] = {
+    { FRAME_MAGIC_STR, 4 },
+    { &cmd8, 1 },
+    { &len8, 1 }
+  };
+  for (int i=0; i<3; i++) {
+    checksum_update_iovec(cs, &out[i]);
+  }
+  uint8_t checksum = checksum_get(cs);
+  checksum_unref(cs);
+  out[3].iov_base = (void *)&checksum;
+  out[3].iov_len = sizeof(checksum);
+  my_writev(fd, out, 4);
 }
 
 
-void device_send_command_u16_u32(device_t *self, const frame_cmd_t cmd,
-                                 const uint16_t p16, const uint32_t p32)
+void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
+                                     void *params, const size_t param_size)
 {
   const int fd = self->fd;
   if (fd > 0) {
-    fmlog("Sending '%c'(%u=0x%x, %u=0x%x) command to device",
-          cmd, p16, p16, p32, p32);
+    fmlog(">Sending '%c' command to device with params", cmd);
+    fmlog_data(">>", params, param_size);
   } else {
-    fmlog("Not sending '%c'(%u=0x%x, %u=0x%x) command to closed device",
-          cmd, p16, p16, p32, p32);
+    fmlog("|Not sending '%c' command to closed device", cmd);
+    fmlog_data(">|", params, param_size);
     return;
   }
 
   checksum_t *cs = checksum_new();
-  const uint8_t cmd8 = cmd;
-  write(fd, &cmd8, 1);
-  checksum_update(cs, cmd8);
-
-  const uint8_t byte0 = ((p16>>0) & 0xff);
-  checksum_update(cs, byte0);
-  const uint8_t byte1 = ((p16>>8) & 0xff);
-  checksum_update(cs, byte1);
-  write(fd, &p16, sizeof(p16));
-
-  const uint8_t t0 = (p32>> 0) & 0xff;
-  checksum_update(cs, t0);
-  const uint8_t t1 = (p32>> 8) & 0xff;
-  checksum_update(cs, t1);
-  const uint8_t t2 = (p32>>16) & 0xff;
-  checksum_update(cs, t2);
-  const uint8_t t3 = (p32>>24) & 0xff;
-  checksum_update(cs, t3);
-  write(fd, &p32, sizeof(p32));
-
-  checksum_write(cs, fd);
+  uint8_t cmd8 = cmd;
+  uint8_t len8 = param_size;
+  struct iovec out[5] = {
+    { FRAME_MAGIC_STR, 4 },
+    { &cmd8, 1 },
+    { &len8, 1 },
+    { params, param_size }
+  };
+  for (int i=0; i<4; i++) {
+    checksum_update_iovec(cs, &out[i]);
+  }
+  uint8_t checksum = checksum_get(cs);
   checksum_unref(cs);
+  out[4].iov_base = (void *)&checksum;
+  out[4].iov_len = sizeof(checksum);
+  my_writev(fd, out, 5);
 }
 
 
@@ -242,8 +291,8 @@ void device_do_io(device_t *self)
       /* Logging this by default becomes tedious quickly with larger
        * amounts of data, so we comment this out for now.
        */
-      fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
-      fmlog_data(buf, read_bytes);
+      fmlog("<Received %d bytes from device at fd %d", read_bytes, fd);
+      fmlog_data("<<", buf, read_bytes);
     }
     frame_parser_bytes(self->frame_parser, buf, read_bytes);
 }

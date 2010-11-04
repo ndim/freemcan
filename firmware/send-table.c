@@ -95,18 +95,29 @@ void send_table(const packet_value_table_reason_t reason)
   invent_histogram(duration);
 #endif
 
+  const void *voidp = personality_param_sram;
+  const uint32_t *token = (const uint32_t *)(voidp);
   packet_value_table_header_t header = {
     data_table_info.element_size,
     reason,
     data_table_info.type,
     duration,
     orig_timer_count,
-    data_table_info.total_size,
-    token
+    *token
   };
   frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + data_table_info.size);
   uart_putb((const void *)&header, sizeof(header));
   uart_putb((const void *)data_table, data_table_info.size);
+  frame_end();
+}
+
+
+void send_personality_info(void)
+{
+  frame_start(FRAME_TYPE_PERSONALITY_INFO,
+              sizeof(personality_info) + personality_name_length);
+  uart_putb((const void *)&personality_info, sizeof(personality_info));
+  uart_putb_P((const void *)personality_name, personality_name_length);
   frame_end();
 }
 

@@ -72,6 +72,15 @@
 static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
 static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
+static void packet_handler_personality_info(personality_info_t *pi,
+                                            void *UP(data));
+static void packet_handler_params_from_eeprom(const void *params,
+                                              const size_t size,
+                                              void *UP(data));
+
+
+personality_info_t *personality_info = NULL;
+
 
 
 bool is_measuring = false;
@@ -131,7 +140,7 @@ void update_last_received_size(const uint16_t size)
 
 
 
-/** \section tui_durations TUI Measurement Duration handling
+/** \section tui_measurement_params TUI Measurement parameter set handling
  * @{
  */
 
@@ -162,6 +171,18 @@ void fmlog_durations(void)
 {
   fmlog("Measurement duration in device clock periods: %u",
         duration_list[duration_index]);
+}
+
+
+/** Number of samples to skip (in some personalities) */
+unsigned int skip_samples = 0;
+
+
+/** Log current value of skip_samples */
+static
+void fmlog_skip_samples(void)
+{
+  fmlog("skip_samples = %u", skip_samples);
 }
 
 
@@ -303,11 +324,20 @@ void tui_fmlog_help(void)
   fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
   fmlog("2           toggle hexdump of received layer 2 data (frames)");
   fmlog("9           toggle dump of user input (typed characters)");
-  fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
+  if (personality_info) {
+    fmlog("+/-         increase/decrease measurement duration (%.3f seconds)",
+          duration_list[duration_index]*(1.0f/((float)personality_info->units_per_second)));
+  } else {
+    fmlog("+/-         increase/decrease measurement duration (%u clock periods)",
+          duration_list[duration_index]);
+  }
+  fmlog("./,         increase/decrease number of samples to skip (%u)", skip_samples);
   fmlog("a           send command \"(a)bort\"");
+  fmlog("e           write measurement parameters to (e)eprom");
+  fmlog("E           read measurement parameters from (e)eprom");
+  fmlog("f           request personality in(f)ormation");
   fmlog("i           send command \"(i)ntermediate result\"");
-  fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
-        duration_list[duration_index]);
+  fmlog("m           send command \"start (m)easurement\" with adequate parameters");
   fmlog("p           toggle (p)eriodical requests of intermediate results");
   fmlog("r           send command \"(r)eset\"");
   fmlog("w           send command \"intermediate result\" and (w)rite data to file");
@@ -334,6 +364,8 @@ void tui_init()
   tui_packet_parser = packet_parser_new(packet_handler_value_table,
                                         packet_handler_state,
                                         packet_handler_text,
+                                        packet_handler_personality_info,
+                                        packet_handler_params_from_eeprom,
                                         NULL);
 
   fmlog("freemcan TUI " GIT_VERSION);
@@ -378,6 +410,38 @@ void tui_do_timeout(void)
 }
 
 
+void tui_send_parametrized_command(const bool do_measure)
+{
+  const frame_cmd_t cmd =
+    do_measure?FRAME_CMD_MEASURE:FRAME_CMD_PARAMS_TO_EEPROM;
+  /* We cannot know when the measurement will be started with the
+   * parameters in the EEPROM, so we clearly mark this one with a
+   * start_time of 0 which cannot be mistaken for a contemporary
+   * time_t value.
+   */
+  const time_t ts =
+    do_measure?time(NULL):0;
+  if (personality_info) {
+    if ((personality_info->param_data_size_timer_count == 2) &&
+        (personality_info->param_data_size_skip_samples == 2)) {
+      tui_device_send_command_16_16(cmd, ts, last_sent_duration, skip_samples);
+    } else if ((personality_info->param_data_size_timer_count == 0) &&
+               (personality_info->param_data_size_skip_samples == 2)) {
+      tui_device_send_command_16(cmd, ts, skip_samples);
+    } else if ((personality_info->param_data_size_timer_count == 2) &&
+               (personality_info->param_data_size_skip_samples == 0)) {
+      tui_device_send_command_16(cmd, ts, last_sent_duration);
+    } else {
+      fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
+            personality_info->param_data_size_timer_count,
+            personality_info->param_data_size_skip_samples);
+    }
+  } else {
+    fmlog("Missing personality_info");
+  }
+}
+
+
 /** Do TUI's IO stuff if necessary (from select or poll loop)
  */
 void tui_do_io(void)
@@ -393,8 +457,8 @@ void tui_do_io(void)
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
     if (enable_user_input_dump) {
-      fmlog("Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
-      fmlog_data(buf, read_bytes);
+      fmlog("<Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
+      fmlog_data("<<", buf, read_bytes);
     }
     for (ssize_t i=0; i<read_bytes; i++) {
       /* handle a few key input things internally */
@@ -440,6 +504,16 @@ void tui_do_io(void)
       case 'H':
         tui_fmlog_help();
         break;
+      case '.':
+        skip_samples++;
+        fmlog_skip_samples();
+        break;
+      case ',':
+        if (skip_samples > 0) {
+          skip_samples--;
+          fmlog_skip_samples();
+        }
+        break;
       case '+':
         if (duration_list[duration_index+1] != 0) {
           ++duration_index;
@@ -452,15 +526,25 @@ void tui_do_io(void)
           fmlog_durations();
         }
         break;
+      case 'f':
+        tui_device_send_simple_command(FRAME_CMD_PERSONALITY_INFO);
+        break;
       case 'm':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        tui_device_send_measure_command(last_sent_duration);
+        tui_send_parametrized_command(true);
+        break;
+      case 'e':
+        last_sent_duration = duration_list[duration_index];
+        recalculate_periodic_interval();
+        tui_send_parametrized_command(false);
+        break;
+      case 'E':
+        tui_device_send_simple_command(FRAME_CMD_PARAMS_FROM_EEPROM);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
-      case ' ':
         tui_device_send_simple_command(buf[i]);
         break;
       case 'i':
@@ -519,7 +603,7 @@ static void packet_handler_state(const char *state, void *UP(data))
   if (waiting_for > 0) {
     waiting_for--;
   }
-  fmlog("STATE: %s", state);
+  fmlog("<STATE: %s", state);
   bool new_is_measuring = (strcmp("MEASURING", state) == 0);
   if (new_is_measuring != is_measuring) {
     if (new_is_measuring) {
@@ -536,7 +620,38 @@ static void packet_handler_text(const char *text, void *UP(data))
   if (waiting_for > 0) {
     waiting_for--;
   }
-  fmlog("TEXT: %s", text);
+  fmlog("<TEXT: %s", text);
+}
+
+
+/** Parameter data from EEPROM */
+static void packet_handler_params_from_eeprom(const void *params,
+                                              const size_t size,
+                                              void *UP(data))
+{
+  fmlog("<EEPROM PARAMS:");
+  fmlog_data("<<", params, size);
+}
+
+
+/** Firmware personality info packet handler (TUI specific) */
+static void packet_handler_personality_info(personality_info_t *pi,
+                                            void *UP(data))
+{
+  fmlog("<PERSONALITY INFO: personality_name:\"%s\" units_per_second=%u",
+        pi->personality_name, pi->units_per_second);
+  fmlog("<                  sizeof_table:%u sizeof_value:%u",
+        pi->sizeof_table, pi->sizeof_value);
+  fmlog("<                  sz(timer_count):%u sz(skip_samples):%u",
+        pi->param_data_size_timer_count, pi->param_data_size_skip_samples);
+  fmlog("<                  %u elements of %ubits each",
+
+        pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
+  if (personality_info) {
+    personality_info_unref(personality_info);
+  }
+  personality_info_ref(pi);
+  personality_info = pi;
 }
 
 
@@ -567,14 +682,14 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
     snprintf(type_str, sizeof(type_str), "0x%02x=%d", type, type);
   }
   snprintf(buf, sizeof(buf),
-           "Received %s type value table for reason %s: %%d elements, %%d seconds:",
+           "<Received %s type value table for reason %s: %%d elements, %%d seconds:",
            type_str, reason_str);
 
   fmlog(buf, element_count, value_table_packet->duration);
-  fmlog_value_table(value_table_packet->elements, element_count);
+  fmlog_value_table("< ", value_table_packet->elements, element_count);
 
   /* export current value table to file(s) */
-  export_value_table(value_table_packet);
+  export_value_table(personality_info, value_table_packet);
 
   packet_value_table_unref(value_table_packet);
 }

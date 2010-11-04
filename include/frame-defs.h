@@ -129,26 +129,39 @@
 /** Header magic marker value for data frames to host, AVR uint32_t version.
  *
  * This is good for the little endian AVR controller.
+ *
+ * Note: Must be kept in sync with #FRAME_MAGIC_STR.
  */
 #define FRAME_MAGIC_LE_U32  \
   ( \
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
    (((uint32_t)'p')<<16) |			\
-   (((uint32_t)'k')<<24)			\
+   (((uint32_t)'f')<<24)			\
     )
+
 
 /** Header magic marker value for data frames to host, string version.
  *
  * This is good for endianness independent char-by-char receivers.
+ *
+ * Note: Must be kept in sync with #FRAME_MAGIC_LE_U32.
+ * Note: Must not contain the same character twice.
  */
-#define FRAME_MAGIC_STR "FMpk"
+#define FRAME_MAGIC_STR "FMpf"
+
 
 /** Data frame types (data frame to host)
  *
  * The values are all upper case ASCII letters.
  */
 typedef enum {
+
+  /** param data from EEPROM */
+  FRAME_TYPE_PARAMS_FROM_EEPROM = 'E',
+
+  /** text message for reporting and debugging */
+  FRAME_TYPE_PERSONALITY_INFO = 'P',
 
   /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
@@ -170,6 +183,15 @@ typedef enum {
 
   /** Start new measurement */
   FRAME_CMD_MEASURE = 'm',
+
+  /** Send parameters for new measurement triggered by hardware switch, store in EEPROM */
+  FRAME_CMD_PARAMS_TO_EEPROM = 'e',
+
+  /** Read parameters for new measurement from EEPROM */
+  FRAME_CMD_PARAMS_FROM_EEPROM = 'E',
+
+  /** Request firmware personality information */
+  FRAME_CMD_PERSONALITY_INFO = 'f',
 
   /** Transmit intermediate results, then resume measurement */
   FRAME_CMD_INTERMEDIATE = 'i',

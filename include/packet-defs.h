@@ -88,6 +88,10 @@ typedef enum {
 } packet_value_table_reason_t;
 
 
+/** Maximum length of parameter block in bytes */
+#define MAX_PARAM_LENGTH 16
+
+
 /** Value table packet header
  *
  * \todo Verify the compiler does not do strange alignment things.
@@ -114,11 +118,24 @@ typedef struct {
   uint16_t duration;
   /** total duration (of the measurement in progress) */
   uint16_t total_duration;
-  /** total table size in bytes (for time series) */
-  uint16_t total_table_size;
   /** token - a value sent back unchanged */
   uint32_t token;
 } __attribute__ ((packed)) packet_value_table_header_t;
+
+
+
+typedef struct {
+  /** Maximum size of the complete table in byte */
+  uint16_t sizeof_table;
+  /** Size of a single table value in byte */
+  uint16_t sizeof_value;
+  /** Time units per second */
+  uint8_t units_per_second;
+  /** Size of measurement command's parameter elements */
+  uint8_t param_data_size_timer_count;
+  uint8_t param_data_size_skip_samples;
+} __attribute__ ((packed)) packet_personality_info_t;
+
 
 
 /** @} */

@@ -28,16 +28,21 @@
 
 #include <avr/pgmspace.h>
 
+#include <stdint.h>
 #include <stdlib.h>
+
 
 void uart_putc(const char c);
 void uart_putb(const void *buf, size_t len);
 void uart_putb_P(PGM_VOID_P buf, size_t len);
 char uart_getc(void);
 
-void uart_checksum_reset(void);
-void uart_checksum_send(void);
-char uart_checksum_recv(void);
+void uart_send_checksum_reset(void);
+void uart_send_checksum(void);
+
+void uart_recv_checksum_reset(void);
+void uart_recv_checksum_update(const char ch);
+char uart_recv_checksum_check(const uint8_t data);
 
 /** @} */
 

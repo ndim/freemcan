@@ -1,5 +1,3 @@
-hostware: Dump outgoing bytes - perhaps even as pcap file? :)
-
 hostware: Allow setting measurement intervals on command line.
 
 hostware: Allow giving commands on command line.
@@ -14,14 +12,6 @@ hostware: For time series data, when receiving a value table, use
 
 hostware: At least for time series value tables, link against libR.so
           and directly let R plot statistics.
-
-protocol: Transmit total table size in elements or something similar,
-          so that the hostware can figure out how long the currently
-          running time series measurement will still take.
-
-protocol: On startup, send machine readable information about
-          installed firmware personality (time series vs. histogram,
-          element size in bytes, number of elements in table)???
 
 firmware: Start measurement without RS232 (pressing of a switch
           or similar). Problem: With what duration - from EEPROM?

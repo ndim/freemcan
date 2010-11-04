@@ -70,9 +70,15 @@ data_table_info_t data_table_info = {
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
   ELEMENT_SIZE_IN_BYTES,
-  /** Total number of elements in table */
-  sizeof(table)/ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+PERSONALITY("adc-int-mca",
+            2,0,
+            1,
+            sizeof(table),
+            ELEMENT_SIZE_IN_BYTES);
 
 
 /** Initialize peripherals
@@ -239,15 +245,6 @@ void adc_init(void)
   /** configure AREF at pin 32 and single shot auto trigger over int0
    * at pin 40 ADC0 */
   adc_int_init();
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("adc-int-mca"));
 }
 
 

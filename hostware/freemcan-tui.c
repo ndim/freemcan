@@ -500,12 +500,34 @@ void tui_do_io(void)
       case 'm':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        tui_device_send_measure_command(last_sent_duration);
+        switch (personality_info->param_data_size) {
+        case 2:
+          tui_device_send_measure_command_seconds(last_sent_duration);
+          break;
+        case 4:
+          tui_device_send_measure_command_seconds_skip(last_sent_duration, skip_samples);
+          break;
+        default:
+          fmlog("Invalid personality_info->param_data_size = %u",
+                personality_info->param_data_size);
+          break;
+        }
         break;
       case 'e':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        tui_device_send_params_command(last_sent_duration);
+        switch (personality_info->param_data_size) {
+        case 2:
+          tui_device_send_params_command_seconds(last_sent_duration);
+          break;
+        case 4:
+          tui_device_send_params_command_seconds_skip(last_sent_duration, skip_samples);
+          break;
+        default:
+          fmlog("Invalid personality_info->param_data_size = %u",
+                personality_info->param_data_size);
+          break;
+        }
         break;
       case 'E':
         tui_device_send_simple_command(FRAME_CMD_PARAMS_FROM_EEPROM);

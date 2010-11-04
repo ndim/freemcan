@@ -136,12 +136,22 @@ typedef struct {
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
-} __attribute__((packed)) measure_params_t;
+} __attribute__((packed)) measure_params_seconds_t;
 
 
-void tui_device_send_measure_command(const uint16_t seconds)
+typedef struct {
+  /* to be read by firmware, needs endianness conversion */
+  uint16_t _seconds;
+  uint16_t _skip_samples;
+
+  /* sent back as-is, not interpreted by firmware in any way */
+  time_t start_time;
+} __attribute__((packed)) measure_params_seconds_skip_t;
+
+
+void tui_device_send_measure_command_seconds(const uint16_t seconds)
 {
-  measure_params_t params = {
+  measure_params_seconds_t params = {
     htole16(seconds),
     time(NULL)
   };
@@ -151,10 +161,42 @@ void tui_device_send_measure_command(const uint16_t seconds)
 }
 
 
-void tui_device_send_params_command(const uint16_t seconds)
+void tui_device_send_params_command_seconds(const uint16_t seconds)
 {
-  measure_params_t params = {
+  measure_params_seconds_t params = {
     htole16(seconds),
+    /* We cannot know when the measurement will be started with these
+     * parameters, so we clearly mark this one with a start_time of 0
+     * which cannot be mistaken for a contemporary time_t value.
+     */
+    0
+  };
+  device_send_command_with_params(device, FRAME_CMD_PARAMS_TO_EEPROM,
+                                  &params, sizeof(params));
+  waiting_for++;
+}
+
+
+void tui_device_send_measure_command_seconds_skip(const uint16_t seconds,
+                                                  const uint16_t skip_samples)
+{
+  measure_params_seconds_skip_t params = {
+    htole16(seconds),
+    htole16(skip_samples),
+    time(NULL)
+  };
+  device_send_command_with_params(device, FRAME_CMD_MEASURE,
+                                  &params, sizeof(params));
+  waiting_for++;
+}
+
+
+void tui_device_send_params_command_seconds_skip(const uint16_t seconds,
+                                                 const uint16_t skip_samples)
+{
+  measure_params_seconds_skip_t params = {
+    htole16(seconds),
+    htole16(skip_samples),
     /* We cannot know when the measurement will be started with these
      * parameters, so we clearly mark this one with a start_time of 0
      * which cannot be mistaken for a contemporary time_t value.

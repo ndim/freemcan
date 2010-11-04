@@ -116,7 +116,7 @@ void send_personality_info(void)
 {
   frame_start(FRAME_TYPE_PERSONALITY_INFO,
               sizeof(personality_info) + personality_name_length);
-  uart_putb((const void *)&personality_info, sizeof(personality_info));
+  uart_putb_P((const void *)&personality_info, sizeof(personality_info));
   uart_putb_P((const void *)personality_name, personality_name_length);
   frame_end();
 }

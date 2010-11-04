@@ -53,7 +53,7 @@
                     UNITS_PER_SECOND,                               \
                     MAX_BYTES_PER_TABLE,                            \
                     TABLE_ELEMENT_SIZE)                             \
-  const packet_personality_info_t personality_info = {              \
+  const packet_personality_info_t personality_info PROGMEM = {      \
     MAX_BYTES_PER_TABLE,                                            \
     TABLE_ELEMENT_SIZE,                                             \
     UNITS_PER_SECOND,                                               \
@@ -71,7 +71,7 @@ extern const uint8_t personality_param_size;
 extern uint8_t personality_param_sram[];
 extern uint8_t personality_param_eeprom[] EEMEM;
 
-extern const packet_personality_info_t personality_info;
+extern const packet_personality_info_t personality_info PROGMEM;
 
 
 /** The data table as an opaque array of bytes

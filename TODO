@@ -27,6 +27,12 @@ firmware: Start measurement without RS232 (pressing of a switch
           or similar). Problem: With what duration - from EEPROM?
 	  Hardware: Pin PB0, internal (for now) pullup, switch to GND.
 
+firmware: Put EEPROM parameter block to a different place for each
+          personality, so that changing the personality code does not
+          require changing the parameters in EEPROM. Would only make
+          sense if avrdude could program the flash without touching
+          the EEPROM - which it cannot (or the ATmega cannot).
+
 firmware: Device Signature
 
 protocol: Migrate to CRC16 checksum using <util/crc16.h> on AVR,

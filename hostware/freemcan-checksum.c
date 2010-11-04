@@ -99,6 +99,13 @@ void checksum_write(checksum_t *self, const int fd)
 }
 
 
+uint8_t checksum_get(checksum_t *self)
+{
+  const uint8_t checksum = (self->checksum_accu & 0xff);
+  return checksum;
+}
+
+
 void checksum_update(checksum_t *self, const uint8_t value)
 {
   const uint8_t  n = (uint8_t)value;

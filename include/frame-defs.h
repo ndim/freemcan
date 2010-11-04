@@ -158,6 +158,9 @@
 typedef enum {
 
   /** text message for reporting and debugging */
+  FRAME_TYPE_PERSONALITY_INFO = 'P',
+
+  /** text message for reporting and debugging */
   FRAME_TYPE_TEXT = 'T',
 
   /** value table data */
@@ -177,6 +180,12 @@ typedef enum {
 
   /** Start new measurement */
   FRAME_CMD_MEASURE = 'm',
+
+  /** Send parameters for new measurement triggered by hardware switch, store in EEPROM */
+  FRAME_CMD_PARAMS = 'p',
+
+  /** Request firmware personality information */
+  FRAME_CMD_PERSONALITY_INFO = 'f',
 
   /** Transmit intermediate results, then resume measurement */
   FRAME_CMD_INTERMEDIATE = 'i',

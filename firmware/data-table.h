@@ -30,8 +30,17 @@
 
 
 #include <stdlib.h>
+#include <avr/pgmspace.h>
 
 #include "packet-defs.h"
+
+
+#define PERSONALITY_NAME(STRING)                                \
+  const char personality_name[] PROGMEM = STRING;                \
+  const uint8_t personality_name_length = sizeof(STRING)-1
+
+extern const char personality_name[] PROGMEM;
+extern const uint8_t personality_name_length;
 
 
 /** The data table as an opaque array of bytes
@@ -51,9 +60,6 @@ typedef struct {
 
   /** The size of a single table element */
   uint8_t element_size;
-
-  /** Total number of bytes in table */
-  size_t total_size;
 } data_table_info_t;
 
 
@@ -62,6 +68,9 @@ extern data_table_info_t data_table_info;
 
 /** set by main(), read by send_table(), unused by anybody else */
 extern uint32_t token;
+
+
+extern packet_personality_info_t personality_info;
 
 
 /** @} */

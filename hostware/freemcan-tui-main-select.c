@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
   /** startup messages */
   tui_startup_messages();
 
+  tui_device_send_simple_command(FRAME_CMD_PERSONALITY_INFO);
   tui_device_send_simple_command(FRAME_CMD_STATE);
 
   /** main loop */

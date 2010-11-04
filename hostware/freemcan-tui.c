@@ -72,7 +72,8 @@
 static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
 static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
-
+static void packet_handler_personality_info(personality_info_t *pi,
+                                            void *UP(data));
 
 bool is_measuring = false;
 int waiting_for = 0;
@@ -305,6 +306,7 @@ void tui_fmlog_help(void)
   fmlog("9           toggle dump of user input (typed characters)");
   fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
   fmlog("a           send command \"(a)bort\"");
+  fmlog("f           request (f)irmware personality information");
   fmlog("i           send command \"(i)ntermediate result\"");
   fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
         duration_list[duration_index]);
@@ -334,6 +336,7 @@ void tui_init()
   tui_packet_parser = packet_parser_new(packet_handler_value_table,
                                         packet_handler_state,
                                         packet_handler_text,
+                                        packet_handler_personality_info,
                                         NULL);
 
   fmlog("freemcan TUI " GIT_VERSION);
@@ -452,6 +455,9 @@ void tui_do_io(void)
           fmlog_durations();
         }
         break;
+      case 'f':
+        tui_device_send_simple_command(FRAME_CMD_PERSONALITY_INFO);
+        break;
       case 'm':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
@@ -513,6 +519,9 @@ void atexit_func(void)
 /************************************************************************/
 
 
+personality_info_t *personality_info = NULL;
+
+
 /** State data packet handler (TUI specific) */
 static void packet_handler_state(const char *state, void *UP(data))
 {
@@ -537,6 +546,23 @@ static void packet_handler_text(const char *text, void *UP(data))
     waiting_for--;
   }
   fmlog("TEXT: %s", text);
+}
+
+
+/** Firmware personality info packet handler (TUI specific) */
+static void packet_handler_personality_info(personality_info_t *pi,
+                                            void *UP(data))
+{
+  fmlog("PERSONALITY INFO: personality_name:%s sizeof_table:%u sizeof_value:%u",
+        pi->personality_name,
+        pi->sizeof_table, pi->sizeof_value);
+  fmlog("                  %u elements of %ubits each",
+        pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
+  if (personality_info) {
+    personality_info_unref(personality_info);
+  }
+  personality_info_ref(pi);
+  personality_info = pi;
 }
 
 
@@ -574,7 +600,7 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
   fmlog_value_table(value_table_packet->elements, element_count);
 
   /* export current value table to file(s) */
-  export_value_table(value_table_packet);
+  export_value_table(personality_info, value_table_packet);
 
   packet_value_table_unref(value_table_packet);
 }

@@ -1,5 +1,5 @@
-/** \file firmware/send-table.h
- * \brief Send Table of Measured Data
+/** \file firmware/checksum.h
+ * \brief Communication checksum interface
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,27 +19,31 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup send_table
+ * \addtogroup checksum
  * @{
  */
 
-#ifndef SEND_TABLE_H
-#define SEND_TABLE_H
+
+#ifndef CHECKSUM_H
+#define CHECKSUM_H
 
 
-#include "packet-comm.h"
+#include <stdint.h>
 
 
-/* documented in send-table.c */
-void send_table(const packet_value_table_reason_t type);
+typedef uint16_t checksum_accu_t;
 
 
-void send_personality_info(void);
+checksum_accu_t checksum_reset(void);
+
+
+checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t c);
+
+
+#endif
 
 
 /** @} */
-
-#endif /* SEND_TABLE_H */
 
 
 /*

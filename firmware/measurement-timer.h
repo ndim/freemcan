@@ -74,7 +74,7 @@ extern volatile uint16_t orig_timer_count;
 
 
 /** Initialize the 16bit timer */
-void timer_init(const uint8_t timer0, const uint8_t timer1);
+void timer_init(const uint16_t timer_value);
 
 
 /** Make timer run more quickly */

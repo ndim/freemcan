@@ -266,6 +266,7 @@ invented-histogram.o: invented-histogram.bin
 # Define the common object files.
 # The object files specific to firmware personalities will not be listed here.
 COMMON_OBJ += main.o
+COMMON_OBJ += checksum.o
 COMMON_OBJ += uart-comm.o
 COMMON_OBJ += frame-comm.o
 COMMON_OBJ += packet-comm.o
@@ -308,26 +309,8 @@ firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc
 PERSONALITIES += adc-int-timed-sampling
 firmware-adc-int-timed-sampling.elf : LDFLAGS += -T time-series-table.x
 firmware-adc-int-timed-sampling.elf : time-series-table.x
-firmware-adc-int-timed-sampling.elf : adc-int-timed-sampling.element-size.txt
 firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc-trigger.o adc-int-timed-sampling.o
-	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
-	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
-	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
-	ELEMENT_SIZE_BYTES="$$(cat adc-int-timed-sampling.element-size.txt)"; \
-	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
-	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
-	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
-	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
-	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
-
-# Extract size of a single table element in bytes
-CLEANFILES += adc-int-timed-sampling.element-size.txt
-adc-int-timed-sampling.element-size.txt: adc-int-timed-sampling.o
-	@set -e; \
-	rm -f $@; \
-	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
-	od -An -t u2 $@.$$$$ | { read value restofline; echo "$$value"; } > $@; \
-	rm -f $@.$$$$
+	$(LINK.c) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Geiger Counter without time series
@@ -340,26 +323,8 @@ firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-s
 PERSONALITIES += geiger-ts
 firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
 firmware-geiger-ts.elf : time-series-table.x
-firmware-geiger-ts.elf : geiger-time-series.element-size.txt
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-simple.o geiger-time-series.o
-	$(LINK.c) $(filter-out time-series-table.x %.txt,$^) $(LDLIBS) --output $@
-	$(NM) $@ | $(AWK) '/data_table_size/ { printf "%5d %s\n", strtonum("0x"$$1), $$3; }'
-	@DATA_TABLE_SIZE_BYTES="$$($(NM) $@ | $(AWK) '($$3 == "data_table_size") { print strtonum("0x"$$1); }')"; \
-	ELEMENT_SIZE_BYTES="$$(cat geiger-time-series.element-size.txt)"; \
-	DATA_TABLE_SIZE="$$(expr "$$DATA_TABLE_SIZE_BYTES" / "$$ELEMENT_SIZE_BYTES")"; \
-	ELEMENT_SIZE_BIT="$$(expr 8 \* "$$ELEMENT_SIZE_BYTES")"; \
-	STR="$$(printf "data table of %4d elements of %2dbit each" "$$DATA_TABLE_SIZE" "$$ELEMENT_SIZE_BIT")"; \
-	echo $(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@; \
-	$(SED) -b -i "s/data table of #### elements of ##bit each/$${STR}/" $@
-
-# Extract size of a single table element in bytes
-CLEANFILES += geiger-time-series.element-size.txt
-geiger-time-series.element-size.txt: geiger-time-series.o
-	@set -e; \
-	rm -f $@; \
-	$(OBJCOPY) -j .data.sizeof -O binary $< $@.$$$$; \
-	od -An -t u2 $@.$$$$ | { read value restofline; echo "$$value"; } > $@; \
-	rm -f $@.$$$$
+	$(LINK.c) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@
 
 
 ########################################################################
@@ -439,7 +404,7 @@ MALLOC_HEAP_SIZE = 64
 # maximum stack size that can appear at runtime). We just about assume
 # this value, but have a consistency check lower down in the form of
 # the check-min-stack-size-%.check target.
-MIN_STACK_SIZE = 118
+MIN_STACK_SIZE = 256
 
 # Check that the minimum stack size we want accomodated in a firmware
 # (used for other checks) is actually less than the number of push

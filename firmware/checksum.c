@@ -1,5 +1,5 @@
-/** \file firmware/send-table.h
- * \brief Send Table of Measured Data
+/** \file firmware/checksum.c
+ * \brief Communication checksum implementation
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,27 +19,45 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup send_table
+ * \defgroup checksum Communication checksum implementation
+ * \ingroup firmware
+ *
+ * Implements the checksum for the communication protocol.
+ *
  * @{
  */
 
-#ifndef SEND_TABLE_H
-#define SEND_TABLE_H
+
+#include "checksum.h"
 
 
-#include "packet-comm.h"
+/** Reset checksum state */
+checksum_accu_t checksum_reset(void)
+{
+  return 0x3e59;
+}
 
 
-/* documented in send-table.c */
-void send_table(const packet_value_table_reason_t type);
+/** Update checksum
+ *
+ * \todo Use a good checksum algorithm with good values.
+ *
+ * We are calling this function twice - so not inlining the code saves
+ * us some bytes that need to be programmed into the uC. For some
+ * reason, gcc inlines the code anyway.
+ */
 
-
-void send_personality_info(void);
+checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t data)
+{
+  const uint8_t  n = data;
+  const uint16_t x = 8*n+2*n+n;
+  const uint16_t r = (accu << 3) | (accu >> 13);
+  const uint16_t v = r ^ x;
+  return v;
+}
 
 
 /** @} */
-
-#endif /* SEND_TABLE_H */
 
 
 /*

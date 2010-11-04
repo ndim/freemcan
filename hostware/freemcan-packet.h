@@ -30,6 +30,15 @@
 #include "packet-defs.h"
 
 
+/** Parsed personality info */
+typedef struct {
+  int refs;
+  size_t sizeof_table;
+  size_t sizeof_value;
+  char personality_name[];
+} personality_info_t;
+
+
 /** Parsed value table packet. */
 typedef struct {
   /** Reference counter */
@@ -57,9 +66,6 @@ typedef struct {
   /** Total scheduled duration of the measurement in progress, or the
    * time spent recording all but the last item in the time series. */
   unsigned int total_duration;
-
-  /** total (maximum) table size (in bytes) */
-  size_t total_table_size;
 
   /** Token (value sent back unchanged) */
   uint32_t token;
@@ -94,7 +100,6 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const size_t element_count,
                                              const uint16_t duration,
                                              const uint16_t total_duration,
-                                             const uint16_t total_table_size,
                                              const uint32_t token,
                                              const void *elements)
   __attribute__((malloc));
@@ -106,6 +111,23 @@ void packet_value_table_ref(packet_value_table_t *value_table);
 
 /** Call this when you have finished using your pointer to value_table. */
 void packet_value_table_unref(packet_value_table_t *value_table);
+
+
+/** Create (allocate and initialize) a new personality_info_t instance.
+ */
+personality_info_t *personality_info_new(const uint16_t sizeof_table,
+                                         const uint16_t sizeof_value,
+                                         const uint16_t personality_name_size,
+                                         const char *personality_name)
+  __attribute__((malloc));
+
+
+/** Call this when you want to use value_table and store a pointer to it. */
+void personality_info_ref(personality_info_t *pi);
+
+
+/** Call this when you have finished using your pointer to value_table. */
+void personality_info_unref(personality_info_t *pi);
 
 
 /** Callback function type called when value table packet arrives
@@ -120,9 +142,14 @@ typedef void (*packet_handler_value_table_t)(packet_value_table_t *packet_value_
 /** Callback function type called when state packet arrives */
 typedef void (*packet_handler_state_t)(const char *state, void *data);
 
+
 /** Callback function type called when text packet arrives */
 typedef void (*packet_handler_text_t)(const char *text, void *data);
 
+
+/** Callback function type called when personality info packet arrives */
+typedef void (*packet_handler_personality_info_t)(personality_info_t *pi,
+                                                  void *data);
 
 /** @} */
 

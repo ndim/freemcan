@@ -175,7 +175,9 @@ void time_series_stats(FILE *datfile, const char *prefix, const char *eol,
 
 
 static
-void export_time_series_vtable(FILE *datfile, const packet_value_table_t *value_table_packet)
+void export_time_series_vtable(FILE *datfile,
+                               const personality_info_t *personality_info,
+                               const packet_value_table_t *value_table_packet)
 {
   const size_t element_count = value_table_packet->element_count;
   const time_t start_time = value_table_packet->token;
@@ -215,7 +217,7 @@ void export_time_series_vtable(FILE *datfile, const packet_value_table_t *value_
 
     fprintf(datfile, "# measurements done:        %u\n", element_count);
     const size_t total_element_count =
-      (value_table_packet->total_table_size / value_table_packet->orig_element_size);
+      (personality_info->sizeof_table / personality_info->sizeof_value);
     const size_t elements_to_go = total_element_count - element_count;
     fprintf(datfile, "# measurements to do:       %u\n", elements_to_go);
     fprintf(datfile, "# space for measurements:   %u\n", total_element_count);
@@ -283,7 +285,8 @@ bool write_next_intermediate_packet = false;
 
 
 /* documented in freemcan-export.h */
-void export_value_table(const packet_value_table_t *value_table_packet)
+void export_value_table(const personality_info_t *personality_info,
+                        const packet_value_table_t *value_table_packet)
 {
   FILE *datfile = NULL;
   if (write_next_intermediate_packet ||
@@ -301,7 +304,7 @@ void export_value_table(const packet_value_table_t *value_table_packet)
     export_histogram_vtable(datfile, value_table_packet);
     break;
   case VALUE_TABLE_TYPE_TIME_SERIES: /* series of counter data */
-    export_time_series_vtable(datfile, value_table_packet);
+    export_time_series_vtable(datfile, personality_info, value_table_packet);
     break;
   case VALUE_TABLE_TYPE_SAMPLES: /* data table of samples */
     export_samples_vtable(datfile, value_table_packet);

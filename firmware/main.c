@@ -77,13 +77,16 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
+#include <avr/eeprom.h>
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
+#include "compiler.h"
 #include "global.h"
 #include "uart-comm.h"
+#include "uart-printf.h"
 #include "frame-comm.h"
 #include "packet-comm.h"
 #include "frame-defs.h"
@@ -99,6 +102,10 @@
 #else
 # error Unsupported MCU!
 #endif
+
+
+/** Maximum allowed size of command parameters in bytes */
+#define MAX_COMMAND_PARAM_LENGTH 8
 
 
 volatile uint8_t measurement_finished;
@@ -128,33 +135,236 @@ void io_init_unused_pins(void)
 }
 
 
+void personality_start_measurement_16(const uint16_t timer_value)
+{
+  sei();
+  timer_init(timer_value);
+}
+
+
+__asm__(".weak personality_start_measurement_16_16");
+void personality_start_measurement_16_16(const uint16_t UP(p0),
+                                         const uint16_t UP(p1))
+{
+  send_text_P(PSTR("Non-implemented personality_start_measurement_16_16"));
+}
+
+
+__asm__(".weak personality_start_measurement_eeprom");
+void personality_start_measurement_eeprom(void)
+{
+  send_text_P(PSTR("Non-implemented personality_start_measurement_eeprom()"));
+}
+
+
 /** List of states for firmware state machine
  *
  * \see communication_protocol
  */
 typedef enum {
-  ST_READY,
-  ST_timer0,
-  ST_timer1,
-  ST_token0,
-  ST_token1,
-  ST_token2,
-  ST_token3,
-  ST_checksum,
-  ST_MEASURING,
-  ST_MEASURING_nomsg,
-  ST_DONE,
-  ST_RESET
-} firmware_state_t;
+  STP_READY,
+  STP_MEASURING,
+  STP_DONE,
+  STP_ERROR
+  /* STP_RESET not actually modelled as a state */
+} firmware_packet_state_t;
 
 
-typedef union {
-  uint8_t  u8[4];
-  uint32_t u32;
-} token_t;
+/** Broken stuff */
+size_t eeprom_param_size EEMEM;
 
 
+/** Broken stuff */
+char eeprom_params[MAX_COMMAND_PARAM_LENGTH] EEMEM;
+
+
+/** Storage for the measurement's token value */
 uint32_t token;
+
+
+/** Firmware FSM event handler for finished measurement */
+inline static
+firmware_packet_state_t eat_measurement_finished(const firmware_packet_state_t pstate)
+{
+  switch (pstate) {
+  case STP_MEASURING:
+    /* end measurement */
+    cli();
+    send_table(PACKET_VALUE_TABLE_DONE);
+    on_measurement_finished();
+    return STP_DONE;
+    break;
+  default:
+    send_text_P(PSTR("invalid state transition"));
+    wdt_soft_reset();
+    break;
+  }
+}
+
+
+/** Define static string in a single place */
+const char PSTR_DONE[]      PROGMEM = "DONE";
+
+/** Define static string in a single place */
+const char PSTR_MEASURING[] PROGMEM = "MEASURING";
+
+/** Define static string in a single place */
+const char PSTR_READY[]     PROGMEM = "READY";
+
+/** Define static string in a single place */
+const char PSTR_RESET[]     PROGMEM = "RESET";
+
+
+/** Firmware FSM event handler for receiving a command packet from the host
+ *
+ */
+inline static
+firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
+                                   const uint8_t cmd, const uint8_t length,
+                                   const uint8_t *const data)
+{
+  /* temp vars */
+  const frame_cmd_t c = (frame_cmd_t)cmd;
+
+  uprintf("EAT PACKET: %c", cmd);
+
+  firmware_packet_state_t next_pstate = STP_ERROR;
+
+  switch (pstate) {
+  case STP_ERROR:
+  goto_STP_ERROR:
+    send_text_P(PSTR("STP_ERROR again"));
+    wdt_soft_reset();
+    break;
+  case STP_READY:
+    switch (c) {
+    case FRAME_CMD_PERSONALITY_INFO:
+      send_personality_info();
+      /* fall through */
+    case FRAME_CMD_ABORT:
+    case FRAME_CMD_INTERMEDIATE:
+    case FRAME_CMD_STATE:
+      send_state_P(PSTR_READY);
+      next_pstate = STP_READY;
+      break;
+    case FRAME_CMD_PARAMS:
+      if ((data != NULL) && (length < sizeof(eeprom_params))) {
+        send_state_P(PSTR("PARAMS"));
+        eeprom_update_word(&eeprom_param_size, length);
+        eeprom_update_block(data, eeprom_params, length);
+      }
+      next_pstate = STP_READY;
+      break;
+    case FRAME_CMD_MEASURE:
+      if (1) {
+        token = *((uint32_t *)(&data[0]));
+        const uint16_t p0 = *((uint16_t *)(&data[4]));
+        const uint16_t p1 = *((uint16_t *)(&data[6]));
+        uprintf("Msmt params: 0x%08"PRIx32" 0x%04"PRIx16" 0x%04"PRIx16
+                " (%"PRIu32" %"PRIu16" %"PRIu16")",
+                token, p0, p1,
+                token, p0, p1);
+        switch (length) {
+        case 6:
+          personality_start_measurement_16(p0);
+          send_state_P(PSTR_MEASURING);
+          next_pstate = STP_MEASURING;
+          break;
+        case 8:
+          personality_start_measurement_16_16(p0, p1);
+          send_state_P(PSTR_MEASURING);
+          next_pstate = STP_MEASURING;
+          break;
+        default:
+          send_text_P(PSTR("Invalid param length"));
+          send_state_P(PSTR_RESET);
+          wdt_soft_reset();
+          break;
+        }
+      }
+      break;
+    case FRAME_CMD_RESET:
+      send_state_P(PSTR_RESET);
+      wdt_soft_reset();
+      break;
+    }
+    break;
+  case STP_MEASURING:
+    switch (c) {
+    case FRAME_CMD_INTERMEDIATE:
+      /** The value table will be updated asynchronously from ISRs
+       * like ISR(ADC_vect) or ISR(TIMER_foo), i.e. independent from
+       * this main loop.  This will cause glitches in the intermediate
+       * values as the values are larger than 1 byte.  However, we
+       * have decided that for *intermediate* results, those glitches
+       * are acceptable.
+       *
+       * Keeping interrupts enabled has the additional advantage that
+       * the measurement continues during send_table(), so we need not
+       * concern ourselves with pausing the measurement timer, or with
+       * making sure we properly reset the hardware which triggered
+       * our ISR within the appropriate time range or anything
+       * similar.
+       *
+       * If you decide to bracket the send_table() call with a
+       * cli()/sei() pair, be aware that you need to solve the issue
+       * of resetting the hardware properly. For example, with the
+       * adc-int-mca personality, resetting the peak hold capacitor on
+       * resume if an event has been detected by the analog circuit
+       * while we had interrupts disabled and thus ISR(ADC_vect) could
+       * not reset the peak hold capacitor.
+       */
+      send_table(PACKET_VALUE_TABLE_INTERMEDIATE);
+      send_state_P(PSTR_MEASURING);
+      next_pstate = STP_MEASURING;
+      break;
+    case FRAME_CMD_PERSONALITY_INFO:
+      send_personality_info();
+      /* fall through */
+    case FRAME_CMD_PARAMS:
+    case FRAME_CMD_MEASURE:
+    case FRAME_CMD_RESET:
+    case FRAME_CMD_STATE:
+      send_state_P(PSTR_MEASURING);
+      next_pstate = STP_MEASURING;
+      break;
+    case FRAME_CMD_ABORT:
+      send_state_P(PSTR_DONE);
+      cli();
+      send_table(PACKET_VALUE_TABLE_ABORTED);
+      on_measurement_finished();
+      send_state_P(PSTR_DONE);
+      next_pstate = STP_DONE;
+      break;
+    }
+    break;
+  case STP_DONE:
+    switch (c) {
+    case FRAME_CMD_PERSONALITY_INFO:
+      send_personality_info();
+      /* fall through */
+    case FRAME_CMD_STATE:
+      send_state_P(PSTR_DONE);
+      next_pstate = STP_DONE;
+      break;
+    case FRAME_CMD_RESET:
+      send_state_P(PSTR_RESET);
+      wdt_soft_reset();
+      break;
+    default:
+      send_table(PACKET_VALUE_TABLE_RESEND);
+      send_state_P(PSTR_DONE);
+      next_pstate = STP_DONE;
+      break;
+    }
+    break;
+  }
+  uprintf("Next pstate: %d", (int)next_pstate);
+  if (STP_ERROR == next_pstate) {
+    goto goto_STP_ERROR;
+  }
+  return next_pstate;
+}
 
 
 /** AVR firmware's main "loop" function
@@ -185,173 +395,137 @@ uint32_t token;
  */
 int main(void)
 {
-    /** No need to initialize global variables here. See \ref
-     *  firmware_memories.
-     */
+  /** No need to initialize global variables here. See \ref
+   *  firmware_memories.
+   */
 
-    /* ST_booting */
+  /* ST_booting */
 
-    /** We try not to explicitly call initialization functions at the
-     * start of main().  The idea is to implement the initialization
-     * functions as ((naked)) and put them in the ".initN" sections so
-     * they are called automatically before main() is run.
-     */
+  /** We try not to explicitly call initialization functions at the
+   * start of main().  The idea is to implement the initialization
+   * functions as ((naked)) and put them in the ".initN" sections so
+   * they are called automatically before main() is run.
+   */
 
-    /** Used while receiving "m" command */
-    register uint8_t timer0 = 0;
-    /** Used while receiving "m" command */
-    register uint8_t timer1 = 0;
+  send_personality_info();
+  send_state_P(PSTR_READY);
 
-    /** Firmware FSM state */
-    firmware_state_t state = ST_READY;
+  /** Frame parser FSM state */
+  enum {
+    STF_MAGIC,
+    STF_COMMAND,
+    STF_LENGTH,
+    STF_PARAM,
+    STF_CHECKSUM,
+  } fstate = STF_MAGIC;
 
-    /* Firmware FSM loop */
-    while (1) {
-      /** Used in several places when reading in characters from UART */
-      char ch;
-      /** Used in several places when reading in characters from UART */
-      frame_cmd_t cmd;
-      /** next FSM state */
-      firmware_state_t next_state = state;
-      switch (state) {
-      case ST_READY:
-        send_state_P(PSTR("READY"));
-        uart_checksum_reset();
-        cmd = ch = uart_getc();
-        switch (cmd) {
-        case FRAME_CMD_RESET:
-          next_state = ST_RESET;
-          break;
-        case FRAME_CMD_MEASURE:
-          next_state = ST_timer0;
-          break;
-        case FRAME_CMD_STATE:
-          next_state = ST_READY;
-          break;
-        default: /* ignore all other bytes */
-          next_state = ST_READY;
-          break;
-        } /* switch (cmd) */
+  /** Index into magic/data */
+  uint8_t idx = 0;
+  /** Stored data for current frame */
+  uint8_t cmd = 0;
+  /** Stored data for current frame */
+  uint8_t len = 0;
+  /** Data buffer */
+  uint8_t data[MAX_COMMAND_PARAM_LENGTH];
+
+  /* Packet FSM State */
+  firmware_packet_state_t pstate = STP_READY;
+
+  /* Firmware FSM loop */
+  while (1) {
+    if (measurement_finished) {
+      pstate = eat_measurement_finished(pstate);
+    } else if (bit_is_set(UCSR0A, RXC0)) {
+
+      /* A byte arrived via UART, so fetch it */
+      const char ch = uart_getc();
+      const uint8_t byte = (uint8_t)ch;
+
+      typeof(fstate) next_fstate = fstate;
+
+      switch (fstate) {
+      case STF_MAGIC:
+        if (byte == FRAME_MAGIC_STR[idx++]) {
+          uart_recv_checksum_update(byte);
+          if (idx < 4) {
+            next_fstate = STF_MAGIC;
+          } else {
+            next_fstate = STF_COMMAND;
+          }
+        } else {
+          /* syncing, not an error */
+          goto restart;
+        }
         break;
-      case ST_timer0:
-        timer0 = uart_getc();
-        next_state = ST_timer1;
+      case STF_COMMAND:
+        uart_recv_checksum_update(byte);
+        cmd = byte;
+        next_fstate = STF_LENGTH;
         break;
-      case ST_timer1:
-        timer1 = uart_getc();
-        next_state = ST_token0;
+      case STF_LENGTH:
+        uart_recv_checksum_update(byte);
+        len = byte;
+        if (len == 0) {
+          next_fstate = STF_CHECKSUM;
+        } else if (len < sizeof(data)) {
+          idx = 0;
+          next_fstate = STF_PARAM;
+        } else {
+          /* whoever sent us that oversized data frame made an error */
+          goto error_restart;
+        }
         break;
-      case ST_token0:
-        ((token_t *)(&token))->u8[0] = uart_getc();
-        next_state = ST_token1;
+      case STF_PARAM:
+        uart_recv_checksum_update(byte);
+        data[idx++] = byte;
+        if (idx < len) {
+          next_fstate = STF_PARAM;
+        } else {
+          next_fstate = STF_CHECKSUM;
+        }
         break;
-      case ST_token1:
-        ((token_t *)(&token))->u8[1] = uart_getc();
-        next_state = ST_token2;
-        break;
-      case ST_token2:
-        ((token_t *)(&token))->u8[2] = uart_getc();
-        next_state = ST_token3;
-        break;
-      case ST_token3:
-        ((token_t *)(&token))->u8[3] = uart_getc();
-        next_state = ST_checksum;
-        break;
-      case ST_checksum:
-        if (uart_checksum_recv()) { /* checksum successful */
-          /* begin measurement */
-          timer_init(timer0, timer1);
-          sei();
-          next_state = ST_MEASURING;
-        } else { /* checksum fail */
+      case STF_CHECKSUM:
+        if (uart_recv_checksum_check(byte)) {
+          /* checksum successful */
+          pstate = eat_packet(pstate, cmd, len, data);
+          goto restart;
+        } else {
           /** \todo Find a way to report checksum failure without
            *        resorting to sending free text. */
           send_text_P(PSTR("checksum fail"));
-          next_state = ST_RESET;
+          goto error_restart_nomsg;
         }
         break;
-      case ST_MEASURING:
-        send_state_P(PSTR("MEASURING"));
-        next_state = ST_MEASURING_nomsg;
+      default:
+        goto error_restart;
         break;
-      case ST_MEASURING_nomsg:
-        if (measurement_finished) {
-          cli();
-          send_table(PACKET_VALUE_TABLE_DONE);
-          on_measurement_finished();
-          next_state = ST_DONE;
-        } else if (bit_is_set(UCSR0A, RXC0)) {
-          /* there is a character in the UART input buffer */
-          cmd = ch = uart_getc();
-          switch (cmd) {
-          case FRAME_CMD_ABORT:
-            cli();
-            send_table(PACKET_VALUE_TABLE_ABORTED);
-            next_state = ST_RESET;
-            break;
-          case FRAME_CMD_INTERMEDIATE:
-            /** The value table will be updated asynchronously from
-             * ISRs like ISR(ADC_vect) or ISR(TIMER_foo),
-             * i.e. independent from this main loop.  This will cause
-             * glitches in the intermediate values as the values are
-             * larger than 1 byte.  However, we have decided that for
-             * *intermediate* results, those glitches are acceptable.
-             *
-             * Keeping interrupts enabled has the additional advantage
-             * that the measurement continues during send_table(), so
-             * we need not concern ourselves with pausing the
-             * measurement timer, or with making sure we properly
-             * reset the hardware which triggered our ISR within the
-             * appropriate time range or anything similar.
-             *
-             * If you decide to bracket the send_table() call with a
-             * cli()/sei() pair, be aware that you need to solve the
-             * issue of resetting the hardware properly. For example,
-             * with the adc-int-mca personality, resetting the peak
-             * hold capacitor on resume if an event has been detected
-             * by the analog circuit while we had interrupts disabled
-             * and thus ISR(ADC_vect) could not reset the peak hold
-             * capacitor.
-             */
-            send_table(PACKET_VALUE_TABLE_INTERMEDIATE);
-            next_state = ST_MEASURING;
-            break;
-          case FRAME_CMD_STATE:
-            next_state = ST_MEASURING;
-            break;
-          default: /* ignore all other bytes */
-            next_state = ST_MEASURING;
-            break;
-          }
-        } else { /* neither timer flag set nor incoming UART data */
-          next_state = ST_MEASURING_nomsg;
-        }
-        break;
-      case ST_DONE:
-        /* STATE: DONE (wait for RESET command while seinding histograms) */
-        send_state_P(PSTR("DONE"));
-        cmd = ch = uart_getc();
-        switch (cmd) {
-        case FRAME_CMD_STATE:
-          next_state = ST_DONE;
-          break;
-        case FRAME_CMD_RESET:
-          next_state = ST_RESET;
-          break;
-        default:
-          send_table(PACKET_VALUE_TABLE_RESEND);
-          next_state = ST_DONE;
-          break;
-        }
-        break;
-      case ST_RESET:
-        send_state_P(PSTR("RESET"));
-        wdt_soft_reset();
-        break;
-      } /* switch (state) */
-      state = next_state;
-    } /* while (1) */
-}
+      }
+      goto skip_errors;
+
+    error_restart:
+      /** \todo Find a way to report errors without
+       *        resorting to sending free text. */
+      send_text_P(PSTR("frame parser error"));
+
+    error_restart_nomsg:
+
+    restart:
+      next_fstate = STF_MAGIC;
+      idx = 0;
+      uart_recv_checksum_reset();
+
+    skip_errors:
+      fstate = next_fstate;
+      /*
+    } else if (switch_is_pressed) {
+      eat_switch_pressed();
+      */
+    }
+
+  } /* while (1) main event loop */
+
+} /* int main(void) */
+
 
 /** @} */
 

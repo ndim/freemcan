@@ -59,7 +59,8 @@ bool write_next_intermediate_packet;
  * You can plot the most recent histogram with the helper utility
  * "pltHist.pl" from this very directory.
  */
-void export_value_table(const packet_value_table_t *value_table_packet);
+void export_value_table(const personality_info_t *personality_info,
+                        const packet_value_table_t *value_table_packet);
 
 
 /** Compute default file name for exporting given value packet packet data to.

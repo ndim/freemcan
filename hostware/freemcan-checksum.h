@@ -52,6 +52,9 @@ void checksum_update(checksum_t *self, const uint8_t value);
 /** Write checksum to file descriptor */
 void checksum_write(checksum_t *self, const int fd);
 
+/** Get checksum */
+uint8_t checksum_get(checksum_t *self);
+
 /** Match value against internal checksum state */
 bool checksum_match(checksum_t *self, const uint8_t value);
 

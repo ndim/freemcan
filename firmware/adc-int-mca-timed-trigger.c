@@ -74,10 +74,21 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES,
-  /** Total number of elements in table */
-  sizeof(table)/ELEMENT_SIZE_IN_BYTES
+  ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+packet_personality_info_t personality_info = {
+  /** Total number of bytes in table */
+  sizeof(table),
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES
+};
+
+
+/** \see data_table */
+PERSONALITY_NAME("adc-int-mca-timed");
 
 
 /** AD conversion complete interrupt entry point
@@ -178,15 +189,6 @@ void all_init(void)
 void all_init(void)
 {
   adc_init();
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("adc-int-mca-timed-trigger"));
 }
 
 

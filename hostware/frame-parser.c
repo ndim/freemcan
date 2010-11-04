@@ -254,7 +254,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
   /* No "default:" case on purpose: Let compiler complain about
    * unhandled values. */
   }
-  fmlog("Illegal frame parser state.");
+  fmlog("Illegal frame parser state %d.", ps->state);
   abort();
 }
 

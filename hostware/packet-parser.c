@@ -26,6 +26,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "frame-defs.h"
 #include "packet-defs.h"
@@ -44,6 +45,7 @@ struct _packet_parser_t {
   packet_handler_value_table_t packet_handler_value_table;
   packet_handler_state_t     packet_handler_state;
   packet_handler_text_t      packet_handler_text;
+  packet_handler_personality_info_t packet_handler_personality_info;
   void *                     packet_handler_data;
 };
 
@@ -51,6 +53,7 @@ struct _packet_parser_t {
 packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_packet_handler,
                                    packet_handler_state_t state_packet_handler,
                                    packet_handler_text_t text_packet_handler,
+                                   packet_handler_personality_info_t packet_handler_personality_info,
                                    void *data)
 {
   packet_parser_t *self = calloc(1, sizeof(packet_parser_t));
@@ -59,6 +62,7 @@ packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_pack
   self->packet_handler_value_table = value_table_packet_handler;
   self->packet_handler_state = state_packet_handler;
   self->packet_handler_text = text_packet_handler;
+  self->packet_handler_personality_info = packet_handler_personality_info,
   self->packet_handler_data = data;
   /* everything else set to NULL by calloc */
   return self;
@@ -85,6 +89,20 @@ void packet_parser_unref(packet_parser_t *self)
 void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
 {
   switch (frame->type) {
+  case FRAME_TYPE_PERSONALITY_INFO:
+    if (self->packet_handler_personality_info) {
+      const packet_personality_info_t *ppi =
+        (const packet_personality_info_t *)frame->payload;
+      const size_t personality_name_size = frame->size - sizeof(*ppi);
+      assert(personality_name_size > 0);
+      personality_info_t *pi = personality_info_new(ppi->sizeof_table,
+                                                    ppi->sizeof_value,
+                                                    personality_name_size,
+                                                    (const char *)&(frame->payload[sizeof(*ppi)]));
+      self->packet_handler_personality_info(pi, self->packet_handler_data);
+      personality_info_unref(pi);
+    }
+    return;
   case FRAME_TYPE_STATE:
     if (self->packet_handler_state) {
       self->packet_handler_state((const char *)frame->payload,
@@ -113,7 +131,6 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
                                                           element_count,
                                                           letoh16(header->duration),
                                                           letoh16(header->total_duration),
-                                                          letoh16(header->total_table_size),
                                                           letoh32(header->token),
                                                           &(frame->payload[sizeof(*header)]));
       self->packet_handler_value_table(vtab, self->packet_handler_data);

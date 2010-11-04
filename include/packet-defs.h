@@ -114,11 +114,18 @@ typedef struct {
   uint16_t duration;
   /** total duration (of the measurement in progress) */
   uint16_t total_duration;
-  /** total table size in bytes (for time series) */
-  uint16_t total_table_size;
   /** token - a value sent back unchanged */
   uint32_t token;
 } __attribute__ ((packed)) packet_value_table_header_t;
+
+
+
+typedef struct {
+  uint16_t sizeof_table;
+  uint16_t sizeof_value;
+  /** \todo Units of time */
+} __attribute__ ((packed)) packet_personality_info_t;
+
 
 
 /** @} */

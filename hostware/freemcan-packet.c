@@ -37,6 +37,51 @@
 #include "endian-conversion.h"
 
 
+/** \todo Why don't we do the endianness conversion here? */
+personality_info_t *personality_info_new(const uint16_t sizeof_table,
+                                         const uint16_t sizeof_value,
+                                         const uint16_t personality_name_size,
+                                         const char *personality_name)
+{
+  personality_info_t *result =
+    malloc(sizeof(personality_info_t) + personality_name_size + 1);
+  assert(result != NULL);
+
+  result->refs         = 1;
+  result->sizeof_table = sizeof_table;
+  result->sizeof_value = sizeof_value;
+  result->personality_name[0] = '\0';
+  strncat(result->personality_name, personality_name, personality_name_size);
+
+  return result;
+}
+
+
+void personality_info_ref(personality_info_t *pi)
+{
+  assert(pi->refs > 0);
+  pi->refs++;
+}
+
+
+static
+void personality_info_free(personality_info_t *pi)
+{
+  free(pi);
+}
+
+
+void personality_info_unref(personality_info_t *pi)
+{
+  assert(pi->refs > 0);
+  pi->refs--;
+  if (pi->refs == 0) {
+    personality_info_free(pi);
+  }
+}
+
+
+/** \todo Why don't we do the endianness conversion here? */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,
                                              const time_t receive_time,
@@ -44,7 +89,6 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const size_t element_count,
                                              const uint16_t duration,
                                              const uint16_t total_duration,
-                                             const uint16_t total_table_size,
                                              const uint32_t token,
                                              const void *elements)
 {
@@ -60,7 +104,6 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   result->orig_element_size = element_size;
   result->duration          = duration;
   result->total_duration    = total_duration;
-  result->total_table_size  = total_table_size;
   result->token             = token;
 
   if (!elements) {

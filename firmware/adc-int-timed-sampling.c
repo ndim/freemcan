@@ -75,12 +75,8 @@ extern volatile char data_table_size[];
 /** Data table info
  *
  * \see data_table
- *
- * Note: We put this value into the .data.sizeof section in order to
- *       easily automatically extract the data table element size
- *       during the later build stages.
  */
-data_table_info_t data_table_info __attribute__ (( section(".data.sizeof") )) = {
+data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes
    * We update this value whenever new time series data has been
    * recorded. The initial value is "one element".
@@ -94,10 +90,21 @@ data_table_info_t data_table_info __attribute__ (( section(".data.sizeof") )) = 
   /** Type of value table we send */
   VALUE_TABLE_TYPE_SAMPLES,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES,
-  /** Total number of bytes in table */
-  ((size_t)(&data_table_size))
+  ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+packet_personality_info_t personality_info = {
+  /** Total number of bytes in table */
+  ((size_t)(&data_table_size)),
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES
+};
+
+
+/** \see data_table */
+PERSONALITY_NAME("adc-int-timed-sampling");
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */
@@ -158,13 +165,6 @@ void ts_print_status(void)
           _UV(sizeof_table), _UV(sizeof_table),
           _UV(sizeof_table)/sizeof(*table_cur), sizeof(*table_cur));
   uprintf("</ts_print_status>");
-#else
-  /** The "#### ##" string is just a placeholder. There is a
-   *  GNUmakefile rule to replace that placeholder with a string just
-   *  after linking. The linking would gives the necessary information
-   *  to fill in.
-   */
-  send_text_P(PSTR("adc-int-timed-sampling: data table of #### elements of ##bit each"));
 #endif
 }
 
@@ -316,15 +316,6 @@ void all_init(void)
 void all_init(void)
 {
   adc_init();
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("adc-int-timed-sampling"));
 }
 
 

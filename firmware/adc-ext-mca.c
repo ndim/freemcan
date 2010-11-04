@@ -71,10 +71,21 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES,
-  /** Total number of bytes in table */
-  sizeof(table)
+  ELEMENT_SIZE_IN_BYTES
 };
+
+
+/** See * \see data_table */
+packet_personality_info_t personality_info = {
+  /** Total number of bytes in table */
+  sizeof(table),
+  /** Table element size */
+  ELEMENT_SIZE_IN_BYTES
+};
+
+
+/** \see data_table */
+PERSONALITY_NAME("adc-ext-mca");
 
 
 /** Initialize peripherals
@@ -305,15 +316,6 @@ void adc_init(void)
 {
   AD7813_init();
   trigger_src_conf();
-}
-
-
-void startup_messages(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void startup_messages(void)
-{
-  send_text_P(PSTR("adc-ext-mca"));
 }
 
 

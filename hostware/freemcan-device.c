@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/uio.h>
 
 
 #include "freemcan-checksum.h"
@@ -170,6 +171,46 @@ void device_close(device_t *self)
 }
 
 
+void checksum_update_iovec(checksum_t *cs, struct iovec *iov)
+{
+  const uint8_t *buf = iov->iov_base;
+  const size_t  size = iov->iov_len;
+  for (size_t i=0; i<size; i++) {
+    checksum_update(cs, buf[i]);
+  }
+}
+
+
+extern bool enable_layer1_dump;
+
+ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+  if (enable_layer1_dump) {
+    size_t size = 0;
+    for (int i=0; i<iovcnt; i++) {
+      size += iov[i].iov_len;
+    }
+    uint8_t *buf = malloc(size);
+    assert(buf != NULL);
+    for (ssize_t i=0, ofs=0; i<iovcnt; i++) {
+      memcpy(&buf[ofs], iov[i].iov_base, iov[i].iov_len);
+      ofs += iov[i].iov_len;
+    }
+    fmlog("Sending 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog_data(buf, size);
+    free(buf);
+  }
+  if (enable_layer2_dump) {
+    static bool done_once = false;
+    if (!done_once) {
+      fmlog("Sending data (layer 2 dump not implemented yet, use layer 1 dump for sending)");
+      done_once = true;
+    }
+  }
+  return writev(fd, iov, iovcnt);
+}
+
+
 void device_send_command(device_t *self, const frame_cmd_t cmd)
 {
   const int fd = self->fd;
@@ -180,8 +221,22 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
     return;
   }
 
-  const uint8_t cmd8 = cmd;
-  write(fd, &cmd8, 1);
+  checksum_t *cs = checksum_new();
+  uint8_t cmd8 = cmd;
+  uint8_t len8 = 0;
+  struct iovec out[4] = {
+    { FRAME_MAGIC_STR, 4 },
+    { &cmd8, 1 },
+    { &len8, 1 }
+  };
+  for (int i=0; i<3; i++) {
+    checksum_update_iovec(cs, &out[i]);
+  }
+  uint8_t checksum = checksum_get(cs);
+  checksum_unref(cs);
+  out[3].iov_base = (void *)&checksum;
+  out[3].iov_len = sizeof(checksum);
+  my_writev(fd, out, 4);
 }
 
 
@@ -199,28 +254,25 @@ void device_send_command_u16_u32(device_t *self, const frame_cmd_t cmd,
   }
 
   checksum_t *cs = checksum_new();
-  const uint8_t cmd8 = cmd;
-  write(fd, &cmd8, 1);
-  checksum_update(cs, cmd8);
-
-  const uint8_t byte0 = ((p16>>0) & 0xff);
-  checksum_update(cs, byte0);
-  const uint8_t byte1 = ((p16>>8) & 0xff);
-  checksum_update(cs, byte1);
-  write(fd, &p16, sizeof(p16));
-
-  const uint8_t t0 = (p32>> 0) & 0xff;
-  checksum_update(cs, t0);
-  const uint8_t t1 = (p32>> 8) & 0xff;
-  checksum_update(cs, t1);
-  const uint8_t t2 = (p32>>16) & 0xff;
-  checksum_update(cs, t2);
-  const uint8_t t3 = (p32>>24) & 0xff;
-  checksum_update(cs, t3);
-  write(fd, &p32, sizeof(p32));
-
-  checksum_write(cs, fd);
+  uint8_t cmd8 = cmd;
+  uint8_t len8 = 6;
+  uint16_t pp16 = p16;
+  uint32_t pp32 = p32;
+  struct iovec out[6] = {
+    { FRAME_MAGIC_STR, 4 },
+    { &cmd8, 1 },
+    { &len8, 1 },
+    { &pp32, 4 },
+    { &pp16, 2 }
+  };
+  for (int i=0; i<5; i++) {
+    checksum_update_iovec(cs, &out[i]);
+  }
+  uint8_t checksum = checksum_get(cs);
   checksum_unref(cs);
+  out[5].iov_base = (void *)&checksum;
+  out[5].iov_len = sizeof(checksum);
+  my_writev(fd, out, 6);
 }
 
 

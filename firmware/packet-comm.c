@@ -36,8 +36,10 @@
 #include <string.h>
 
 #include "global.h"
+#include "uart-comm.h"
 #include "frame-comm.h"
 #include "packet-comm.h"
+#include "data-table.h"
 
 
 /** Send state message packet to host (layer 3).
@@ -60,6 +62,20 @@ void send_text_P(PGM_P msg)
 {
   const size_t len = strlen_P(msg);
   frame_send_P(FRAME_TYPE_TEXT, msg, len);
+}
+
+
+/** Send parameters from EEPROM
+ *
+ * Caution: The caller is responsible for copying the parameters from
+ * EEPROM to SRAM before calling this function.
+ */
+void send_eeprom_params_in_sram(void)
+{
+  frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM,
+	      personality_param_size);
+  uart_putb((const void *)personality_param_sram, personality_param_size);
+  frame_end();
 }
 
 

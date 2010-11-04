@@ -132,6 +132,13 @@ void io_init_unused_pins(void)
 }
 
 
+void params_copy_from_eeprom_to_sram(void)
+{
+  eeprom_read_block(personality_param_sram, personality_param_eeprom,
+                    personality_param_size);
+}
+
+
 void general_personality_start_measurement_sram(void)
 {
   sei();
@@ -141,8 +148,7 @@ void general_personality_start_measurement_sram(void)
 
 void general_personality_start_measurement_eeprom(void)
 {
-  eeprom_read_block(personality_param_sram, personality_param_eeprom,
-                    personality_param_size);
+  params_copy_from_eeprom_to_sram();
   general_personality_start_measurement_sram();
 }
 
@@ -224,11 +230,18 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
       send_state_P(PSTR_READY);
       next_pstate = STP_READY;
       break;
-    case FRAME_CMD_PARAMS:
+    case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
-      send_state_P(PSTR("PARAMS"));
+      send_state_P(PSTR("PARAMS_TO_EEPROM"));
       eeprom_update_block(personality_param_sram,
                           personality_param_eeprom, length);
+      send_state_P(PSTR_READY);
+      next_pstate = STP_READY;
+      break;
+    case FRAME_CMD_PARAMS_FROM_EEPROM:
+      params_copy_from_eeprom_to_sram();
+      send_eeprom_params_in_sram();
+      send_state_P(PSTR_READY);
       next_pstate = STP_READY;
       break;
     case FRAME_CMD_MEASURE:
@@ -275,7 +288,8 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     case FRAME_CMD_PERSONALITY_INFO:
       send_personality_info();
       /* fall through */
-    case FRAME_CMD_PARAMS:
+    case FRAME_CMD_PARAMS_TO_EEPROM:
+    case FRAME_CMD_PARAMS_FROM_EEPROM:
     case FRAME_CMD_MEASURE:
     case FRAME_CMD_RESET:
     case FRAME_CMD_STATE:

@@ -149,6 +149,12 @@ typedef void (*packet_handler_state_t)(const char *state, void *data);
 typedef void (*packet_handler_text_t)(const char *text, void *data);
 
 
+/** Callback function type called when text packet arrives */
+typedef void (*packet_handler_params_from_eeprom_t)(const void *params,
+                                                    const size_t size,
+                                                    void *data);
+
+
 /** Callback function type called when personality info packet arrives */
 typedef void (*packet_handler_personality_info_t)(personality_info_t *pi,
                                                   void *data);

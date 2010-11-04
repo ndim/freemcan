@@ -74,6 +74,9 @@ static void packet_handler_text(const char *text, void *data);
 static void packet_handler_value_table(packet_value_table_t *value_table_packet, void *data);
 static void packet_handler_personality_info(personality_info_t *pi,
                                             void *UP(data));
+static void packet_handler_params_from_eeprom(const void *params,
+                                              const size_t size,
+                                              void *UP(data));
 
 bool is_measuring = false;
 int waiting_for = 0;
@@ -307,6 +310,7 @@ void tui_fmlog_help(void)
   fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
   fmlog("a           send command \"(a)bort\"");
   fmlog("e           write measurement parameters to (e)eprom");
+  fmlog("E           read measurement parameters from (e)eprom");
   fmlog("f           request (f)irmware personality information");
   fmlog("i           send command \"(i)ntermediate result\"");
   fmlog("m           send command \"start (m)easurement\" (duration: %u clock periods)",
@@ -338,6 +342,7 @@ void tui_init()
                                         packet_handler_state,
                                         packet_handler_text,
                                         packet_handler_personality_info,
+                                        packet_handler_params_from_eeprom,
                                         NULL);
 
   fmlog("freemcan TUI " GIT_VERSION);
@@ -469,6 +474,9 @@ void tui_do_io(void)
         recalculate_periodic_interval();
         tui_device_send_params_command(last_sent_duration);
         break;
+      case 'E':
+        tui_device_send_simple_command(FRAME_CMD_PARAMS_FROM_EEPROM);
+        break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:
       case FRAME_CMD_STATE:
@@ -552,6 +560,16 @@ static void packet_handler_text(const char *text, void *UP(data))
     waiting_for--;
   }
   fmlog("TEXT: %s", text);
+}
+
+
+/** Parameter data from EEPROM */
+static void packet_handler_params_from_eeprom(const void *params,
+                                              const size_t size,
+                                              void *UP(data))
+{
+  fmlog("EEPROM PARAMS");
+  fmlog_data(params, size);
 }
 
 

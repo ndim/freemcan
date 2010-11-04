@@ -46,6 +46,7 @@ struct _packet_parser_t {
   packet_handler_state_t     packet_handler_state;
   packet_handler_text_t      packet_handler_text;
   packet_handler_personality_info_t packet_handler_personality_info;
+  packet_handler_params_from_eeprom_t packet_handler_params_from_eeprom;
   void *                     packet_handler_data;
 };
 
@@ -54,6 +55,7 @@ packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_pack
                                    packet_handler_state_t state_packet_handler,
                                    packet_handler_text_t text_packet_handler,
                                    packet_handler_personality_info_t packet_handler_personality_info,
+                                   packet_handler_params_from_eeprom_t ph_params_from_eeprom,
                                    void *data)
 {
   packet_parser_t *self = calloc(1, sizeof(packet_parser_t));
@@ -62,7 +64,8 @@ packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_pack
   self->packet_handler_value_table = value_table_packet_handler;
   self->packet_handler_state = state_packet_handler;
   self->packet_handler_text = text_packet_handler;
-  self->packet_handler_personality_info = packet_handler_personality_info,
+  self->packet_handler_personality_info = packet_handler_personality_info;
+  self->packet_handler_params_from_eeprom = ph_params_from_eeprom;
   self->packet_handler_data = data;
   /* everything else set to NULL by calloc */
   return self;
@@ -89,6 +92,13 @@ void packet_parser_unref(packet_parser_t *self)
 void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
 {
   switch (frame->type) {
+  case FRAME_TYPE_PARAMS_FROM_EEPROM:
+    if (self->packet_handler_params_from_eeprom) {
+      self->packet_handler_params_from_eeprom(frame->payload,
+                                              frame->size,
+                                              self->packet_handler_data);
+    }
+    return;
   case FRAME_TYPE_PERSONALITY_INFO:
     if (self->packet_handler_personality_info) {
       const packet_personality_info_t *ppi =

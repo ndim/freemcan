@@ -32,6 +32,7 @@
 
 void send_state_P(PGM_P state);
 void send_text_P(PGM_P msg);
+void send_eeprom_params_in_sram(void);
 
 /** @} */
 

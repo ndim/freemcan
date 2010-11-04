@@ -41,6 +41,7 @@ packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_pack
                                    packet_handler_state_t state_packet_handler,
                                    packet_handler_text_t text_packet_handler,
                                    packet_handler_personality_info_t packet_handler_personality_info,
+                                   packet_handler_params_from_eeprom_t ph_params_from_eeprom,
                                    void *data);
 
 

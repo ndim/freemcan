@@ -111,12 +111,14 @@ size_t last_received_size = 0;
 uint16_t last_sent_duration = 0;
 
 
+/** \bug Needs to work with personalities which only need skip_samples, but no duration! */
 static void recalculate_periodic_interval(void)
 {
   const unsigned long last_periodic_update_interval = periodic_update_interval;
-  if (last_sent_duration) {
-    float tmp = 1.5*sqrt(last_sent_duration);
-    periodic_update_interval = tmp + ((last_received_size) / 11520UL);
+  if (last_sent_duration && personality_info) {
+    const float clock_period = 1.0f/((float)personality_info->units_per_second);
+    const float tmp = 1.5*sqrt(last_sent_duration*clock_period);
+    periodic_update_interval = tmp + ((last_received_size * 10UL) / 115200UL);
     if (periodic_update_interval < 5) {
       periodic_update_interval = 5;
     }

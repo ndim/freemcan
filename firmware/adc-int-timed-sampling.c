@@ -79,14 +79,9 @@ extern volatile char data_table_size[];
 data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes
    * We update this value whenever new time series data has been
-   * recorded. The initial value is "one element".
-   *
-   * \bug Should be "zero elements", but then the build time hacks to
-   *      extract the size will break. On the other hand, this will
-   *      now transmit one value (0) more than we actually have in the
-   *      table.
+   * recorded. The initial value is "zero bytes" (elements).
    */
-  sizeof(table[0]),
+  0,
   /** Type of value table we send */
   VALUE_TABLE_TYPE_SAMPLES,
   /** Table element size */
@@ -96,7 +91,9 @@ data_table_info_t data_table_info = {
 
 /** See * \see data_table */
 PERSONALITY("adc-int-timed-sampling",
-            2,
+            /** \bug Workaround, we need just one 16bit param for
+             *       skip_samples and no timer_count! */
+            2+2,
             10,
             ((size_t)(&data_table_size)),
             ELEMENT_SIZE_IN_BYTES);
@@ -175,15 +172,14 @@ ISR(ADC_vect)
 {
   /* downsampling of analog data as a multiple of timer_multiple      */
   const uint16_t result = ADCW;
-  if (orig_timer_count == timer_multiple) {
+  if (skip_samples == 0) {
     /* Read analog value */
     if (!measurement_finished) {
       /* Write to current position in table */
       *table_cur = result >> (10-ADC_RESOLUTION);
       table_cur++;
-      /** \bug data_table_info.size should be initialized as zero! */
       data_table_info.size += sizeof(*table_cur);
-      timer_multiple = 0;
+      skip_samples = orig_skip_samples;
       if (table_cur >= table_end) {
         /* switch off any compare matches on B to stop sampling     */
         timer_halt();
@@ -192,7 +188,7 @@ ISR(ADC_vect)
       }
     }
   } else {
-    timer_multiple++;
+    skip_samples--;
   }
 
   /** \todo really necessary? */

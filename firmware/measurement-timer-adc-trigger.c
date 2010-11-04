@@ -50,12 +50,8 @@
 volatile uint16_t timer_count;
 
 
-/** timer multiple
-  *
-  * Is send by hostware. Number of dropped analog samples (downsampling of
-  * analog signal sampled with timer1 time base)
-  */
-volatile uint16_t timer_multiple;
+/** timer counter */
+volatile uint16_t timer_count;
 
 
 /** Last value of timer counter
@@ -77,19 +73,27 @@ volatile uint16_t last_timer_count = 1;
 volatile uint16_t orig_timer_count;
 
 
+/** FIXME
+ *
+ * Is sent by hostware. Number of dropped analog samples (downsampling of
+ * analog signal sampled with timer1 time base)
+ */
+volatile uint16_t orig_skip_samples;
+volatile uint16_t skip_samples;
+
+
 /** Configure 16 bit timer to trigger an ISR every 0.1 second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
-void timer_init(const uint16_t timer_value)
+void timer_init(void)
 {
-  orig_timer_count = timer_count = timer_value;
-
-  /** Safeguard: We cannot handle 0 or 1 count measurements. */
+  /** Safeguard: We cannot handle 0 or 1 count measurements. *
   if (orig_timer_count <= 1) {
     send_text_P(PSTR("Unsupported timer value <= 1"));
     wdt_soft_reset();
   }
+  */
 
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
@@ -139,9 +143,15 @@ void timer_init(const uint16_t timer_value)
  */
 void personality_start_measurement_sram(void)
 {
-  const void *voidp = &personality_param_sram[0];
-  const uint16_t *timer_value = voidp;
-  timer_init(*timer_value);
+  const void *timer_count_vp = &personality_param_sram[0];
+  const uint16_t *timer_count_p = timer_count_vp;
+  orig_timer_count = timer_count = *timer_count_p;
+
+  const void *skip_samples_vp = &personality_param_sram[2];
+  const uint16_t *skip_samples_p = skip_samples_vp;
+  orig_skip_samples = skip_samples = *skip_samples_p;
+
+  timer_init();
 }
 
 

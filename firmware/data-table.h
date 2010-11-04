@@ -63,8 +63,8 @@ extern const char personality_name[] PROGMEM;
 extern const uint8_t personality_name_length;
 
 extern const uint8_t personality_param_size;
-extern uint8_t personality_param_sram[MAX_PARAM_LENGTH];
-extern uint8_t personality_param_eeprom[MAX_PARAM_LENGTH] EEMEM;
+extern uint8_t personality_param_sram[];
+extern uint8_t personality_param_eeprom[] EEMEM;
 
 extern const packet_personality_info_t personality_info;
 

@@ -161,7 +161,7 @@ void tui_device_send_params_command(const uint16_t seconds)
      */
     0
   };
-  device_send_command_with_params(device, FRAME_CMD_MEASURE,
+  device_send_command_with_params(device, FRAME_CMD_PARAMS_TO_EEPROM,
                                   &params, sizeof(params));
   waiting_for++;
 }

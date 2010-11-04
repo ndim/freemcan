@@ -132,14 +132,39 @@ void io_init_unused_pins(void)
 }
 
 
-uint8_t personality_param_sram[MAX_PARAM_LENGTH];
-uint8_t personality_param_eeprom[MAX_PARAM_LENGTH] EEMEM;
+/**
+ * The one trailing byte is the length of the actually transmitted
+ * param set.
+ */
+uint8_t personality_param_sram[MAX_PARAM_LENGTH+1];
+uint8_t personality_param_eeprom[MAX_PARAM_LENGTH+1] EEMEM;
+BARE_COMPILE_TIME_ASSERT(sizeof(personality_param_sram) == sizeof(personality_param_eeprom));
+
+
+/** Send parameters from EEPROM
+ *
+ * Caution: The caller is responsible for copying the parameters from
+ * EEPROM to SRAM before calling this function.
+ */
+void send_eeprom_params_in_sram(void);
+void send_eeprom_params_in_sram(void)
+{
+  const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
+  if (length == 0xff || length > sizeof(personality_param_sram)) {
+    send_text_P(PSTR("Invalid EEPROM data"));
+  }
+  const uint8_t limited_length =
+    (length>sizeof(personality_param_sram))?sizeof(personality_param_sram):length;
+  frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM, limited_length);
+  uart_putb((const void *)personality_param_sram, limited_length);
+  frame_end();
+}
 
 
 void params_copy_from_eeprom_to_sram(void)
 {
   eeprom_read_block(personality_param_sram, personality_param_eeprom,
-                    MAX_PARAM_LENGTH);
+                    sizeof(personality_param_sram));
 }
 
 
@@ -237,8 +262,10 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
       send_state_P(PSTR("PARAMS_TO_EEPROM"));
+      personality_param_sram[sizeof(personality_param_sram)-1] = length;
       eeprom_update_block(personality_param_sram,
-                          personality_param_eeprom, length);
+                          personality_param_eeprom,
+                          sizeof(personality_param_eeprom));
       send_state_P(PSTR_READY);
       next_pstate = STP_READY;
       break;

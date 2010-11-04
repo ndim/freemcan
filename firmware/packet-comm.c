@@ -65,18 +65,4 @@ void send_text_P(PGM_P msg)
 }
 
 
-/** Send parameters from EEPROM
- *
- * Caution: The caller is responsible for copying the parameters from
- * EEPROM to SRAM before calling this function.
- */
-void send_eeprom_params_in_sram(void)
-{
-  frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM,
-	      MAX_PARAM_LENGTH);
-  uart_putb((const void *)personality_param_sram, MAX_PARAM_LENGTH);
-  frame_end();
-}
-
-
 /** @} */

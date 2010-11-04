@@ -149,61 +149,31 @@ typedef struct {
 } __attribute__((packed)) measure_params_16_16_t;
 
 
-void tui_device_send_measure_command_16(const uint16_t a)
+void tui_device_send_command_16(const frame_cmd_t cmd,
+                                const time_t ts,
+                                const uint16_t a)
 {
   measure_params_16_t params = {
     htole16(a),
-    time(NULL)
+    ts
   };
-  device_send_command_with_params(device, FRAME_CMD_MEASURE,
+  device_send_command_with_params(device, cmd,
                                   &params, sizeof(params));
   waiting_for++;
 }
 
 
-void tui_device_send_params_command_16(const uint16_t a)
-{
-  measure_params_16_t params = {
-    htole16(a),
-    /* We cannot know when the measurement will be started with these
-     * parameters, so we clearly mark this one with a start_time of 0
-     * which cannot be mistaken for a contemporary time_t value.
-     */
-    0
-  };
-  device_send_command_with_params(device, FRAME_CMD_PARAMS_TO_EEPROM,
-                                  &params, sizeof(params));
-  waiting_for++;
-}
-
-
-void tui_device_send_measure_command_16_16(const uint16_t a,
-                                           const uint16_t b)
+void tui_device_send_command_16_16(const frame_cmd_t cmd,
+                                   const time_t ts,
+                                   const uint16_t a,
+                                   const uint16_t b)
 {
   measure_params_16_16_t params = {
     htole16(a),
     htole16(b),
-    time(NULL)
+    ts
   };
-  device_send_command_with_params(device, FRAME_CMD_MEASURE,
-                                  &params, sizeof(params));
-  waiting_for++;
-}
-
-
-void tui_device_send_params_command_16_16(const uint16_t a,
-                                          const uint16_t b)
-{
-  measure_params_16_16_t params = {
-    htole16(a),
-    htole16(b),
-    /* We cannot know when the measurement will be started with these
-     * parameters, so we clearly mark this one with a start_time of 0
-     * which cannot be mistaken for a contemporary time_t value.
-     */
-    0
-  };
-  device_send_command_with_params(device, FRAME_CMD_PARAMS_TO_EEPROM,
+  device_send_command_with_params(device, cmd,
                                   &params, sizeof(params));
   waiting_for++;
 }

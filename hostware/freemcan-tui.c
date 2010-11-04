@@ -410,6 +410,38 @@ void tui_do_timeout(void)
 }
 
 
+void tui_send_parametrized_command(const bool do_measure)
+{
+  const frame_cmd_t cmd =
+    do_measure?FRAME_CMD_MEASURE:FRAME_CMD_PARAMS_TO_EEPROM;
+  /* We cannot know when the measurement will be started with the
+   * parameters in the EEPROM, so we clearly mark this one with a
+   * start_time of 0 which cannot be mistaken for a contemporary
+   * time_t value.
+   */
+  const time_t ts =
+    do_measure?time(NULL):0;
+  if (personality_info) {
+    if ((personality_info->param_data_size_timer_count == 2) &&
+        (personality_info->param_data_size_skip_samples == 2)) {
+      tui_device_send_command_16_16(cmd, ts, last_sent_duration, skip_samples);
+    } else if ((personality_info->param_data_size_timer_count == 0) &&
+               (personality_info->param_data_size_skip_samples == 2)) {
+      tui_device_send_command_16(cmd, ts, skip_samples);
+    } else if ((personality_info->param_data_size_timer_count == 2) &&
+               (personality_info->param_data_size_skip_samples == 0)) {
+      tui_device_send_command_16(cmd, ts, last_sent_duration);
+    } else {
+      fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
+            personality_info->param_data_size_timer_count,
+            personality_info->param_data_size_skip_samples);
+    }
+  } else {
+    fmlog("Missing personality_info");
+  }
+}
+
+
 /** Do TUI's IO stuff if necessary (from select or poll loop)
  */
 void tui_do_io(void)
@@ -500,40 +532,12 @@ void tui_do_io(void)
       case 'm':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        if ((personality_info->param_data_size_timer_count == 2) &&
-            (personality_info->param_data_size_skip_samples == 2)) {
-          tui_device_send_measure_command_16_16(last_sent_duration, skip_samples);
-        } else if ((personality_info->param_data_size_timer_count == 0) &&
-            (personality_info->param_data_size_skip_samples == 2)) {
-          tui_device_send_measure_command_16(skip_samples);
-        } else if ((personality_info->param_data_size_timer_count == 2) &&
-            (personality_info->param_data_size_skip_samples == 0)) {
-          tui_device_send_measure_command_16(last_sent_duration);
-        } else {
-          fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
-                personality_info->param_data_size_timer_count,
-                personality_info->param_data_size_skip_samples);
-          break;
-        }
+        tui_send_parametrized_command(true);
         break;
       case 'e':
         last_sent_duration = duration_list[duration_index];
         recalculate_periodic_interval();
-        if ((personality_info->param_data_size_timer_count == 2) &&
-            (personality_info->param_data_size_skip_samples == 2)) {
-          tui_device_send_params_command_16_16(last_sent_duration, skip_samples);
-        } else if ((personality_info->param_data_size_timer_count == 0) &&
-            (personality_info->param_data_size_skip_samples == 2)) {
-          tui_device_send_params_command_16(skip_samples);
-        } else if ((personality_info->param_data_size_timer_count == 2) &&
-            (personality_info->param_data_size_skip_samples == 0)) {
-          tui_device_send_params_command_16(last_sent_duration);
-        } else {
-          fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
-                personality_info->param_data_size_timer_count,
-                personality_info->param_data_size_skip_samples);
-          break;
-        }
+        tui_send_parametrized_command(false);
         break;
       case 'E':
         tui_device_send_simple_command(FRAME_CMD_PARAMS_FROM_EEPROM);

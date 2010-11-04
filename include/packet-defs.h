@@ -125,9 +125,13 @@ typedef struct {
 
 
 typedef struct {
+  /** Maximum size of the complete table in byte */
   uint16_t sizeof_table;
+  /** Size of a single table value in byte */
   uint16_t sizeof_value;
-  /* uint8_t seconds_per_unit, units_per_second; */
+  /** Time units per second */
+  uint8_t units_per_second;
+  /** Size of measurement command's parameter block */
   uint8_t param_data_size;
 } __attribute__ ((packed)) packet_personality_info_t;
 

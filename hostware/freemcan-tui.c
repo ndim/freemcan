@@ -577,8 +577,8 @@ static void packet_handler_params_from_eeprom(const void *params,
 static void packet_handler_personality_info(personality_info_t *pi,
                                             void *UP(data))
 {
-  fmlog("<PERSONALITY INFO: personality_name:%s",
-        pi->personality_name);
+  fmlog("<PERSONALITY INFO: personality_name:\"%s\" units_per_second=%u",
+        pi->personality_name, pi->units_per_second);
   fmlog("<                  sizeof_table:%u sizeof_value:%u param_data_size:%u",
         pi->sizeof_table, pi->sizeof_value, pi->param_data_size);
   fmlog("<                  %u elements of %ubits each",

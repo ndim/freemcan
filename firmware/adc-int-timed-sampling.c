@@ -97,6 +97,7 @@ data_table_info_t data_table_info = {
 /** See * \see data_table */
 PERSONALITY("adc-int-timed-sampling",
             2,
+            10,
             ((size_t)(&data_table_size)),
             ELEMENT_SIZE_IN_BYTES);
 

@@ -80,6 +80,7 @@ data_table_info_t data_table_info = {
 /** See * \see data_table */
 PERSONALITY("geiger-counter",
             2,
+            1,
             sizeof(counter),
             ELEMENT_SIZE_IN_BYTES);
 

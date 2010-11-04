@@ -42,17 +42,21 @@
  * \param PARAM_SIZE Measurement parameter size (except for token),
  *                   expected to be sent with a FRAME_CMD_MEASURE command,
  *                   e.g. 2 for a single 16bit timer value
+ * \param UNITS_PER_SECOND Timer units per second, e.g. 1 (for 1sec timer period
+ *                         or 10 (for 0.1sec timer period).
  * \param MAX_BYTES_PER_TABLE Maximum size of data table in bytes
  *                            (in bytes to make use of compile time constants)
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
  */
 #define PERSONALITY(NAME,                                           \
                     PARAM_SIZE,                                     \
+                    UNITS_PER_SECOND,                               \
                     MAX_BYTES_PER_TABLE,                            \
                     TABLE_ELEMENT_SIZE)                             \
   const packet_personality_info_t personality_info = {              \
     MAX_BYTES_PER_TABLE,                                            \
     TABLE_ELEMENT_SIZE,                                             \
+    UNITS_PER_SECOND,                                               \
     PARAM_SIZE                                                      \
   };                                                                \
   const char personality_name[] PROGMEM = NAME;                     \

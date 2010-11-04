@@ -35,6 +35,7 @@ typedef struct {
   int refs;
   size_t sizeof_table;
   size_t sizeof_value;
+  unsigned int units_per_second;
   size_t param_data_size;
   char personality_name[];
 } personality_info_t;
@@ -118,6 +119,7 @@ void packet_value_table_unref(packet_value_table_t *value_table);
  */
 personality_info_t *personality_info_new(const uint16_t _sizeof_table,
                                          const uint16_t _sizeof_value,
+                                         const uint8_t units_per_second,
                                          const uint8_t param_data_size,
                                          const uint16_t _personality_name_size,
                                          const char *personality_name)

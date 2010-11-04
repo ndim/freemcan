@@ -96,6 +96,7 @@
 #include "send-table.h"
 #include "main.h"
 #include "data-table.h"
+#include "timer2-debounce-switch.h"
 
 
 /* Only try compiling for supported MCU types */
@@ -103,6 +104,10 @@
 #else
 # error Unsupported MCU!
 #endif
+
+
+/** Define static string in a single place */
+const char PSTR_INVALID_EEPROM_DATA[] PROGMEM = "Invalid EEPROM data";
 
 
 volatile uint8_t measurement_finished;
@@ -121,14 +126,13 @@ FUSES = {
 };
 
 
-/** Configure unused pins
- */
+/** Configure unused pins */
 void io_init_unused_pins(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
 void io_init_unused_pins(void)
 {
-    /** \todo configure unused pins */
+  /** \todo configure unused pins */
 }
 
 
@@ -151,7 +155,7 @@ void send_eeprom_params_in_sram(void)
 {
   const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
   if (length == 0xff || length > sizeof(personality_param_sram)) {
-    send_text_P(PSTR("Invalid EEPROM data"));
+    send_text_P(PSTR_INVALID_EEPROM_DATA);
   }
   const uint8_t limited_length =
     (length>sizeof(personality_param_sram))?sizeof(personality_param_sram):length;
@@ -172,13 +176,6 @@ void general_personality_start_measurement_sram(void)
 {
   sei();
   personality_start_measurement_sram();
-}
-
-
-void general_personality_start_measurement_eeprom(void)
-{
-  params_copy_from_eeprom_to_sram();
-  general_personality_start_measurement_sram();
 }
 
 
@@ -210,6 +207,31 @@ firmware_packet_state_t eat_measurement_finished(const firmware_packet_state_t p
   default:
     send_text_P(PSTR("invalid state transition"));
     wdt_soft_reset();
+    break;
+  }
+}
+
+
+/** Firmware FSM event handler for pressed switch */
+inline static
+firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
+{
+  switch (pstate) {
+  case STP_READY:
+    params_copy_from_eeprom_to_sram();
+    const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
+    if (length == 0xff || length > sizeof(personality_param_sram)) {
+      send_text_P(PSTR_INVALID_EEPROM_DATA);
+      return STP_READY;
+    } else {
+      general_personality_start_measurement_sram();
+      return STP_MEASURING;
+    }
+    break;
+  default:
+    /* ignore switch press in all other states */
+    send_text_P(PSTR("ignoring pressed switch"));
+    return pstate;
     break;
   }
 }
@@ -430,8 +452,11 @@ int main(void)
 
   /* Firmware FSM loop */
   while (1) {
+
     if (measurement_finished) {
       pstate = eat_measurement_finished(pstate);
+    } else if (!switch_is_inactive) {
+      pstate = eat_switch_pressed(pstate);
     } else if (bit_is_set(UCSR0A, RXC0)) {
 
       /* A byte arrived via UART, so fetch it */
@@ -509,10 +534,6 @@ int main(void)
 
     skip_errors:
       fstate = next_fstate;
-      /*
-    } else if (switch_is_pressed) {
-      eat_switch_pressed();
-      */
     }
 
   } /* while (1) main event loop */

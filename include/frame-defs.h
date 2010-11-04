@@ -25,6 +25,8 @@
  *
  * The firmware implements the following state machine:
  *
+ * \todo OUTDATED PROTOCOL DESCRIPTION FSM diagram
+ *
  * \image html firmware-states.png "Device as State Machine"
  *
  * The input triggering a state transition is either a byte received
@@ -88,6 +90,8 @@
  * To keep the parser in the firmware simple, most "frames" sent from
  * the hostware to the firmware are actually just a single byte:
  *
+ * \todo OUTDATED PROTOCOL DESCRIPTION
+ *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
  *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
@@ -95,6 +99,8 @@
  *
  * The single exception is the "start measurement" command which looks
  * as follows:
+ *
+ * \todo OUTDATED PROTOCOL DESCRIPTION
  *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
@@ -104,6 +110,8 @@
  * </table>
  *
  * \subsection frame_emb_to_host Frames sent from firmware to hostware
+ *
+ * \todo OUTDATED PROTOCOL DESCRIPTION
  *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>

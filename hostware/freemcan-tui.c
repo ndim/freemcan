@@ -78,6 +78,11 @@ static void packet_handler_params_from_eeprom(const void *params,
                                               const size_t size,
                                               void *UP(data));
 
+
+personality_info_t *personality_info = NULL;
+
+
+
 bool is_measuring = false;
 int waiting_for = 0;
 
@@ -135,7 +140,7 @@ void update_last_received_size(const uint16_t size)
 
 
 
-/** \section tui_durations TUI Measurement Duration handling
+/** \section tui_measurement_params TUI Measurement parameter set handling
  * @{
  */
 
@@ -166,6 +171,18 @@ void fmlog_durations(void)
 {
   fmlog("Measurement duration in device clock periods: %u",
         duration_list[duration_index]);
+}
+
+
+/** Number of samples to skip (in some personalities) */
+unsigned int skip_samples = 0;
+
+
+/** Log current value of skip_samples */
+static
+void fmlog_skip_samples(void)
+{
+  fmlog("skip_samples = %u", skip_samples);
 }
 
 
@@ -308,6 +325,7 @@ void tui_fmlog_help(void)
   fmlog("2           toggle hexdump of received layer 2 data (frames)");
   fmlog("9           toggle dump of user input (typed characters)");
   fmlog("+/-         increase/decrease measurement duration of 'm/M' command");
+  fmlog("./,         increase/decrease number of samples to skip");
   fmlog("a           send command \"(a)bort\"");
   fmlog("e           write measurement parameters to (e)eprom");
   fmlog("E           read measurement parameters from (e)eprom");
@@ -449,6 +467,16 @@ void tui_do_io(void)
       case 'H':
         tui_fmlog_help();
         break;
+      case '.':
+        skip_samples++;
+        fmlog_skip_samples();
+        break;
+      case ',':
+        if (skip_samples > 0) {
+          skip_samples--;
+          fmlog_skip_samples();
+        }
+        break;
       case '+':
         if (duration_list[duration_index+1] != 0) {
           ++duration_index;
@@ -531,9 +559,6 @@ void atexit_func(void)
  * @{
  */
 /************************************************************************/
-
-
-personality_info_t *personality_info = NULL;
 
 
 /** State data packet handler (TUI specific) */

@@ -334,6 +334,7 @@ void tui_fmlog_help(void)
           duration_list[duration_index]);
   }
   fmlog("./,         increase/decrease number of samples to skip (%u)", skip_samples);
+  fmlog("<space>     print current hostware parameters that would be sent with 'e' or 'm'");
   fmlog("a           send command \"(a)bort\"");
   fmlog("e           write measurement parameters to (e)eprom");
   fmlog("E           read measurement parameters from (e)eprom");
@@ -543,6 +544,11 @@ void tui_do_io(void)
         break;
       case 'E':
         tui_device_send_simple_command(FRAME_CMD_PARAMS_FROM_EEPROM);
+        break;
+      case ' ':
+        /** \todo Make this depend on the configured personality? */
+        fmlog("Hostware status: duration=%u clock cycles, skip_samples=%u",
+              duration_list[duration_index], skip_samples);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:

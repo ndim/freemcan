@@ -81,8 +81,8 @@
  * Also do a few preprocessor time range checks.
  */
 #define TIMER2_COMPA_VALUE                                     \
-  (((F_CPU*DEBOUNCE_PERIOD_MS-1) /                             \
-    (TIMER2_CLOCK_DIVISION_FACTOR * 1000ULL * SHIFT_REGISTER_WIDTH)) \
+  ((((F_CPU)*(DEBOUNCE_PERIOD_MS)-1) /                               \
+    ((TIMER2_CLOCK_DIVISION_FACTOR) * 1000ULL * (SHIFT_REGISTER_WIDTH))) \
    +1)
 
 #if (TIMER2_COMPA_VALUE < 10)
@@ -96,7 +96,7 @@
 
 /** The real debounce period, taking into account rounding errors etc. */
 #define REAL_DEBOUNCE_PERIOD_MS                                         \
-  ((SHIFT_REGISTER_WIDTH * TIMER2_COMPA_VALUE * 1000ULL * TIMER2_CLOCK_DIVISION_FACTOR) / F_CPU)
+  (((SHIFT_REGISTER_WIDTH) * (TIMER2_COMPA_VALUE) * 1000ULL * (TIMER2_CLOCK_DIVISION_FACTOR)) / (F_CPU))
 
 
 /* If you want to know what the actual debounce period is, uncomment

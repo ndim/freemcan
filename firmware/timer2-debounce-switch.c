@@ -35,23 +35,23 @@
 
 
 /** Timer prescaler value for frequency calculations */
-#define TIMER2_PRESCALE_FACTOR 1024ULL
+#define TIMER2_CLOCK_DIVISION_FACTOR 1024ULL
 
 
 /** Timer prescaler value for writing to the CS02:CS00 bits
  */
-#if   (TIMER2_PRESCALE_FACTOR == 1024ULL)
-# define TIMER2_CS_VALUE 5
-#elif (TIMER2_PRESCALE_FACTOR == 256ULL)
-# define TIMER2_CS_VALUE 4
-#elif (TIMER2_PRESCALE_FACTOR == 64ULL)
-# define TIMER2_CS_VALUE 3
-#elif (TIMER2_PRESCALE_FACTOR == 8ULL)
-# define TIMER2_CS_VALUE 2
-#elif (TIMER2_PRESCALE_FACTOR == 1ULL)
-# define TIMER2_CS_VALUE 1
+#if   (TIMER2_CLOCK_DIVISION_FACTOR == 1024ULL)
+# define TIMER2_CLOCK_PRESCALER_SELECT 5
+#elif (TIMER2_CLOCK_DIVISION_FACTOR == 256ULL)
+# define TIMER2_CLOCK_PRESCALER_SELECT 4
+#elif (TIMER2_CLOCK_DIVISION_FACTOR == 64ULL)
+# define TIMER2_CLOCK_PRESCALER_SELECT 3
+#elif (TIMER2_CLOCK_DIVISION_FACTOR == 8ULL)
+# define TIMER2_CLOCK_PRESCALER_SELECT 2
+#elif (TIMER2_CLOCK_DIVISION_FACTOR == 1ULL)
+# define TIMER2_CLOCK_PRESCALER_SELECT 1
 #else
-# error Invalid TIMER2_PRESCALE_FACTOR value!
+# error Invalid TIMER2_CLOCK_DIVISION_FACTOR value!
 #endif
 
 
@@ -82,7 +82,7 @@
  */
 #define TIMER2_COMPA_VALUE                                     \
   (((F_CPU*DEBOUNCE_PERIOD_MS-1) /                             \
-    (TIMER2_PRESCALE_FACTOR * 1000ULL * SHIFT_REGISTER_WIDTH)) \
+    (TIMER2_CLOCK_DIVISION_FACTOR * 1000ULL * SHIFT_REGISTER_WIDTH)) \
    +1)
 
 #if (TIMER2_COMPA_VALUE < 10)
@@ -96,7 +96,7 @@
 
 /** The real debounce period, taking into account rounding errors etc. */
 #define REAL_DEBOUNCE_PERIOD_MS                                         \
-  ((SHIFT_REGISTER_WIDTH * TIMER2_COMPA_VALUE * 1000ULL * TIMER2_PRESCALE_FACTOR) / F_CPU)
+  ((SHIFT_REGISTER_WIDTH * TIMER2_COMPA_VALUE * 1000ULL * TIMER2_CLOCK_DIVISION_FACTOR) / F_CPU)
 
 
 /* If you want to know what the actual debounce period is, uncomment
@@ -161,9 +161,9 @@ void timer2_init_and_start(void)
     BITF(TIMER2_WGM_VALUE, WGM2, 1);
   TCCR2B =
     BITF(TIMER2_WGM_VALUE, WGM2, 2) |
-    BITF(TIMER2_CS_VALUE,  CS2,  2) |
-    BITF(TIMER2_CS_VALUE,  CS2,  1) |
-    BITF(TIMER2_CS_VALUE,  CS2,  0);
+    BITF(TIMER2_CLOCK_PRESCALER_SELECT,  CS2,  2) |
+    BITF(TIMER2_CLOCK_PRESCALER_SELECT,  CS2,  1) |
+    BITF(TIMER2_CLOCK_PRESCALER_SELECT,  CS2,  0);
 }
 
 

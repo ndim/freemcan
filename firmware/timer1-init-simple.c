@@ -29,6 +29,7 @@
 
 
 #include "data-table.h"
+#include "timer1-constants.h"
 #include "timer1-measurement.h"
 
 

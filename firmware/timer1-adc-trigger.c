@@ -34,6 +34,7 @@
 #include "global.h"
 #include "data-table.h"
 #include "timer1-adc-trigger.h"
+#include "timer1-constants.h"
 #include "packet-comm.h"
 #include "wdt-softreset.h"
 

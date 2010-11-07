@@ -105,9 +105,6 @@
 #endif
 
 
-volatile uint8_t measurement_finished;
-
-
 /** Define AVR device fuses.
  *
  * CAUTION: These values are highly device dependent.
@@ -430,9 +427,9 @@ int main(void)
 
   /* Firmware FSM loop */
   while (1) {
-    if (measurement_finished) {
+    if (GF_ISSET(GF_MEASUREMENT_FINISHED)) {
       pstate = eat_measurement_finished(pstate);
-      measurement_finished = 0;
+      GF_CLEAR(GF_MEASUREMENT_FINISHED);
     } else if (bit_is_set(UCSR0A, RXC0)) {
 
       /* A byte arrived via UART, so fetch it */

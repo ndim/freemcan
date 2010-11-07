@@ -120,14 +120,14 @@ ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
-  if (!measurement_finished) {
+  if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
     /** We do not touch #measurement_finished ever again after setting
      * it. */
     last_timer1_count = timer1_count;
     timer1_count--;
     if (timer1_count == 0) {
       /* timer has elapsed, set the flag to signal the main program */
-      measurement_finished = 1;
+      GF_SET(GF_MEASUREMENT_FINISHED);
     }
   }
 }

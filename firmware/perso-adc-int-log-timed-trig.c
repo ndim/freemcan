@@ -173,7 +173,7 @@ ISR(ADC_vect)
   const uint16_t result = ADCW;
   if (skip_samples == 0) {
     /* Read analog value */
-    if (!measurement_finished) {
+    if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
       /* Write to current position in table */
       *table_cur = result >> (10-ADC_RESOLUTION);
       table_cur++;
@@ -183,7 +183,7 @@ ISR(ADC_vect)
         /* switch off any compare matches on B to stop sampling     */
         timer1_halt();
         /* tell main() that measurement is over                     */
-        measurement_finished = 1;
+        GF_SET(GF_MEASUREMENT_FINISHED);
       }
     }
   } else {

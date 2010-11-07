@@ -119,11 +119,11 @@ ISR(ADC_vect)
   }
 
   /* measurement duration */
-  if (!measurement_finished) {
+  if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
     last_timer1_count = timer1_count;
     timer1_count--;
     if (timer1_count == 0) {
-      measurement_finished = 1;
+      GF_SET(GF_MEASUREMENT_FINISHED);
     }
   }
 

@@ -228,7 +228,7 @@ ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
-  if (!measurement_finished) {
+  if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
     /** We do not touch the measurement_finished flag ever again after
      * setting it. */
     last_timer1_count = timer1_count;
@@ -241,7 +241,7 @@ ISR(TIMER1_COMPA_vect)
         data_table_info.size += sizeof(*table_cur);
         timer1_count = orig_timer1_count;
       } else {
-        measurement_finished = 1;
+        GF_SET(GF_MEASUREMENT_FINISHED);
       }
     }
   }

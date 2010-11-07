@@ -33,20 +33,6 @@
 #include <stdint.h>
 
 
-/** Flag to signal that the measurement has finished
- *
- * Used to signal from the measurement ISRs to the main program that
- * the measurement has finished.
- *
- * It is 0 by default, and will be set to non-zero as true. Written
- * once only by the measurement ISRs, and read by the main loop.
- *
- * It is an 8bit value, and thus accessible with atomic read/write
- * operations.
- */
-extern volatile uint8_t measurement_finished;
-
-
 /** Notification function called when measurement has finished.
  *
  * This is the place e.g. to display to the user that the measurement

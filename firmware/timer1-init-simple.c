@@ -72,14 +72,6 @@ void timer1_init(const uint16_t timer1_value)
 }
 
 
-void personality_start_measurement_sram(void)
-{
-  const void *voidp = &personality_param_sram[0];
-  const uint16_t *timer1_value = voidp;
-  timer1_init(*timer1_value);
-}
-
-
 /** Configure 16bit timer to trigger an ISR four times as fast ast timer1_init() does.
  *
  * You MUST have run timer1_init() some time before running timer1_init_quick().

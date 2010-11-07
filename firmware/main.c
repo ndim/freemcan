@@ -167,7 +167,6 @@ void params_copy_from_eeprom_to_sram(void)
 
 void general_personality_start_measurement_sram(void)
 {
-  sei();
   personality_start_measurement_sram();
 }
 
@@ -424,6 +423,9 @@ int main(void)
 
   /* Packet FSM State */
   firmware_packet_state_t pstate = STP_READY;
+
+  /* Globally enable interrupts */
+  sei();
 
   /* Firmware FSM loop */
   while (1) {

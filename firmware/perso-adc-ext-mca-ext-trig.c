@@ -1,4 +1,4 @@
-/** \file firmware/adc-ext-mca.c
+/** \file firmware/PERSO_perso-adc-ext-mca-ext-trig.c
  * \brief External ADC based MCA
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_ext_mca External ADC based MCA
+ * \defgroup perso_adc_ext_mca_ext_trig External ADC based MCA
  * \ingroup firmware
  *
  * External ADC code.
@@ -40,12 +40,13 @@
 
 
 #include "global.h"
-#include "adc-ext-global.h"
+#include "perso-adc-ext-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
+#include "timer1-measurement.h"
 
-#include "ad7813.h"
+#include "perso-adc-ext-ad7813.h"
 
 
 /** Number of elements in the histogram table */
@@ -304,13 +305,20 @@ void AD7813_init(void)
 
 
 /** ADC subsystem and trigger setup */
-void adc_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void adc_init(void)
 {
   AD7813_init();
   trigger_src_conf();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  adc_init();
+  timer1_init(*timer1_value);
 }
 
 

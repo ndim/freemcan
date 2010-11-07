@@ -1,5 +1,5 @@
-/** \file firmware/adc-ext-global.h
- * \brief Global adjustments for external ADC related stuff
+/** \file firmware/perso-adc-int-global.h
+ * \brief Global adjustments for internal ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,41 +19,48 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup global_constants_adc_ext Global Constants And Definitions for external ADC
+ * \defgroup global_constants_adc_int Global Constants And Definitions for internal ADC
  * \ingroup firmware
  * @{
  */
 
-#ifndef ADC_EXT_GLOBAL_H
-#define ADC_EXT_GLOBAL_H
+#ifndef PERSO_ADC_INT_GLOBAL_H
+#define PERSO_ADC_INT_GLOBAL_H
 
 
-#include <stdint.h>
-
-
-/** Sample & hold capacitor control: PORT configuration */
-#define SHRST_IO_PORT PORTD
-
-
-/** Sample & hold capacitor control: DDR configuration */
-#define SHRST_IO_DDR DDRD
-
-
-/** Sample & hold capacitor control: Pseudonym configuration */
-#define SHRST_IO_CTRL_BIT PD6
+/** ADC prescaler selection for ADC clock source frequency
+ *
+ *  0: ADC clock divider=2
+ *  1: ADC clock divider=2
+ *  2: ADC clock divider=4
+ *  3: ADC clock divider=8
+ *  4: ADC clock divider=16
+ *  5: ADC clock divider=32
+ *  6: ADC clock divider=64
+ *  7: ADC clock divider=128
+ *
+ *  Select a prescaler in order to set a resonable ADC clock frequency.
+ *  For ATMEGA644P the nominal frequency range lies between 50 - 200kHz.
+ *
+ *  ADC clock division factor = F_CPU [Hz]/ADC clock source frequency [Hz]
+ *  E.g. 16000kHz/64 = 250khz
+ */
+#define ADC_PRESCALER (6)
 
 
 /** ADC resolution in bit
  *
- *  Put in a reasonable value (e.g. 10 bit ADC -> 9 bit)
+ *  Put in here resonable value:
+ *  E.g. 8 bit resolution at 500 kHz.
+ *  (ATMEGA644P has 3,5LSB accuracy at 1Mhz; 4V)
  */
-#define ADC_RESOLUTION (9)
+#define ADC_RESOLUTION (10)
 
 
 /** @} */
 
 
-#endif /* !ADC_EXT_GLOBAL_H */
+#endif /* !PERSO_ADC_INT_GLOBAL_H */
 
 
 /*

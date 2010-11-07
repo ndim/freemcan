@@ -56,7 +56,7 @@ SWITCH: {
                       };
   #default fall through: if there are too much or too less arguments we look for the newest file
   opendir DIR, $datadir or die "Plot utility: $datadir cannot be read: $!";
-  map { $plotfile1 = $_ } grep { /hist/ and -f } sort readdir DIR;
+  map { $plotfile1 = $_ } grep { /\.dat/ and -f } sort readdir DIR;
   print "Plotting file with last timestamp: $plotfile1 \n";
   $numplotmode = 1;
 }

@@ -30,113 +30,85 @@
 
 #ifndef __ASSEMBLER__
 
-#include <stdint.h>
 
-
-/** XTAL frequency */
-#ifndef F_CPU
-# error You need to define F_CPU!
-#endif
-
-
-/** Timer prescaler selection (16Bit timer)
+/**
+ * \newgroup global_flags Global Flags
+ * \ingroup firmware
  *
- *  1: No prescaling
- *  2: Divider=8
- *  3: Divider=64
- *  4: Divider=256
- *  5: Divider=1024
+ * The ATmega devices can easily access IO registers below address
+ * 0x1F with just 2 bytes of code for setting, clearing, or testing a
+ * single bit. Also, those accesses all are atomic.
  *
- *  Select a prescaler to have an compare match value as integer
+ * So we try to store all our global flags in GPIOR0 which is an IO
+ * register for just that purpose.
+ *
+ * @{
  */
-#if   (F_CPU == 20000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
-# else
-#  define TIMER_PRESCALER 5
-# endif
-#elif (F_CPU == 18432000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
-# else
-#  define TIMER_PRESCALER 5
-# endif
-#elif (F_CPU == 16000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
-# else
-#  define TIMER_PRESCALER 5
-# endif
-#else
-# error Unsupported F_CPU value
-#endif
 
 
-/** Timer compare match value for 16Bit timer
+/** IO register to use for global flags */
+#define GLOBAL_FLAG_REGISTER GPIOR0
+
+
+/** Global flag: Signal that measurement has finished
  *
- *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
- *  E.g. (1sec*16000000Hz/1024) - 1 = 15624
- *  E.g. (0.1sec*16000000Hz/256) - 1 = 6249
+ * Sends a signal from personality specific ISR code to the main event
+ * loop that the measurement has finished.
  *
- *  The data measurement is carried out in multiples of time_elapsed.
+ * Set only in the ISR code, cleared only in the main event loop.
  *
- * Lazy people can calculate these constants using Erlang as follows:
- * $ erl
- * 1> Freqs = [ 20000000, 18432000, 16000000 ].
- * [20000000,18432000,16000000]
- * 2> Speeds = [ {0.1, 256}, {1.0, 1024} ].
- * [{0.1,256},{1.0,1024}]
- * 3> [ {Per, F_CPU, Per*F_CPU/Div-1} || F_CPU <- Freqs, {Per,Div} <- Speeds ].
- * [{0.1,20000000,7811.5},
- *  {1.0,20000000,19530.25},
- *  {0.1,18432000,7199.0},
- *  {1.0,18432000,17999.0},
- *  {0.1,16000000,6249.0},
- *  {1.0,16000000,15624.0}]
- * 4> q().
- * ok
- * $
+ * Usage:
  *
+ *  0. Startup default value is GF_CLEAR.
+ *
+ *  1. main event loop starts a measurement
+ *
+ *  2. personality specific code (ISR) code determines end of
+ *     measurement and GF_SETs.
+ *
+ *  3. main event loop detects GF_ISSET, then handles the event, then
+ *     GF_CLEARs.
  */
-#if   (F_CPU == 20000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 7811
-# else
-#  define TIMER_COMPARE_MATCH_VAL 19530
-#endif
-#elif (F_CPU == 18432000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 7199
-# else
-#  define TIMER_COMPARE_MATCH_VAL 17999
-# endif
-#elif (F_CPU == 16000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 6249
-# else
-#  define TIMER_COMPARE_MATCH_VAL 15624
-# endif
-#else
-# error Unsupported F_CPU value
-#endif
+#define GF_MEASUREMENT_FINISHED 0
 
 
+/** Is given global flag set? */
+#define GF_ISSET(FLAG)                          \
+  (0 != ((GLOBAL_FLAG_REGISTER) & _BV(FLAG)))
 
-/** Toggle a sign if the measurement is over */
-#ifdef TIMER_SUB_1SEC
-# define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER \
-  (((TIMER_COMPARE_MATCH_VAL)*10UL)>>2)
-#endif
 
+/** Is given global flag cleared? */
+#define GF_IS_CLEARED(FLAG)                     \
+  (0 == ((GLOBAL_FLAG_REGISTER) & _BV(FLAG)))
+
+
+/** Clear given global flag */
+#define GF_CLEAR(FLAG)                          \
+  do {                                          \
+    GLOBAL_FLAG_REGISTER &= ~(_BV(FLAG));       \
+  } while (0)
+
+
+/** Set given global flag */
+#define GF_SET(FLAG) \
+  do {                                          \
+    GLOBAL_FLAG_REGISTER |= _BV(FLAG);          \
+  } while (0)
 
 
 /** @} */
 
+
 #else /* ifdef __ASSEMBLER__ */
+
 
 #endif /* __ASSEMBLER__ */
 
+
 #endif /* !GLOBAL_H */
+
+
+/** @} */
 
 
 /*

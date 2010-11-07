@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer-adc-trigger.c
+/** \file firmware/timer1-adc-trigger.c
  * \brief Timer hardware directly triggering ADC
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup measurement_timer_adc_trigger Timer hardware directly triggering ADC
+ * \defgroup timer1_adc_trigger Timer hardware directly triggering ADC
  * \ingroup firmware
  *
  * Timer hardware directly triggering ADC
@@ -29,11 +29,13 @@
 
 
 /** Make sure we use the sub 1 second timer resolution */
-#define TIMER_SUB_1SEC
+#define TIMER1_SUB_1SEC
 
 #include "global.h"
 #include "data-table.h"
-#include "measurement-timer-adc-trigger.h"
+#include "perso-adc-int-global.h"
+#include "timer1-adc-trigger.h"
+#include "timer1-constants.h"
 #include "packet-comm.h"
 #include "wdt-softreset.h"
 
@@ -45,24 +47,24 @@
  * interrupt.
  *
  * Timer interrupt handler has exclusive access to read/writes
- * timer_count to decrement, once the timer ISR has been enabled.
+ * timer1_count to decrement, once the timer ISR has been enabled.
  */
-volatile uint16_t timer_count;
+volatile uint16_t timer1_count;
 
 
 /** timer counter */
-volatile uint16_t timer_count;
+volatile uint16_t timer1_count;
 
 
 /** Last value of timer counter
  *
- * Used for pseudo synchronized reading of the timer_count multi-byte
- * variable in the main program, while timer_count may be written to
+ * Used for pseudo synchronized reading of the timer1_count multi-byte
+ * variable in the main program, while timer1_count may be written to
  * by the timer ISR.
  *
  * \see get_duration, ISR(TIMER1_COMPA_vect)
  */
-volatile uint16_t last_timer_count = 1;
+volatile uint16_t last_timer1_count = 1;
 
 
 /** Original timer count received in the command.
@@ -70,7 +72,7 @@ volatile uint16_t last_timer_count = 1;
  * Used later for determining how much time has elapsed yet. Written
  * once only, when the command has been received.
  */
-volatile uint16_t orig_timer_count;
+volatile uint16_t orig_timer1_count;
 
 
 /** FIXME
@@ -86,15 +88,8 @@ volatile uint16_t skip_samples;
  *
  * Configure "measurement in progress toggle LED-signal"
  */
-void timer_init(void)
+void timer1_init(void)
 {
-  /** Safeguard: We cannot handle 0 or 1 count measurements. *
-  if (orig_timer_count <= 1) {
-    send_text_P(PSTR("Unsupported timer value <= 1"));
-    wdt_soft_reset();
-  }
-  */
-
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;
@@ -113,19 +108,19 @@ void timer_init(void)
   TCCR1A |= _BV(COM1B0);
 
   /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
+  TCCR1B |=  ((((TIMER1_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
+              (((TIMER1_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
+              ((TIMER1_PRESCALER & 0x01)*_BV(CS10)));
 
   /* Derive sample rate (time base) as a multiple of the base
      compare match value for 0.1sec. Write to output compare
      reg. A                                                       */
-  OCR1A = (TIMER_COMPARE_MATCH_VAL);
+  OCR1A = (TIMER1_COMPARE_MATCH_VAL);
 
   /* The ADC can only be triggered via compare register B.
      Set the trigger point (compare match B) to 50% of
      compare match A                                              */
-  OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
+  OCR1B = (TIMER1_COMPARE_MATCH_VAL >> 1);
 
   /* we do not need to jump to any ISRs since we do everything
      inside the ADC callback function                             */
@@ -145,6 +140,57 @@ uint16_t get_duration(void)
 }
 
 
+/** ADC initialisation and configuration
+ *
+ * ADC configured as auto trigger
+ * Trigger source compare register B
+ * Use external analog reference AREF at PIN 32
+ * AD input channel on Pin 40 ADC0
+ */
+inline static
+void adc_init(void)
+{
+  uint16_t result;
+
+  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
+  ADMUX = 0;
+
+  /* select voltage reference: external AREF Pin 32 as reference */
+  ADMUX &= ~(_BV(REFS1) | _BV(REFS0));
+
+  /* clear ADC Control and Status Register A
+   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
+  ADCSRA = _BV(ADEN);
+
+  /* ADC prescaler selection (ADC Prescaler Select Bits) */
+  /* bits ADPS0 .. ADPS2 */
+  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
+             (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
+             ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
+
+  /* dummy read out (first conversion takes some time) */
+  /* software triggered AD-Conversion */
+  ADCSRA |= _BV(ADSC);
+
+  /* wait until conversion is complete */
+  loop_until_bit_is_clear(ADCSRA, ADSC);
+
+  /* clear returned AD value, other next conversion value is not ovrtaken */
+  result = ADCW;
+
+  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
+   * (-> ADC interrupt enable) */
+  ADCSRA |= _BV(ADIE);
+
+  /* Configure ADC trigger source:
+   * Select external trigger trigger ADC on Compare Match B of Timer1 */
+  ADCSRB = (_BV(ADTS2)|_BV(ADTS0));
+
+  /* ADC auto trigger enable: ADC will be started by trigger signal */
+  ADCSRA |= _BV(ADATE);
+}
+
+
 /** \bug Handle two uint16_t values from parameters: measurement
  *       duration and skip_samples.
  */
@@ -153,19 +199,33 @@ void personality_start_measurement_sram(void)
   size_t ofs = 0;
 
   if (personality_info.param_data_size_timer_count == 2) {
-    const void *timer_count_vp = &personality_param_sram[ofs];
-    const uint16_t *timer_count_p = timer_count_vp;
-    orig_timer_count = timer_count = *timer_count_p;
+    const void *timer1_count_vp = &personality_param_sram[ofs];
+    const uint16_t *timer1_count_p = timer1_count_vp;
+    orig_timer1_count = *timer1_count_p;
+    timer1_count = *timer1_count_p;
+
+    /** Safeguard: We cannot handle 0 or 1 count measurements.
+     *
+     * Enable this if you do something with get_duration() above.
+     *
+    if (orig_timer1_count <= 1) {
+      send_text_P(PSTR("Unsupported timer value <= 1"));
+      wdt_soft_reset();
+    }
+    */
+
     ofs += 2;
   }
 
   if (personality_info.param_data_size_skip_samples == 2) {
     const void *skip_samples_vp = &personality_param_sram[ofs];
     const uint16_t *skip_samples_p = skip_samples_vp;
-    orig_skip_samples = skip_samples = *skip_samples_p;
+    orig_skip_samples = *skip_samples_p;
+    skip_samples = *skip_samples_p;
   }
 
-  timer_init();
+  adc_init();
+  timer1_init();
 }
 
 

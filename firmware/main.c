@@ -92,7 +92,7 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 #include "wdt-softreset.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "send-table.h"
 #include "main.h"
 #include "data-table.h"
@@ -108,9 +108,6 @@
 
 /** Define static string in a single place */
 const char PSTR_INVALID_EEPROM_DATA[] PROGMEM = "Invalid EEPROM data";
-
-
-volatile uint8_t measurement_finished;
 
 
 /** Define AVR device fuses.
@@ -174,7 +171,6 @@ void params_copy_from_eeprom_to_sram(void)
 
 void general_personality_start_measurement_sram(void)
 {
-  sei();
   personality_start_measurement_sram();
 }
 
@@ -313,7 +309,7 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     switch (c) {
     case FRAME_CMD_INTERMEDIATE:
       /** The value table will be updated asynchronously from ISRs
-       * like ISR(ADC_vect) or ISR(TIMER_foo), i.e. independent from
+       * like ISR(ADC_vect) or ISR(TIMER1_foo), i.e. independent from
        * this main loop.  This will cause glitches in the intermediate
        * values as the values are larger than 1 byte.  However, we
        * have decided that for *intermediate* results, those glitches
@@ -450,12 +446,14 @@ int main(void)
   /* Packet FSM State */
   firmware_packet_state_t pstate = STP_READY;
 
+  /* Globally enable interrupts */
+  sei();
+
   /* Firmware FSM loop */
   while (1) {
-
-    if (measurement_finished) {
+    if (GF_ISSET(GF_MEASUREMENT_FINISHED)) {
       pstate = eat_measurement_finished(pstate);
-      measurement_finished = 0;
+      GF_CLEAR(GF_MEASUREMENT_FINISHED);
     } else if (!switch_is_inactive) {
       pstate = eat_switch_pressed(pstate);
     } else if (bit_is_set(UCSR0A, RXC0)) {

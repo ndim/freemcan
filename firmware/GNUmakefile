@@ -290,42 +290,42 @@ COMMON_X += check-data-stack-in-SRAM.x
 # ======================================================================
 # Firmware personality: MCA using external ADC
 PERSONALITIES += adc-ext-mca
-firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-simple.o measurement-timer-ISR-countdown-and-stop.o adc-ext-mca.o
+firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o timer1-countdown-and-stop.o perso-adc-ext-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC
 PERSONALITIES += adc-int-mca
-firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-simple.o measurement-timer-ISR-countdown-and-stop.o adc-int-mca.o
+firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o timer1-countdown-and-stop.o perso-adc-int-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC, timed trigger
 PERSONALITIES += adc-int-mca-timed
-firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc-trigger.o adc-int-mca-timed-trigger.o
+firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) timer1-adc-trigger.o perso-adc-int-mca-timed-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC, timed trigger
 PERSONALITIES += adc-int-timed-sampling
-firmware-adc-int-timed-sampling.elf : LDFLAGS += -T time-series-table.x
-firmware-adc-int-timed-sampling.elf : time-series-table.x
-firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-adc-trigger.o adc-int-timed-sampling.o
-	$(LINK.c) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@
+firmware-adc-int-timed-sampling.elf : LDFLAGS += -T data-table-all-other-memory.x
+firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.x
+firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) timer1-adc-trigger.o perso-adc-int-log-timed-trig.o
+	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Geiger Counter without time series
 PERSONALITIES += geiger-counter
-firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-simple.o measurement-timer-ISR-countdown-and-stop.o geiger-counter.o
+firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o timer1-countdown-and-stop.o perso-geiger-counter.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Geiger Counter with time series
 PERSONALITIES += geiger-ts
-firmware-geiger-ts.elf : LDFLAGS += -T time-series-table.x
-firmware-geiger-ts.elf : time-series-table.x
-firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) measurement-timer-init-simple.o geiger-time-series.o
-	$(LINK.c) $(filter-out time-series-table.x,$^) $(LDLIBS) --output $@
+firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x
+firmware-geiger-ts.elf : data-table-all-other-memory.x
+firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o perso-geiger-time-series.o
+	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 
 ########################################################################

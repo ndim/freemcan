@@ -32,7 +32,7 @@
 #include "send-table.h"
 #include "uart-comm.h"
 #include "frame-comm.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "data-table.h"
 
 
@@ -102,7 +102,7 @@ void send_table(const packet_value_table_reason_t reason)
     reason,
     data_table_info.type,
     duration,
-    orig_timer_count,
+    orig_timer1_count,
     *token
   };
   frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + data_table_info.size);

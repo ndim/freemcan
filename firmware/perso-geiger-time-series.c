@@ -45,7 +45,7 @@
 #include "compiler.h"
 #include "global.h"
 #include "packet-comm.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "uart-printf.h"
 #include "main.h"
 #include "table-element.h"
@@ -219,29 +219,29 @@ ISR(INT0_vect)
 }
 
 
-volatile uint16_t timer_count;
-volatile uint16_t last_timer_count;
-volatile uint16_t orig_timer_count;
+volatile uint16_t timer1_count;
+volatile uint16_t last_timer1_count;
+volatile uint16_t orig_timer1_count;
 
 
 ISR(TIMER1_COMPA_vect)
 {
   /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
 
-  if (!measurement_finished) {
+  if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
     /** We do not touch the measurement_finished flag ever again after
      * setting it. */
-    last_timer_count = timer_count;
-    timer_count--;
-    if (timer_count == 0) {
+    last_timer1_count = timer1_count;
+    timer1_count--;
+    if (timer1_count == 0) {
       /* Timer has elapsed. Advance to next counter element in time
        * series, and restart the timer countdown. */
       table_cur++;
       if (table_cur < table_end) {
         data_table_info.size += sizeof(*table_cur);
-        timer_count = orig_timer_count;
+        timer1_count = orig_timer1_count;
       } else {
-        measurement_finished = 1;
+        GF_SET(GF_MEASUREMENT_FINISHED);
       }
     }
   }
@@ -262,11 +262,11 @@ uint16_t get_duration(void)
 {
   uint16_t a, b;
   do {
-    a = timer_count;
-    b = last_timer_count;
+    a = timer1_count;
+    b = last_timer1_count;
   } while ((b-a) != 1);
   /* Now 'a' contains a valid value. Use it. */
-  const uint16_t duration = orig_timer_count - a;
+  const uint16_t duration = orig_timer1_count - a;
   return duration;
 }
 
@@ -277,9 +277,7 @@ uint16_t get_duration(void)
  * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
-void trigger_src_conf(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void trigger_src_conf(void)
 {
 
@@ -316,7 +314,16 @@ void trigger_src_conf(void)
 
 void on_measurement_finished(void)
 {
-  timer_init_quick();
+  timer1_init_quick();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  trigger_src_conf();
+  timer1_init(*timer1_value);
 }
 
 

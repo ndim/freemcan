@@ -1,5 +1,5 @@
-/** \file firmware/adc-int-mca.c
- * \brief Internal ADC based MCA
+/** \file firmware/perso-adc-int-mca-ext-trig.c
+ * \brief Internal ADC based MCA with external trigger
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_int_mca Internal ADC based MCA
+ * \defgroup perso_adc_int_mca_ext_trig Internal ADC based MCA with external trigger
  * \ingroup firmware
  *
  * Internal ADC code.
@@ -40,10 +40,12 @@
 
 
 #include "global.h"
-#include "adc-int-global.h"
+#include "perso-adc-int-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
+
+#include "timer1-measurement.h"
 
 
 /** Number of elements in the histogram table */
@@ -215,6 +217,12 @@ void adc_int_init(void)
   /* wait until conversion is complete */
   loop_until_bit_is_clear(ADCSRA, ADSC);
 
+  /* Either we should discharge the peak/hold cap here to make sure
+   * that the first proper ADCW read will measure a good value, or we
+   * just discount the first value as being irrelevant for the whole
+   * histogram.
+   */
+
   /* clear returned AD value, other next conversion value is not ovrtaken */
   result = ADCW;
 
@@ -234,9 +242,7 @@ void adc_int_init(void)
 
 
 /** ADC subsystem and trigger setup */
-void adc_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void adc_init(void)
 {
   /** configure INT0 pin 16 */
@@ -245,6 +251,15 @@ void adc_init(void)
   /** configure AREF at pin 32 and single shot auto trigger over int0
    * at pin 40 ADC0 */
   adc_int_init();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  adc_init();
+  timer1_init(*timer1_value);
 }
 
 

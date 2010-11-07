@@ -43,7 +43,7 @@
 
 
 #include "global.h"
-#include "adc-int-global.h"
+#include "perso-adc-int-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"

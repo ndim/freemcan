@@ -40,12 +40,12 @@
 
 
 #include "global.h"
-#include "adc-ext-global.h"
+#include "perso-adc-ext-global.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
 
-#include "ad7813.h"
+#include "perso-adc-ext-ad7813.h"
 
 
 /** Number of elements in the histogram table */

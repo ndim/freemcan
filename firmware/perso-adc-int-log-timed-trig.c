@@ -199,57 +199,6 @@ ISR(ADC_vect)
 }
 
 
-/** ADC initialisation and configuration
- *
- * ADC configured as auto trigger
- * Trigger source compare register B
- * Use external analog reference AREF at PIN 32
- * AD input channel on Pin 40 ADC0
- */
-inline static
-void adc_init(void)
-{
-  uint16_t result;
-
-  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
-  ADMUX = 0;
-
-  /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(_BV(REFS1) | _BV(REFS0));
-
-  /* clear ADC Control and Status Register A
-   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = _BV(ADEN);
-
-  /* ADC prescaler selection (ADC Prescaler Select Bits) */
-  /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
-             ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
-
-  /* dummy read out (first conversion takes some time) */
-  /* software triggered AD-Conversion */
-  ADCSRA |= _BV(ADSC);
-
-  /* wait until conversion is complete */
-  loop_until_bit_is_clear(ADCSRA, ADSC);
-
-  /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
-
-  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
-   * (-> ADC interrupt enable) */
-  ADCSRA |= _BV(ADIE);
-
-  /* Configure ADC trigger source:
-   * Select external trigger trigger ADC on Compare Match B of Timer1 */
-  ADCSRB = (_BV(ADTS2)|_BV(ADTS0));
-
-  /* ADC auto trigger enable: ADC will be started by trigger signal */
-  ADCSRA |= _BV(ADATE);
-}
-
-
 /** Switch off trigger B to stop any sampling of the analog signal
  *
  *
@@ -297,15 +246,6 @@ void on_measurement_finished(void)
 {
   /* alert user */
   timer1_init_quick();
-}
-
-
-void all_init(void)
-  __attribute__((naked))
-  __attribute__((section(".init7")));
-void all_init(void)
-{
-  adc_init();
 }
 
 

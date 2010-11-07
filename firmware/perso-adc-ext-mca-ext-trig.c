@@ -1,4 +1,4 @@
-/** \file firmware/adc-ext-mca.c
+/** \file firmware/PERSO_perso-adc-ext-mca-ext-trig.c
  * \brief External ADC based MCA
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_ext_mca External ADC based MCA
+ * \defgroup perso_adc_ext_mca_ext_trig External ADC based MCA
  * \ingroup firmware
  *
  * External ADC code.

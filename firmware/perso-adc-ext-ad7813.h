@@ -1,4 +1,4 @@
-/** \file firmware/ad7813.h
+/** \file firmware/perso-adc-ext-ad7813.h
  * \brief Defines for external ADC (AD7813) peripherals and timing
  *
  * \author Copyright (C) 2010 samplemaker
@@ -21,8 +21,8 @@
  * @{
  */
 
-#ifndef AD7813_H
-#define AD7813_H
+#ifndef PERSO_ADC_EXT_AD7813_H
+#define PERSO_ADC_EXT_AD7813_H
 
 
 #include <avr/io.h>
@@ -101,4 +101,4 @@
   #define AD7813_TO_SHRST_T_DELAY 0
 #endif
 
-#endif /* !AD7813_H */
+#endif /* !PERSO_ADC_EXT_AD7813_H */

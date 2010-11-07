@@ -1,4 +1,4 @@
-/** \file firmware/adc-int-timed-sampling.c
+/** \file firmware/perso-adc-int-log-timed-trig.c
  * \brief Internal ADC based timed ADC sampling
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_int_timed_sampling Internal ADC based timed ADC sampling
+ * \defgroup perso_adc_int_log_timed_trig Internal ADC based timed ADC sampling
  * \ingroup firmware
  *
  * Internal ADC based timed ADC sampling.

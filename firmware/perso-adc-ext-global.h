@@ -1,4 +1,4 @@
-/** \file firmware/adc-ext-global.h
+/** \file firmware/perso_adc-ext-global.h
  * \brief Global adjustments for external ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
@@ -24,8 +24,8 @@
  * @{
  */
 
-#ifndef ADC_EXT_GLOBAL_H
-#define ADC_EXT_GLOBAL_H
+#ifndef PERSO_ADC_EXT_GLOBAL_H
+#define PERSO_ADC_EXT_GLOBAL_H
 
 
 #include <stdint.h>
@@ -53,7 +53,7 @@
 /** @} */
 
 
-#endif /* !ADC_EXT_GLOBAL_H */
+#endif /* !PERSO_ADC_EXT_GLOBAL_H */
 
 
 /*

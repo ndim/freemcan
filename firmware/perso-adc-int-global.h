@@ -1,4 +1,4 @@
-/** \file firmware/adc-int-global.h
+/** \file firmware/perso-adc-int-global.h
  * \brief Global adjustments for internal ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
@@ -24,8 +24,8 @@
  * @{
  */
 
-#ifndef ADC_INT_GLOBAL_H
-#define ADC_INT_GLOBAL_H
+#ifndef PERSO_ADC_INT_GLOBAL_H
+#define PERSO_ADC_INT_GLOBAL_H
 
 
 /** ADC prescaler selection for ADC clock source frequency
@@ -60,7 +60,7 @@
 /** @} */
 
 
-#endif /* !ADC_INT_GLOBAL_H */
+#endif /* !PERSO_ADC_INT_GLOBAL_H */
 
 
 /*

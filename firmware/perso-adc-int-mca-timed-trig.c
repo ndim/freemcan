@@ -1,4 +1,4 @@
-/** \file firmware/adc-int-mca-timed-trigger.c
+/** \file firmware/perso-adc-int-mca-timed-trig.c
  * \brief Internal ADC based MCA (triggered by timer)
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup adc_int_mca_timed Internal ADC based MCA (timer triggered)
+ * \defgroup perso_adc_int_mca_timed_trig Internal ADC based MCA (timer triggered)
  * \ingroup firmware
  *
  * Internal ADC code.

@@ -156,14 +156,16 @@ void personality_start_measurement_sram(void)
   if (personality_info.param_data_size_timer_count == 2) {
     const void *timer1_count_vp = &personality_param_sram[ofs];
     const uint16_t *timer1_count_p = timer1_count_vp;
-    orig_timer1_count = timer1_count = *timer1_count_p;
+    orig_timer1_count = *timer1_count_p;
+    timer1_count = *timer1_count_p;
     ofs += 2;
   }
 
   if (personality_info.param_data_size_skip_samples == 2) {
     const void *skip_samples_vp = &personality_param_sram[ofs];
     const uint16_t *skip_samples_p = skip_samples_vp;
-    orig_skip_samples = skip_samples = *skip_samples_p;
+    orig_skip_samples = *skip_samples_p;
+    skip_samples = *skip_samples_p;
   }
 
   timer1_init();

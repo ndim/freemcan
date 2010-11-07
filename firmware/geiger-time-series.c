@@ -45,7 +45,7 @@
 #include "compiler.h"
 #include "global.h"
 #include "packet-comm.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "uart-printf.h"
 #include "main.h"
 #include "table-element.h"

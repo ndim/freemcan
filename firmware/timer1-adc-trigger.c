@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer-adc-trigger.c
+/** \file firmware/timer1-adc-trigger.c
  * \brief Timer hardware directly triggering ADC
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup measurement_timer_adc_trigger Timer hardware directly triggering ADC
+ * \defgroup timer1_adc_trigger Timer hardware directly triggering ADC
  * \ingroup firmware
  *
  * Timer hardware directly triggering ADC
@@ -33,7 +33,7 @@
 
 #include "global.h"
 #include "data-table.h"
-#include "measurement-timer-adc-trigger.h"
+#include "timer1-adc-trigger.h"
 #include "packet-comm.h"
 #include "wdt-softreset.h"
 

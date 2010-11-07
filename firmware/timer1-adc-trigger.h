@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer-adc-trigger.h
+/** \file firmware/timer1-adc-trigger.h
  * \brief Timer hardware directly triggering ADC
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,13 +19,13 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup measurement_timer_adc_trigger
+ * \addtogroup timer1_adc_trigger
  * @{
  */
 
 
-#ifndef MEASUREMENT_TIMER_ADC_TRIGGER_H
-#define MEASUREMENT_TIMER_ADC_TRIGGER_H
+#ifndef TIMER1_ADC_TRIGGER_H
+#define TIMER1_ADC_TRIGGER_H
 
 #include <stdint.h>
 
@@ -34,7 +34,7 @@ extern volatile uint16_t orig_timer_count;
 extern volatile uint16_t skip_samples;
 extern volatile uint16_t orig_skip_samples;
 
-#endif /* !MEASUREMENT_TIMER_ADC_TRIGGER_H */
+#endif /* !TIMER1_ADC_TRIGGER_H */
 
 
 /** @} */

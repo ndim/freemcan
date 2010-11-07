@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer-init-simple.c
+/** \file firmware/timer1-init-simple.c
  * \brief Timer init to simply periodically trigger timer ISR
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup measurement_timer_init_simple Timer init to simply periodically trigger timer ISR
+ * \defgroup timer1_init_simple Timer init to simply periodically trigger timer ISR
  * \ingroup firmware
  *
  * Timer init to simply periodically trigger timer ISR.
@@ -29,7 +29,7 @@
 
 
 #include "data-table.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 
 
 /** Configure 16 bit timer to trigger an ISR every second

@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer.h
+/** \file firmware/timer1-measurement.h
  * \brief Measurement timer
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup measurement_timer
+ * \addtogroup timer1_measurement
  * @{
  */
 

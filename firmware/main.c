@@ -92,7 +92,7 @@
 #include "frame-defs.h"
 #include "packet-defs.h"
 #include "wdt-softreset.h"
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "send-table.h"
 #include "main.h"
 #include "data-table.h"

@@ -1,4 +1,4 @@
-/** \file firmware/measurement-timer-ISR-countdown-and-stop.c
+/** \file firmware/timer1-countdown-and-stop.c
  * \brief Measurement timer ISR: Count down to zero then stop
  *
  * \author Copyright (C) 2010 samplemaker
@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup measurement_timer_ISR_countdown Measurement Timer ISR: Count down to zero then stop
+ * \defgroup timer1_countdown Measurement Timer ISR: Count down to zero then stop
  * \ingroup firmware
  *
  * Measurement timer ISR: Count down to zero then stop
@@ -27,7 +27,7 @@
  * @{
  */
 
-#include "measurement-timer.h"
+#include "timer1-measurement.h"
 #include "main.h"
 
 

@@ -47,7 +47,7 @@
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
-#include "measurement-timer-adc-trigger.h"
+#include "timer1-adc-trigger.h"
 #include "main.h"
 
 

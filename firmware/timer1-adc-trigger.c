@@ -89,13 +89,6 @@ volatile uint16_t skip_samples;
  */
 void timer1_init(void)
 {
-  /** Safeguard: We cannot handle 0 or 1 count measurements. *
-  if (orig_timer1_count <= 1) {
-    send_text_P(PSTR("Unsupported timer value <= 1"));
-    wdt_soft_reset();
-  }
-  */
-
   /* Prepare timer 0 control register A and B for
      clear timer on compare match (CTC)                           */
   TCCR1A = 0;
@@ -158,6 +151,17 @@ void personality_start_measurement_sram(void)
     const uint16_t *timer1_count_p = timer1_count_vp;
     orig_timer1_count = *timer1_count_p;
     timer1_count = *timer1_count_p;
+
+    /** Safeguard: We cannot handle 0 or 1 count measurements.
+     *
+     * Enable this if you do something with get_duration() above.
+     *
+    if (orig_timer1_count <= 1) {
+      send_text_P(PSTR("Unsupported timer value <= 1"));
+      wdt_soft_reset();
+    }
+    */
+
     ofs += 2;
   }
 

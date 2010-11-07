@@ -29,7 +29,7 @@
 
 
 /** Make sure we use the sub 1 second timer resolution */
-#define TIMER_SUB_1SEC
+#define TIMER1_SUB_1SEC
 
 #include "global.h"
 #include "data-table.h"
@@ -45,24 +45,24 @@
  * interrupt.
  *
  * Timer interrupt handler has exclusive access to read/writes
- * timer_count to decrement, once the timer ISR has been enabled.
+ * timer1_count to decrement, once the timer ISR has been enabled.
  */
-volatile uint16_t timer_count;
+volatile uint16_t timer1_count;
 
 
 /** timer counter */
-volatile uint16_t timer_count;
+volatile uint16_t timer1_count;
 
 
 /** Last value of timer counter
  *
- * Used for pseudo synchronized reading of the timer_count multi-byte
- * variable in the main program, while timer_count may be written to
+ * Used for pseudo synchronized reading of the timer1_count multi-byte
+ * variable in the main program, while timer1_count may be written to
  * by the timer ISR.
  *
  * \see get_duration, ISR(TIMER1_COMPA_vect)
  */
-volatile uint16_t last_timer_count = 1;
+volatile uint16_t last_timer1_count = 1;
 
 
 /** Original timer count received in the command.
@@ -70,7 +70,7 @@ volatile uint16_t last_timer_count = 1;
  * Used later for determining how much time has elapsed yet. Written
  * once only, when the command has been received.
  */
-volatile uint16_t orig_timer_count;
+volatile uint16_t orig_timer1_count;
 
 
 /** FIXME
@@ -86,10 +86,10 @@ volatile uint16_t skip_samples;
  *
  * Configure "measurement in progress toggle LED-signal"
  */
-void timer_init(void)
+void timer1_init(void)
 {
   /** Safeguard: We cannot handle 0 or 1 count measurements. *
-  if (orig_timer_count <= 1) {
+  if (orig_timer1_count <= 1) {
     send_text_P(PSTR("Unsupported timer value <= 1"));
     wdt_soft_reset();
   }
@@ -113,19 +113,19 @@ void timer_init(void)
   TCCR1A |= _BV(COM1B0);
 
   /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
+  TCCR1B |=  ((((TIMER1_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
+              (((TIMER1_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
+              ((TIMER1_PRESCALER & 0x01)*_BV(CS10)));
 
   /* Derive sample rate (time base) as a multiple of the base
      compare match value for 0.1sec. Write to output compare
      reg. A                                                       */
-  OCR1A = (TIMER_COMPARE_MATCH_VAL);
+  OCR1A = (TIMER1_COMPARE_MATCH_VAL);
 
   /* The ADC can only be triggered via compare register B.
      Set the trigger point (compare match B) to 50% of
      compare match A                                              */
-  OCR1B = (TIMER_COMPARE_MATCH_VAL >> 1);
+  OCR1B = (TIMER1_COMPARE_MATCH_VAL >> 1);
 
   /* we do not need to jump to any ISRs since we do everything
      inside the ADC callback function                             */
@@ -153,9 +153,9 @@ void personality_start_measurement_sram(void)
   size_t ofs = 0;
 
   if (personality_info.param_data_size_timer_count == 2) {
-    const void *timer_count_vp = &personality_param_sram[ofs];
-    const uint16_t *timer_count_p = timer_count_vp;
-    orig_timer_count = timer_count = *timer_count_p;
+    const void *timer1_count_vp = &personality_param_sram[ofs];
+    const uint16_t *timer1_count_p = timer1_count_vp;
+    orig_timer1_count = timer1_count = *timer1_count_p;
     ofs += 2;
   }
 
@@ -165,7 +165,7 @@ void personality_start_measurement_sram(void)
     orig_skip_samples = skip_samples = *skip_samples_p;
   }
 
-  timer_init();
+  timer1_init();
 }
 
 

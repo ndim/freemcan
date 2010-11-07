@@ -291,7 +291,7 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     switch (c) {
     case FRAME_CMD_INTERMEDIATE:
       /** The value table will be updated asynchronously from ISRs
-       * like ISR(ADC_vect) or ISR(TIMER_foo), i.e. independent from
+       * like ISR(ADC_vect) or ISR(TIMER1_foo), i.e. independent from
        * this main loop.  This will cause glitches in the intermediate
        * values as the values are larger than 1 byte.  However, we
        * have decided that for *intermediate* results, those glitches

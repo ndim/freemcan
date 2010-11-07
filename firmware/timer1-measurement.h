@@ -23,8 +23,8 @@
  * @{
  */
 
-#ifndef MEASUREMENT_TIMER_H
-#define MEASUREMENT_TIMER_H
+#ifndef TIMER1_MEASUREMENT_H
+#define TIMER1_MEASUREMENT_H
 
 
 #include <stdint.h>
@@ -45,24 +45,24 @@
  * interrupt.
  *
  * Timer interrupt handler has exclusive access to read/writes
- * timer_count to decrement, once the timer ISR has been enabled.
+ * timer1_count to decrement, once the timer ISR has been enabled.
  */
-extern volatile uint16_t timer_count;
+extern volatile uint16_t timer1_count;
 
 
 /** Last value of timer counter
  *
- * Used for pseudo synchronized reading of the timer_count multi-byte
- * variable in the main program, while timer_count may be written to
+ * Used for pseudo synchronized reading of the timer1_count multi-byte
+ * variable in the main program, while timer1_count may be written to
  * by the timer ISR.
  *
  * \see get_duration, ISR(TIMER1_COMPA_vect)
  *
- * The initial default value of last_timer_count was 1
- * originally. However, a last_timer_count value of 0 should not make
+ * The initial default value of last_timer1_count was 1
+ * originally. However, a last_timer1_count value of 0 should not make
  * a difference, so we now rely on the implicit initialization to 0.
  */
-extern volatile uint16_t last_timer_count;
+extern volatile uint16_t last_timer1_count;
 
 
 /** Original timer count received in the command.
@@ -70,15 +70,15 @@ extern volatile uint16_t last_timer_count;
  * Used later for determining how much time has elapsed yet. Written
  * once only, when the command has been received.
  */
-extern volatile uint16_t orig_timer_count;
+extern volatile uint16_t orig_timer1_count;
 
 
 /** Initialize the 16bit timer */
-void timer_init(const uint16_t timer_value);
+void timer1_init(const uint16_t timer1_value);
 
 
 /** Make timer run more quickly */
-void timer_init_quick(void);
+void timer1_init_quick(void);
 
 
 /** \todo document this */
@@ -87,7 +87,7 @@ uint16_t get_duration(void);
 
 /** @} */
 
-#endif /* MEASUREMENT_TIMER_H */
+#endif /* TIMER1_MEASUREMENT_H */
 
 
 /*

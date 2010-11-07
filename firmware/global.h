@@ -50,22 +50,22 @@
  *  Select a prescaler to have an compare match value as integer
  */
 #if   (F_CPU == 20000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_PRESCALER 4
 # else
-#  define TIMER_PRESCALER 5
+#  define TIMER1_PRESCALER 5
 # endif
 #elif (F_CPU == 18432000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_PRESCALER 4
 # else
-#  define TIMER_PRESCALER 5
+#  define TIMER1_PRESCALER 5
 # endif
 #elif (F_CPU == 16000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_PRESCALER 4
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_PRESCALER 4
 # else
-#  define TIMER_PRESCALER 5
+#  define TIMER1_PRESCALER 5
 # endif
 #else
 # error Unsupported F_CPU value
@@ -74,7 +74,7 @@
 
 /** Timer compare match value for 16Bit timer
  *
- *  TIMER_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
+ *  TIMER1_COMPARE_MATCH_VAL = (time_elpased [sec]*F_CPU [Hz]/Divider) - 1
  *  E.g. (1sec*16000000Hz/1024) - 1 = 15624
  *  E.g. (0.1sec*16000000Hz/256) - 1 = 6249
  *
@@ -99,22 +99,22 @@
  *
  */
 #if   (F_CPU == 20000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 7811
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_COMPARE_MATCH_VAL 7811
 # else
-#  define TIMER_COMPARE_MATCH_VAL 19530
+#  define TIMER1_COMPARE_MATCH_VAL 19530
 #endif
 #elif (F_CPU == 18432000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 7199
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_COMPARE_MATCH_VAL 7199
 # else
-#  define TIMER_COMPARE_MATCH_VAL 17999
+#  define TIMER1_COMPARE_MATCH_VAL 17999
 # endif
 #elif (F_CPU == 16000000UL)
-# ifdef TIMER_SUB_1SEC
-#  define TIMER_COMPARE_MATCH_VAL 6249
+# ifdef TIMER1_SUB_1SEC
+#  define TIMER1_COMPARE_MATCH_VAL 6249
 # else
-#  define TIMER_COMPARE_MATCH_VAL 15624
+#  define TIMER1_COMPARE_MATCH_VAL 15624
 # endif
 #else
 # error Unsupported F_CPU value
@@ -123,9 +123,9 @@
 
 
 /** Toggle a sign if the measurement is over */
-#ifdef TIMER_SUB_1SEC
-# define TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER \
-  (((TIMER_COMPARE_MATCH_VAL)*10UL)>>2)
+#ifdef TIMER1_SUB_1SEC
+# define TIMER1_COMPARE_MATCH_VAL_MEASUREMENT_OVER \
+  (((TIMER1_COMPARE_MATCH_VAL)*10UL)>>2)
 #endif
 
 

@@ -39,7 +39,7 @@
 #define ELEMENT_SIZE_IN_BYTES 2
 
 /** Make sure we use the sub 1 second timer resolution */
-#define TIMER_SUB_1SEC
+#define TIMER1_SUB_1SEC
 
 
 #include "global.h"
@@ -53,7 +53,7 @@
 
 /* forward declaration */
 inline static
-void timer_halt(void);
+void timer1_halt(void);
 
 
 /** The table
@@ -168,7 +168,7 @@ void ts_print_status(void)
  */
 ISR(ADC_vect)
 {
-  /* downsampling of analog data as a multiple of timer_multiple      */
+  /* downsampling of analog data as a multiple of timer1_multiple      */
   const uint16_t result = ADCW;
   if (skip_samples == 0) {
     /* Read analog value */
@@ -180,7 +180,7 @@ ISR(ADC_vect)
       skip_samples = orig_skip_samples;
       if (table_cur >= table_end) {
         /* switch off any compare matches on B to stop sampling     */
-        timer_halt();
+        timer1_halt();
         /* tell main() that measurement is over                     */
         measurement_finished = 1;
       }
@@ -254,15 +254,15 @@ void adc_init(void)
  *
  */
 inline static
-void timer_halt(void)
+void timer1_halt(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
   TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
   /* Switch off trigger B to avoid an additional sampling of data */
-  OCR1B = TIMER_COMPARE_MATCH_VAL+1;
+  OCR1B = TIMER1_COMPARE_MATCH_VAL+1;
   /* blinking for measurement is over */
-  OCR1A = TIMER_COMPARE_MATCH_VAL;
+  OCR1A = TIMER1_COMPARE_MATCH_VAL;
   /* start counting from 0, needs clock to be paused */
   TCNT1 = 0;
   /* unpause the clock */
@@ -275,15 +275,15 @@ void timer_halt(void)
  *
  */
 inline static
-void timer_init_quick(void)
+void timer1_init_quick(void)
 {
   const uint8_t old_tccr1b = TCCR1B;
   /* pause the clock */
   TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
   /* Switch off trigger B to avoid an additional sampling of data */
-  OCR1B = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER+1;
+  OCR1B = TIMER1_COMPARE_MATCH_VAL_MEASUREMENT_OVER+1;
   /* blinking for measurement is over */
-  OCR1A = TIMER_COMPARE_MATCH_VAL_MEASUREMENT_OVER;
+  OCR1A = TIMER1_COMPARE_MATCH_VAL_MEASUREMENT_OVER;
   /* start counting from 0, needs clock to be paused */
   TCNT1 = 0;
   /* unpause the clock */
@@ -295,7 +295,7 @@ void timer_init_quick(void)
 void on_measurement_finished(void)
 {
   /* alert user */
-  timer_init_quick();
+  timer1_init_quick();
 }
 
 

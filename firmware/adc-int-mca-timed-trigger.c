@@ -88,7 +88,7 @@ PERSONALITY("adc-int-mca-timed",
 
 
 /** \todo Needs proper inclusion */
-extern volatile uint16_t last_timer_count;
+extern volatile uint16_t last_timer1_count;
 
 
 /** AD conversion complete interrupt entry point
@@ -120,9 +120,9 @@ ISR(ADC_vect)
 
   /* measurement duration */
   if (!measurement_finished) {
-    last_timer_count = timer_count;
-    timer_count--;
-    if (timer_count == 0) {
+    last_timer1_count = timer1_count;
+    timer1_count--;
+    if (timer1_count == 0) {
       measurement_finished = 1;
     }
   }

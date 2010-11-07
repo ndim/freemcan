@@ -29,8 +29,8 @@
 
 #include <stdint.h>
 
-extern volatile uint16_t timer_count;
-extern volatile uint16_t orig_timer_count;
+extern volatile uint16_t timer1_count;
+extern volatile uint16_t orig_timer1_count;
 extern volatile uint16_t skip_samples;
 extern volatile uint16_t orig_skip_samples;
 

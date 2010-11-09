@@ -99,6 +99,20 @@
 /** @} */
 
 
+/** Convenience macro for composing bit fields in registers
+ *
+ * \param VALUE   A value like e.g. 5. Can be a macro.
+ * \param BITNAME Bit base name, e.g. WGM0 for the WGM0x bits.
+ * \param BITNO   Bit number, e.g. 2 for the WGM02 bit.
+ *                Must not be a macro.
+ *
+ * Example usage to set the WGM20 bit:
+ *    BITF(TIMER2_WGM_VALUE, WGM2, 0)
+ */
+#define BITF(VALUE, BITNAME, BITNO)			\
+  ((((VALUE)>>BITNO)&1) * (1<<(BITNAME##BITNO)))
+
+
 #else /* ifdef __ASSEMBLER__ */
 
 

@@ -33,6 +33,25 @@
 #include "timer1-measurement.h"
 
 
+/** Timer1 compare output mode for channel A for non-PWM mode:
+ *
+ * Toggle LED pin 19 on ATmega644 DIP40 on compare match.
+ */
+#define TIMER1_COMA_MODE 1
+
+
+/** Set up our IO pins */
+void timer1_io_init(void)
+  __attribute__((naked))
+  __attribute__((section(".init5")));
+void timer1_io_init(void)
+{
+  /* Configure "measurement in progress LED"                      */
+  /* configure ATmega644 pin 19 as an output */
+  DDRD |= (_BV(DDD5));
+}
+
+
 /** Configure 16 bit timer to trigger an ISR every second
  *
  * Configure "measurement in progress toggle LED-signal"
@@ -48,24 +67,21 @@ void timer1_init(const uint16_t timer1_value)
     wdt_soft_reset();
   }
 
-  /* Prepare timer 0 control register A and B for
-     clear timer on compare match (CTC)                           */
-  TCCR1A = 0;
-  TCCR1B =  _BV(WGM12);
-
-  /* Configure "measurement in progress LED"                      */
-  /* configure pin 19 as an output */
-  DDRD |= (_BV(DDD5));
-  /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= _BV(COM1A0);
-
-  /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER1_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER1_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER1_PRESCALER & 0x01)*_BV(CS10)));
-
   /* Compare match value into output compare reg. A               */
   OCR1A = TIMER1_COMPARE_MATCH_VAL;
+
+  /* Configure and start timer */
+  TCCR1A =
+    BITF(TIMER1_COMA_MODE, COM1A, 0) |
+    BITF(TIMER1_COMA_MODE, COM1A, 1) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 0) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 1);
+  TCCR1B =
+    BITF(TIMER1_PRESCALER,  CS1, 0) |
+    BITF(TIMER1_PRESCALER,  CS1, 1) |
+    BITF(TIMER1_PRESCALER,  CS1, 2) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 2) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 3);
 
   /* output compare match A interrupt enable                      */
   TIMSK1 |= _BV(OCIE1A);

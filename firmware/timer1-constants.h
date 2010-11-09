@@ -123,6 +123,17 @@
 #endif
 
 
+/** Timer1 wave form generation mode
+ *
+ *   0  normal
+ *   4  CTC (clear timer on compare match) with OCR1A as top
+ *  12  CTC (clear timer on compare match) with ICR1 as top
+ *  ...
+ *
+ */
+#define TIMER1_WGM_MODE 4
+
+
 #endif /* !TIMER1_CONSTANTS_H */
 
 

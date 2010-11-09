@@ -84,34 +84,52 @@ volatile uint16_t orig_skip_samples;
 volatile uint16_t skip_samples;
 
 
+/** Timer1 compare output mode for channel A for non-PWM mode:
+ *
+ * Toggle LED pin 19 on ATmega644 DIP40 on compare match A.
+ *
+ *   0  OCnA disconnected
+ *   1  toggle OCnA on compare match
+ *   2  clear OCnA on compare match
+ *   3  set OCnA on compare match
+ */
+#define TIMER1_COMA_MODE 1
+
+
+/** Timer1 compare output mode for channel B for non-PWM mode:
+ *
+ * Toggle pin 18 on ATmega644 DIP40 on compare match B. Conflicts with
+ * Pollin board usage for switch 3!
+ */
+#define TIMER1_COMB_MODE 1
+
+
+/** Set up our IO pins */
+static
+void io_init(void)
+  __attribute__((unused))
+  __attribute__((naked))
+  __attribute__((section(".init5")));
+static
+void io_init(void)
+{
+  /* Toggled pin on port PD4 on compare match B. This is ATmega644
+   * DIP40 pin 18.  Conflicts with Pollin board usage for switch 3!
+   */
+  DDRD |= (_BV(DDD4));
+
+  /* Configure "measurement in progress LED"                      */
+  /* configure ATmega644 pin 19 as an output */
+  DDRD |= (_BV(DDD5));
+}
+
+
 /** Configure 16 bit timer to trigger an ISR every 0.1 second
  *
  * Configure "measurement in progress toggle LED-signal"
  */
 void timer1_init(void)
 {
-  /* Prepare timer 0 control register A and B for
-     clear timer on compare match (CTC)                           */
-  TCCR1A = 0;
-  TCCR1B =  _BV(WGM12);
-
-  /* Configure "measurement in progress LED"                      */
-  /* configure pin 19 as an output */
-  DDRD |= (_BV(DDD5));
-  /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= _BV(COM1A0);
-
-  /* Toggle pin on port PD4 on compare match B.  This is ATmega644
-   * DIP40 pin 18.  Conflicts with Pollin board usage for switch 3!
-   */
-  DDRD |= (_BV(DDD4));
-  TCCR1A |= _BV(COM1B0);
-
-  /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER1_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER1_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER1_PRESCALER & 0x01)*_BV(CS10)));
-
   /* Derive sample rate (time base) as a multiple of the base
      compare match value for 0.1sec. Write to output compare
      reg. A                                                       */
@@ -121,6 +139,21 @@ void timer1_init(void)
      Set the trigger point (compare match B) to 50% of
      compare match A                                              */
   OCR1B = (TIMER1_COMPARE_MATCH_VAL >> 1);
+
+  /* Configure and start timer */
+  TCCR1A =
+    BITF(TIMER1_COMA_MODE, COM1A, 0) |
+    BITF(TIMER1_COMA_MODE, COM1A, 1) |
+    BITF(TIMER1_COMB_MODE, COM1B, 0) |
+    BITF(TIMER1_COMB_MODE, COM1B, 1) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 0) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 1);
+  TCCR1B =
+    BITF(TIMER1_PRESCALER,  CS1, 0) |
+    BITF(TIMER1_PRESCALER,  CS1, 1) |
+    BITF(TIMER1_PRESCALER,  CS1, 2) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 2) |
+    BITF(TIMER1_WGM_MODE,  WGM1, 3);
 
   /* we do not need to jump to any ISRs since we do everything
      inside the ADC callback function                             */

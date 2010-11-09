@@ -226,8 +226,8 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
     }
     break;
   default:
-    /* ignore switch press in all other states */
-    send_text_P(PSTR("ignoring pressed switch"));
+    /* silently ignore the switch press in all other states */
+    /* send_text_P(PSTR("ignoring pressed switch")); */
     return pstate;
     break;
   }

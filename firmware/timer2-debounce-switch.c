@@ -197,7 +197,7 @@ ISR(TIMER2_COMPA_vect)
    * this in assembly.  avr-gcc as usualy uses 16bit ops where 8bit
    * ops would suffice.
    */
-  switch_is_inactive = (switch_is_inactive << 1) | bit_is_set(PORTB, PB0);
+  switch_is_inactive = (switch_is_inactive << 1) | bit_is_set(PINB, PB0);
 }
 
 

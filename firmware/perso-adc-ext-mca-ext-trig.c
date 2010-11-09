@@ -88,10 +88,10 @@ PERSONALITY("adc-ext-mca",
  *
  * Configure peak hold capacitor reset pin.
  */
-void io_init(void)
+void personality_io_init(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void io_init(void)
+void personality_io_init(void)
 {
     /* configure pin as an output                               */
     SHRST_IO_DDR |= (_BV(SHRST_IO_CTRL_BIT));
@@ -305,7 +305,7 @@ void AD7813_init(void)
 
 
 /** ADC subsystem and trigger setup */
-static
+inline static
 void adc_init(void)
 {
   AD7813_init();

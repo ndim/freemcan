@@ -113,10 +113,10 @@ volatile table_element_t *volatile table_cur = table;
 
 
 /** Setup, needs to be called once on startup */
-void ts_init(void)
+void data_table_init(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void ts_init(void)
+void data_table_init(void)
 {
   /** As the table is outside of the memory area with the normal data,
    * its content will NOT be cleared by the default avr-libc startup
@@ -139,13 +139,13 @@ void ts_init(void)
 
 
 /** Print some status messages for debugging */
-void ts_print_status(void)
+void data_table_print_status(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init8")));
-void ts_print_status(void)
+void data_table_print_status(void)
 {
 #ifdef VERBOSE_STARTUP_MESSAGES
-  uprintf("<ts_print_status>");
+  uprintf("<data_table_print_status>");
   uprintf("%-25s %p", "table",      table);
   uprintf("%-25s %p", "table_cur",  table_cur);
   uprintf("%-25s %p", "table_end",  table_end);
@@ -154,7 +154,7 @@ void ts_print_status(void)
           "table_end - table_cur",
           _UV(sizeof_table), _UV(sizeof_table),
           _UV(sizeof_table)/sizeof(*table_cur), sizeof(*table_cur));
-  uprintf("</ts_print_status>");
+  uprintf("</data_table_print_status>");
 #endif
 }
 
@@ -163,10 +163,10 @@ void ts_print_status(void)
  *
  * Set up output pins to Pollin Eval Board speaker and LED2.
  */
-void io_init(void)
+void personality_io_init(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void io_init(void)
+void personality_io_init(void)
 {
   /** PD7 is Pollin Board speaker */
   /* configure pin 21 as an output                               */
@@ -277,7 +277,7 @@ uint16_t get_duration(void)
  * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
-static
+inline static
 void trigger_src_conf(void)
 {
 

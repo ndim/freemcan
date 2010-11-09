@@ -39,8 +39,10 @@
  *
  * See http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_softreset
  */
-void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
-void wdt_init(void)
+void wdt_softreset_init(void)
+  __attribute__((naked))
+  __attribute__((section(".init3")));
+void wdt_softreset_init(void)
 {
   MCUSR = 0;
   wdt_disable();

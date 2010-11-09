@@ -90,10 +90,10 @@ PERSONALITY("geiger-counter",
  *
  * Set up output pins to Pollin Eval Board speaker and LED2.
  */
-void io_init(void)
+void personality_io_init(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void io_init(void)
+void personality_io_init(void)
 {
   /** PD7 is Pollin Board speaker */
   /* configure pin 21 as an output                               */
@@ -148,7 +148,7 @@ ISR(INT0_vect)
  * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
-static
+inline static
 void trigger_src_conf(void)
 {
 

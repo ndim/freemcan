@@ -41,10 +41,10 @@
 
 
 /** Set up our IO pins */
-void timer1_io_init(void)
+void timer1_simple_io_init(void)
   __attribute__((naked))
   __attribute__((section(".init5")));
-void timer1_io_init(void)
+void timer1_simple_io_init(void)
 {
   /* Configure "measurement in progress LED"                      */
   /* configure ATmega644 pin 19 as an output */

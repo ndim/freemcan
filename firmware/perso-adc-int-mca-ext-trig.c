@@ -87,10 +87,10 @@ PERSONALITY("adc-int-mca",
  *
  * Configure peak hold capacitor reset pin.
  */
-void io_init(void)
+void personality_io_init(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void io_init(void)
+void personality_io_init(void)
 {
     /* configure pin 20 as an output                               */
     DDRD |= (_BV(DDD6));
@@ -242,7 +242,7 @@ void adc_int_init(void)
 
 
 /** ADC subsystem and trigger setup */
-static
+inline static
 void adc_init(void)
 {
   /** configure INT0 pin 16 */

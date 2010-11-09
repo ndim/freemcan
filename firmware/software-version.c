@@ -36,10 +36,10 @@
 #include "git-version.h"
 
 
-void send_version(void)
+void software_version_send(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init8")));
-void send_version(void)
+void software_version_send(void)
 {
   send_text_P(PSTR("freemcan " GIT_VERSION));
 }

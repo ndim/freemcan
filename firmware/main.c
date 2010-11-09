@@ -135,10 +135,10 @@ FUSES = {
 
 
 /** Configure unused pins */
-void io_init_unused_pins(void)
+void main_io_init_unused_pins(void)
   __attribute__ ((naked))
   __attribute__ ((section(".init5")));
-void io_init_unused_pins(void)
+void main_io_init_unused_pins(void)
 {
   /** \todo configure unused pins */
 }

@@ -115,13 +115,10 @@ volatile uint16_t skip_samples;
 
 
 /** Set up our IO pins */
-static
-void io_init(void)
-  __attribute__((unused))
+void timer1_adc_trigger_io_init(void)
   __attribute__((naked))
   __attribute__((section(".init5")));
-static
-void io_init(void)
+void timer1_adc_trigger_io_init(void)
 {
   /* Toggled pin on port PD4 on compare match B. This is ATmega644
    * DIP40 pin 18.  Conflicts with Pollin board usage for switch 3!

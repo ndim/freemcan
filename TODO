@@ -13,10 +13,6 @@ hostware: For time series data, when receiving a value table, use
 hostware: At least for time series value tables, link against libR.so
           and directly let R plot statistics.
 
-firmware: Start measurement without RS232 (pressing of a switch
-          or similar). Problem: With what duration - from EEPROM?
-	  Hardware: Pin PB0, internal (for now) pullup, switch to GND.
-
 firmware: Put EEPROM parameter block to a different place for each
           personality, so that changing the personality code does not
           require changing the parameters in EEPROM. Would only make

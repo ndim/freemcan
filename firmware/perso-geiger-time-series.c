@@ -112,32 +112,6 @@ volatile table_element_t *volatile table_end =
 volatile table_element_t *volatile table_cur = table;
 
 
-/** Setup, needs to be called once on startup */
-void data_table_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void data_table_init(void)
-{
-  /** As the table is outside of the memory area with the normal data,
-   * its content will NOT be cleared by the default avr-libc startup
-   * code.  So we clear the table memory ourselves.
-   */
-  asm volatile("\t /* assembly code taken from GPLv2+ libgcc.S __do_clear_bss */ \n"
-               "\t	ldi     r17, hi8(data_table_end)\n"
-               "\t	ldi     r26, lo8(data_table)\n"
-               "\t	ldi     r27, hi8(data_table)\n"
-               "\t	rjmp    L%=_start\n"
-               "\tL%=_loop:\n"
-               "\t	st      X+, __zero_reg__\n"
-               "\tL%=_start:\n"
-               "\t	cpi     r26, lo8(data_table_end)\n"
-               "\t	cpc     r27, r17\n"
-               "\t	brne    L%=_loop\n"
-               ::
-               );
-}
-
-
 /** Print some status messages for debugging */
 void data_table_print_status(void)
   __attribute__ ((naked))

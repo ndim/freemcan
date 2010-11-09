@@ -309,7 +309,7 @@ firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X) timer1-adc-trigger.o 
 PERSONALITIES += adc-int-timed-sampling
 firmware-adc-int-timed-sampling.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.x
-firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) timer1-adc-trigger.o perso-adc-int-log-timed-trig.o
+firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X) timer1-adc-trigger.o data-table-all-other-memory.o perso-adc-int-log-timed-trig.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
@@ -323,7 +323,7 @@ firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o tim
 PERSONALITIES += geiger-ts
 firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-geiger-ts.elf : data-table-all-other-memory.x
-firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o perso-geiger-time-series.o
+firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X) timer1-init-simple.o data-table-all-other-memory.o perso-geiger-time-series.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 

@@ -84,6 +84,16 @@ volatile uint16_t orig_skip_samples;
 volatile uint16_t skip_samples;
 
 
+/** ADC trigger source
+ *
+ *   0 free running mode
+ *   2 external INT0
+ *   5 timer1 compare match B
+ *   ...
+ */
+#define ADC_TRIGGER_SOURCE 5
+
+
 /** Timer1 compare output mode for channel A for non-PWM mode:
  *
  * Toggle LED pin 19 on ATmega644 DIP40 on compare match A.
@@ -185,21 +195,26 @@ void adc_init(void)
 {
   uint16_t result;
 
-  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
-  ADMUX = 0;
+  ADMUX =
+    /* select voltage reference: 0: external AREF Pin 32 as reference */
+    BITF(0, REFS, 1) |
+    BITF(0, REFS, 0) |
+    /* ADC input channel number: PIN 40 ADC0 -> ADMUX=0 */
+    BITF(0, MUX, 4) |
+    BITF(0, MUX, 3) |
+    BITF(0, MUX, 2) |
+    BITF(0, MUX, 1) |
+    BITF(0, MUX, 0) |
+    0;
 
-  /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(_BV(REFS1) | _BV(REFS0));
-
-  /* clear ADC Control and Status Register A
-   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = _BV(ADEN);
-
-  /* ADC prescaler selection (ADC Prescaler Select Bits) */
-  /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
-             ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
+  /* ADC Control and Status Register A */
+  ADCSRA =
+    /* enable ADC & configure IO-Pins to ADC (ADC ENable) */
+    _BV(ADEN) |
+    BITF(ADC_PRESCALER, ADPS, 2) |
+    BITF(ADC_PRESCALER, ADPS, 1) |
+    BITF(ADC_PRESCALER, ADPS, 0) |
+    0;
 
   /* dummy read out (first conversion takes some time) */
   /* software triggered AD-Conversion */
@@ -217,7 +232,11 @@ void adc_init(void)
 
   /* Configure ADC trigger source:
    * Select external trigger trigger ADC on Compare Match B of Timer1 */
-  ADCSRB = (_BV(ADTS2)|_BV(ADTS0));
+  ADCSRB =
+    BITF(ADC_TRIGGER_SOURCE, ADTS, 2) |
+    BITF(ADC_TRIGGER_SOURCE, ADTS, 1) |
+    BITF(ADC_TRIGGER_SOURCE, ADTS, 0) |
+    0;
 
   /* ADC auto trigger enable: ADC will be started by trigger signal */
   ADCSRA |= _BV(ADATE);

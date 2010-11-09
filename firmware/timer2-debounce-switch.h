@@ -42,6 +42,9 @@
 extern uint16_t switch_is_inactive;
 
 
+void timer2_stop(void);
+
+
 #endif /* !TIMER2_DEBOUNCE_SWITCH */
 
 

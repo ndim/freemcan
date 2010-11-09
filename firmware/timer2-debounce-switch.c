@@ -167,6 +167,13 @@ void timer2_init_and_start(void)
 }
 
 
+/** Stop timer2 instantly by turning off its clock */
+void timer2_stop(void)
+{
+  TCCR2B &= ~(_BV(CS22)|_BV(CS21)|_BV(CS20));
+}
+
+
 /** \internal Shift register. Usage documented in timer2-debounce-switch.h.
  *
  * This has 16 bits, so we sample the switch value during 16

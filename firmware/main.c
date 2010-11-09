@@ -171,6 +171,7 @@ void params_copy_from_eeprom_to_sram(void)
 
 void general_personality_start_measurement_sram(void)
 {
+  timer2_stop();
   personality_start_measurement_sram();
 }
 

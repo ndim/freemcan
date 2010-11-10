@@ -87,40 +87,31 @@
  *
  * \subsection frame_host_to_emb Frames sent from hostware to firmware
  *
- * To keep the parser in the firmware simple, most "frames" sent from
- * the hostware to the firmware are actually just a single byte:
- *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
- * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
- * </table>
- *
- * The single exception is the "start measurement" command which looks
- * as follows:
- *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>FRAME_CMD_MEASURE</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
- *  <tr><td>2</td> <td>?</td> <td>uint16_t</td> <td>timervalue (measurement duration)</td></tr>
- *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over the last three bytes</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>uint32_t or uint8_t[4]</td> <td>magic value marking beginning of frame</td></tr>
+ *  <tr><td>1</td> <td>command</td> <td>#frame_cmd_t</td> <td>frame command</td></tr>
+ *  <tr><td>1</td> <td>length</td> <td>uint8_t</td> <td>length of command parameters (0 or more)</td></tr>
+ *  <tr><td><em>length</em></td> <td>params</td> <td>uint8_t []</td> <td>command parameters (or or more bytes)</td></tr>
+ *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
+ *
+ * Some #frame_cmd_t commands require 0 parameter bytes, others
+ * require a number of parameter bytes depending on the requirements
+ * of the firmware personality. The host shall request and interpret
+ * the firmware personality info packet (#FRAME_CMD_PERSONALITY_INFO)
+ * to determine the number and layout of the parameter bytes.
  *
  * \subsection frame_emb_to_host Frames sent from firmware to hostware
  *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
  * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
  *
- *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>magic value marking beginning of frame</td></tr>
- *  <tr><td>2</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
- *  <tr><td>1</td> <td>#frame_type_t</td> <td>frame type</td></tr>
- *  <tr><td>see above</td> <td>?</td> <td>payload data</td></tr>
- *  <tr><td>1</td> <td>uint8_t</td> <td>checksum</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>uint32_t or uint8_t[4]</td> <td>magic value marking beginning of frame</td></tr>
+ *  <tr><td>2</td> <td>payload_size</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
+ *  <tr><td>1</td> <td>frame_type</td> <td>#frame_type_t</td> <td>frame type</td></tr>
+ *  <tr><td><em>payload_size</em></td> <td>payload</td> <td>uint8_t []</td> <td>payload data</td></tr>
+ *  <tr><td>1</td> <td>checksum</td><td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
  *
  * \todo Document checksum algorithm.

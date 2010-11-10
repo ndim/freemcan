@@ -82,6 +82,7 @@ extern const packet_personality_info_t personality_info PROGMEM;
 extern char data_table[];
 
 
+/** Information about the data table */
 typedef struct {
   /** The size of the #data_table in bytes */
   size_t size;
@@ -94,6 +95,10 @@ typedef struct {
 } data_table_info_t;
 
 
+/** Information about the data table
+ *
+ * Set by the personality specific code, and read by send_table().
+ */
 extern data_table_info_t data_table_info;
 
 

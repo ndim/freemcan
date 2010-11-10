@@ -2,44 +2,39 @@ digraph firmware_fsm {
   node [shape=ellipse, fontname=Helvetica, fontsize=10];
   edge [fontname=Helvetica, fontsize=10];
 
-  null      [pos="6.5,4!" shape=plaintext label=""];
-  booting   [pos="5,4!"];
-  ready     [pos="3,4!" label="READY"];
-  reset     [pos="3,2.5!" label="RESET"];
-  timer0    [pos="0,4!"];
-  timer1    [pos="1.65,3!"];
-  token0    [pos="0,3!"];
-  token1    [pos="1.65,2!"];
-  token2    [pos="0,2!"];
-  token3    [pos="0,1!"];
-  checksum  [pos="0,0!"];
-  measuring [pos="5,0!" label="MEASURING"];
-  done      [pos="5,2.5!" label="DONE"];
+  null      [pos="0,0!" shape=plaintext label=""];
+  booting   [pos="1,0!"];
+  ready     [pos="1,2!" label="STP_READY"];
+  reset     [pos="2.5,0.5!" label="RESET"];
+  measuring [pos="4,3!" label="STP_MEASURING"];
+  done      [pos="4,0!" label="STP_DONE"];
+  error     [pos="6,1.5!" label="STP_ERROR"];
 
   null -> booting [ style=bold label="power on"];
   reset -> booting [ label="\nhardware reset done\n-/-" style=bold ];
 
-  booting -> ready [ label="hw boot done\nstate 'READY'" style=bold ];
+  booting -> ready [ label="hw boot done\n-/-" style=bold ];
 
-  ready -> timer0 [ label="cmd 'm'\n-/-" style=bold ];
-  timer0 -> timer1   [ label="timer byte 0\n-/-" style=bold ];
-  timer1 -> token0   [ label="timer byte 1\n-/-" style=bold ];
-  token0 -> token1   [ label="token byte 0\n-/-" style=bold ];
-  token1 -> token2   [ label="token byte 1\n-/-" style=bold ];
-  token2 -> token3   [ label="token byte 2\n-/-" style=bold ];
-  token3 -> checksum [ label="token byte 3\n-/-" style=bold ];
-  checksum -> measuring [ label="chksum byte, if match\nstart measurement, start timer, state 'MEASURING'" style=bold ];
-  checksum -> reset [ color=red fontcolor=red label="chksum byte, if fail\ntext 'checksum fail', state 'RESET'" ];
+  ready -> measuring [ label="cmd 'm'(params)\nstart measurement" style=bold ];
+  ready -> measuring [ label="switch press && eeprom has parms\nstart measurement" style=bold ];
+  ready -> ready [ label="switch press && eeprom has no parms\n-/-" style=bold ];
 
-  measuring -> reset [ color=blue fontcolor=blue label="cmd 'a'\nvalue table 'aborted', state 'RESET'"];
-  measuring -> measuring [ color=blue fontcolor=blue label="cmd 'i'\nvalue table 'intermediate', state 'MEASURING'" ];
+  measuring -> done [ color=blue fontcolor=blue label="cmd 'a'\nvalue table 'aborted'"];
+  measuring -> measuring [ color=blue fontcolor=blue label="cmd 'i'\nvalue table 'intermediate'" ];
 
-  ready -> reset [ color=blue fontcolor=blue label="cmd 'r'\nstate 'RESET'"];
-  measuring -> done [ label="timer done\nvalue table 'done', state 'DONE'" style=bold ];
-  done -> reset [ label="cmd 'r'\nstate 'RESET'" style=bold ];
-  done -> done  [ color=blue fontcolor=blue label="any other byte\nvalue table 'resend', state 'DONE'" ];
+  ready -> reset [ color=blue fontcolor=blue label="cmd 'r'\n-/-"];
+  measuring -> done [ label="measurement finished\nvalue table 'done'" style=bold ];
+  done -> reset [ label="cmd 'r'\n-/-" style=bold ];
+  done -> done  [ color=blue fontcolor=blue label="any other cmd\nvalue table 'resend'" ];
 
-  ready:ne -> ready:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'READY'"];
-  done:ne -> done:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'DONE'"];
-  measuring:ne -> measuring:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\nstate 'MEASURING'"];
+  ready:ne -> ready:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\n-/-"];
+  done:ne -> done:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\n-/-"];
+  measuring:ne -> measuring:ne [ color=darkgreen fontcolor=darkgreen label="cmd 's'\n-/-"];
+
+  ready:n -> ready:nw [ color=darkgreen fontcolor=darkgreen label="cmd 'f'\nsend perso info"];
+  done:nw -> done:nw [ color=darkgreen fontcolor=darkgreen label="cmd 'f'\nsend perso info"];
+  measuring:nw -> measuring:nw [ color=darkgreen fontcolor=darkgreen label="cmd 'f'\nsend perso info"];
+
+  ready:s -> ready:sw [ label="cmd 'e'(params)\nwrite params to EEPROM" ];
+  ready -> ready [ label="cmd 'E'\nsend params from EEPROM" ];
 }

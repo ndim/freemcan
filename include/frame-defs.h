@@ -25,43 +25,57 @@
  *
  * The firmware implements the following state machine:
  *
- * \todo OUTDATED PROTOCOL DESCRIPTION FSM diagram
- *
  * \image html firmware-states.png "Device as State Machine"
  *
- * The input triggering a state transition is either a byte received
- * over the serial line, or a timeout happening (watchdog timeout, or
- * measurement duration has passed).
+ * The input events can be command frames received via the UART and
+ * parsed by the frame FSM, or local events like "timer elapsed" or
+ * "switch depressed".
  *
  * Note1: The "booting" state is a hardware state. The others are
  *        software states.
  *
- * Note2: Entering an upper case state is always reported by a state
- *        packet.
+ * \todo Entering an upper case state is always reported by a state
+ *       packet.
  *
- * Note3: The bold black edges show the default way through the
- *        state transition diagram.
+ * \todo The bold black edges show the default way through the
+ *       state transition diagram.
  *
- * Note4: The red edge are error conditions.
+ * \todo The red edge are error conditions.
  *
- * Note5: The green edges show the actions of the optional 's' (state)
- *        command which just sends the current state and resumes
- *        whatever it was doing at the time.
+ * \todo The green edges show the actions of the optional 's' (state)
+ *       command which just sends the current state and resumes
+ *       whatever it was doing at the time.
  *
- * Note6: The blue edges are reactions to the other optional commands.
+ * \todo The blue edges are reactions to the other optional commands.
  *
  * \section layer_model Layering model
  *
- * To keep the parser in the firmware simple, we use a simpler data
- * format for communication sent from the host to the device (\ref
- * frame_host_to_emb). For the more complex data sent from the device
- * to the hostware, we use the following layering model:
+ * For the commands sent from the host to the device, we use the
+ * following layering (\ref frame_host_to_emb):
  *
  * <table class="table header-top header-left">
  *  <tr><th>layer</th><th>description</th><th>specification</th>
  *      <th>hostware implementation</th><th>firmware implementation</th></tr>
  *  <tr><th>4</th><td>application layer (process the packets' content)</td>
- *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
+ *      <td>N/A</td><td>TBD</td><td>\ref firmware_generic</td></tr>
+ *  <tr><th>3</th><td>command packets</td>
+ *      <td>TBD</td><td>\ref freemcan_device</td><td>\ref firmware_fsm</td></tr>
+ *  <tr><th>2</th><td>frames of a certain size</td>
+ *      <td>\ref frame_host_to_emb</td><td>\ref freemcan_device</td><td>main_event_loop()</td></tr>
+ *  <tr><th>1</th><td>byte stream to/from serial port</td>
+ *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
+ *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>
+ *      <td>N/A</td><td>N/A</td><td>N/A</td></tr>
+ * </table>
+ *
+ * For the more complex data sent from the device to the hostware, we
+ * use the following layering model:
+ *
+ * <table class="table header-top header-left">
+ *  <tr><th>layer</th><th>description</th><th>specification</th>
+ *      <th>hostware implementation</th><th>firmware implementation</th></tr>
+ *  <tr><th>4</th><td>application layer (process the packets' content)</td>
+ *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware_generic</td></tr>
  *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
  *      <td>\ref packet_defs</td><td>\ref freemcan_packet_parser</td><td>\ref firmware_comm</td></tr>
  *  <tr><th>2</th><td>frames of a certain size</td>

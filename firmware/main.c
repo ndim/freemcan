@@ -407,13 +407,14 @@ int main(void)
   send_state_P(PSTR_READY);
 
   /** Frame parser FSM state */
-  enum {
+  typedef enum {
     STF_MAGIC,
     STF_COMMAND,
     STF_LENGTH,
     STF_PARAM,
     STF_CHECKSUM,
-  } fstate = STF_MAGIC;
+  } frame_state_t;
+  frame_state_t fstate = STF_MAGIC;
 
   /** Index into magic/data */
   uint8_t idx = 0;
@@ -436,7 +437,7 @@ int main(void)
       const char ch = uart_getc();
       const uint8_t byte = (uint8_t)ch;
 
-      typeof(fstate) next_fstate = fstate;
+      frame_state_t next_fstate = fstate;
 
       switch (fstate) {
       case STF_MAGIC:

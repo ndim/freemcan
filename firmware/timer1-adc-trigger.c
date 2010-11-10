@@ -32,6 +32,7 @@
 #define TIMER1_SUB_1SEC
 
 #include "global.h"
+#include "main.h"
 #include "data-table.h"
 #include "perso-adc-int-global.h"
 #include "timer1-adc-trigger.h"
@@ -248,7 +249,7 @@ void personality_start_measurement_sram(void)
   size_t ofs = 0;
 
   if (personality_info.param_data_size_timer_count == 2) {
-    const void *timer1_count_vp = &personality_param_sram[ofs];
+    const void *timer1_count_vp = &pparam_sram.params[ofs];
     const uint16_t *timer1_count_p = timer1_count_vp;
     orig_timer1_count = *timer1_count_p;
     timer1_count = *timer1_count_p;
@@ -267,7 +268,7 @@ void personality_start_measurement_sram(void)
   }
 
   if (personality_info.param_data_size_skip_samples == 2) {
-    const void *skip_samples_vp = &personality_param_sram[ofs];
+    const void *skip_samples_vp = &pparam_sram.params[ofs];
     const uint16_t *skip_samples_p = skip_samples_vp;
     orig_skip_samples = *skip_samples_p;
     skip_samples = *skip_samples_p;

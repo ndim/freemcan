@@ -32,6 +32,17 @@
 
 #include <stdint.h>
 
+#include "packet-defs.h"
+
+
+typedef struct {
+  uint8_t length;
+  uint8_t params[MAX_PARAM_LENGTH];
+} personality_param_t;
+
+
+extern personality_param_t pparam_sram;
+
 
 /** Notification function called when measurement has finished.
  *

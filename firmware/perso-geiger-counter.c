@@ -41,6 +41,7 @@
 
 
 #include "global.h"
+#include "main.h"
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
@@ -185,7 +186,7 @@ void trigger_src_conf(void)
 
 void personality_start_measurement_sram(void)
 {
-  const void *voidp = &personality_param_sram[0];
+  const void *voidp = &pparam_sram.params[0];
   const uint16_t *timer1_value = voidp;
   trigger_src_conf();
   timer1_init(*timer1_value);

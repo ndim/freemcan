@@ -148,9 +148,9 @@ void main_io_init_unused_pins(void)
  * The one trailing byte is the length of the actually transmitted
  * param set.
  */
-uint8_t personality_param_sram[MAX_PARAM_LENGTH+1];
-uint8_t personality_param_eeprom[MAX_PARAM_LENGTH+1] EEMEM;
-BARE_COMPILE_TIME_ASSERT(sizeof(personality_param_sram) == sizeof(personality_param_eeprom));
+personality_param_t pparam_sram;
+personality_param_t pparam_eeprom EEMEM;
+BARE_COMPILE_TIME_ASSERT(sizeof(pparam_sram) == sizeof(pparam_eeprom));
 
 
 /** Send value table packet to controller via serial port (layer 3).
@@ -172,18 +172,16 @@ void send_table(const packet_value_table_reason_t reason)
 {
   const uint16_t duration = get_duration();
 
-  const uint8_t param_buf_length =
-    personality_param_sram[sizeof(personality_param_sram)-1];
   packet_value_table_header_t header = {
     data_table_info.element_size,
     reason,
     data_table_info.type,
     duration,
-    param_buf_length
+    pparam_sram.length
   };
-  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + param_buf_length + data_table_info.size);
+  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + pparam_sram.length + data_table_info.size);
   uart_putb((const void *)&header, sizeof(header));
-  uart_putb((const void *)personality_param_sram, param_buf_length);
+  uart_putb((const void *)pparam_sram.params, pparam_sram.length);
   uart_putb((const void *)data_table, data_table_info.size);
   frame_end();
 }
@@ -207,22 +205,21 @@ void send_personality_info(void)
 void send_eeprom_params_in_sram(void);
 void send_eeprom_params_in_sram(void)
 {
-  const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
-  if (length == 0xff || length > sizeof(personality_param_sram)) {
+  const uint8_t length = pparam_sram.length;
+  if (length == 0xff || length > sizeof(pparam_sram.params)) {
     send_text_P(PSTR_INVALID_EEPROM_DATA);
+  } else {
+    frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM, length);
+    uart_putb((const void *)pparam_sram.params, length);
+    frame_end();
   }
-  const uint8_t limited_length =
-    (length>sizeof(personality_param_sram))?sizeof(personality_param_sram):length;
-  frame_start(FRAME_TYPE_PARAMS_FROM_EEPROM, limited_length);
-  uart_putb((const void *)personality_param_sram, limited_length);
-  frame_end();
 }
 
 
 void params_copy_from_eeprom_to_sram(void)
 {
-  eeprom_read_block(personality_param_sram, personality_param_eeprom,
-                    sizeof(personality_param_sram));
+  eeprom_read_block(&pparam_sram, &pparam_eeprom,
+                    sizeof(pparam_sram));
 }
 
 
@@ -273,9 +270,8 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
   switch (pstate) {
   case STP_READY:
     params_copy_from_eeprom_to_sram();
-    const uint8_t length =
-      personality_param_sram[sizeof(personality_param_sram)-1];
-    if ((length == 0xff) || length > (sizeof(personality_param_sram)-1)) {
+    const uint8_t length = pparam_sram.length;
+    if ((length == 0xff) || length > sizeof(pparam_sram.params)) {
       send_text_P(PSTR_INVALID_EEPROM_DATA);
       send_state_P(PSTR_READY);
       return STP_READY;
@@ -335,9 +331,8 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
       send_state_P(PSTR("PARAMS_TO_EEPROM"));
-      eeprom_update_block(personality_param_sram,
-                          personality_param_eeprom,
-                          sizeof(personality_param_eeprom));
+      eeprom_update_block(&pparam_sram, &pparam_eeprom,
+                          sizeof(pparam_eeprom));
       send_state_P(PSTR_READY);
       next_pstate = STP_READY;
       break;
@@ -548,7 +543,7 @@ int main(void)
            * buffer from the "start measurement" command for sending
            * back later.
            */
-          personality_param_sram[sizeof(personality_param_sram)-1] = len;
+          pparam_sram.length = len;
         }
         if (len == 0) {
           next_fstate = STF_CHECKSUM;
@@ -573,7 +568,7 @@ int main(void)
            * buffer from the "start measurement" command for sending
            * back later.
            */
-          personality_param_sram[idx] = byte;
+          pparam_sram.params[idx] = byte;
         }
         idx++;
         if (idx < len) {

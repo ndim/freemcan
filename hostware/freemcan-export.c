@@ -88,7 +88,8 @@ typedef struct {
 
 
 static
-void export_common_vtable(FILE *datfile, const packet_value_table_t *value_table_packet)
+void export_common_vtable(FILE *datfile,
+                          const packet_value_table_t *value_table_packet)
 {
   if (datfile) {
     const char *type_str = "unknown data type";
@@ -117,7 +118,8 @@ void export_common_vtable(FILE *datfile, const packet_value_table_t *value_table
     fprintf(datfile, "# reason:                   '%c' (%s)\n",
             value_table_packet->reason, reason_str);
 
-    const time_t start_time = value_table_packet->token;
+    const time_t start_time = (value_table_packet->token)?
+      *((const time_t *)value_table_packet->token) : 0 ;
     fprintf(datfile, "# start_time:               %lu (%s)\n",
             start_time, time_rfc_3339(start_time));
 
@@ -180,7 +182,6 @@ void export_time_series_vtable(FILE *datfile,
                                const packet_value_table_t *value_table_packet)
 {
   const size_t element_count = value_table_packet->element_count;
-  const time_t start_time = value_table_packet->token;
   const uint32_t elapsed_time = value_table_packet->duration +
     (value_table_packet->total_duration * (value_table_packet->element_count - 1));
 
@@ -245,6 +246,8 @@ void export_time_series_vtable(FILE *datfile,
 
     const time_t tdur  = value_table_packet->total_duration;
     fprintf(datfile, "%s\t%s\t%s\t%s\n", "idx", "counts", "time_t", "strftime");
+    const time_t start_time = (value_table_packet->token)?
+      *((const time_t *)value_table_packet->token) : 0 ;
     for (size_t i=0; i<element_count; i++) {
       const time_t ts = start_time + i * tdur;
       const char *st = time_rfc_3339(ts);

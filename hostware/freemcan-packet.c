@@ -88,6 +88,9 @@ void personality_info_unref(personality_info_t *pi)
 }
 
 
+extern const personality_info_t *personality_info;
+
+
 /** \todo Why don't we do the endianness conversion here? */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,
@@ -95,9 +98,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const uint8_t element_size,
                                              const size_t element_count,
                                              const uint16_t _duration,
-                                             const uint16_t _total_duration,
-                                             const uint32_t _token,
-                                             const void *elements)
+                                             const uint8_t param_buf_length,
+                                             const void *data)
 {
   packet_value_table_t *result =
     malloc(sizeof(packet_value_table_t)+element_count*sizeof(uint32_t));
@@ -110,8 +112,35 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   result->element_count     = element_count;
   result->orig_element_size = element_size;
   result->duration          = letoh16(_duration);
-  result->total_duration    = letoh16(_total_duration);
-  result->token             = letoh32(_token);
+  size_t ofs = 0;
+  const char *cdata = (const char *)data;
+  if (ofs+2 < param_buf_length && personality_info->param_data_size_timer_count) {
+    const uint16_t _total_duration = *((const uint16_t *)&cdata[ofs]);
+    assert(2 == personality_info->param_data_size_timer_count);
+    ofs += 2;
+    result->total_duration    = letoh16(_total_duration);
+  } else {
+    result->total_duration    = -1;
+  }
+  if (ofs+2 < param_buf_length && personality_info->param_data_size_skip_samples) {
+    const uint16_t _skip_samples = *((const uint16_t *)&cdata[ofs]);
+    assert(2 == personality_info->param_data_size_skip_samples);
+    ofs += 2;
+    result->skip_samples    = letoh16(_skip_samples);
+  } else {
+    result->skip_samples    = -1;
+  }
+  result->token = NULL;
+  if (ofs < param_buf_length) {
+    const size_t token_size = param_buf_length-ofs;
+    if (token_size) {
+      result->token = malloc(token_size);
+      assert(result->token);
+      memcpy(result->token, &cdata[ofs], token_size);
+    }
+  }
+
+  const void *elements = (const void *)&cdata[param_buf_length];
 
   if (!elements) {
     memset(result->elements, '\0', sizeof(result->elements[0])*element_count);
@@ -173,6 +202,9 @@ void packet_value_table_ref(packet_value_table_t *value_table_packet)
 static
 void packet_value_table_free(packet_value_table_t *value_table_packet)
 {
+  if (value_table_packet->token) {
+    free(value_table_packet->token);
+  }
   free(value_table_packet);
 }
 

@@ -145,7 +145,7 @@
    (((uint32_t)'F')<<0) |			\
    (((uint32_t)'M')<<8) |			\
    (((uint32_t)'p')<<16) |			\
-   (((uint32_t)'f')<<24)			\
+   (((uint32_t)'x')<<24)			\
     )
 
 
@@ -156,7 +156,7 @@
  * Note: Must be kept in sync with #FRAME_MAGIC_LE_U32.
  * Note: Must not contain the same character twice.
  */
-#define FRAME_MAGIC_STR "FMpf"
+#define FRAME_MAGIC_STR "FMpx"
 
 
 /** Data frame types (data frame to host)

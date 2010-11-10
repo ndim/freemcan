@@ -93,7 +93,6 @@
 #include "packet-defs.h"
 #include "wdt-softreset.h"
 #include "timer1-measurement.h"
-#include "send-table.h"
 #include "main.h"
 #include "data-table.h"
 
@@ -136,6 +135,52 @@ void io_init_unused_pins(void)
 uint8_t personality_param_sram[MAX_PARAM_LENGTH+1];
 uint8_t personality_param_eeprom[MAX_PARAM_LENGTH+1] EEMEM;
 BARE_COMPILE_TIME_ASSERT(sizeof(personality_param_sram) == sizeof(personality_param_eeprom));
+
+
+/** Send value table packet to controller via serial port (layer 3).
+ *
+ * \param type The reason why we are sending the value table
+ *             (#packet_value_table_reason_t).
+ *
+ * Note that send_table() might take a significant amount of time.
+ * For example, at 9600bps, transmitting a good 3KByte will take a
+ * good 3 seconds.  If you disable interrupts for that time and want
+ * to continue the measurement later, you will want to properly pause
+ * the timer.  We are currently keeping interrupts enabled if we
+ * continue measuring, which avoids this issue.
+ *
+ * Note that for 'I' value tables it is possible that we send fluked
+ * values due to overflows.
+ */
+void send_table(const packet_value_table_reason_t reason)
+{
+  const uint16_t duration = get_duration();
+
+  const uint8_t param_buf_length =
+    personality_param_sram[sizeof(personality_param_sram)-1];
+  packet_value_table_header_t header = {
+    data_table_info.element_size,
+    reason,
+    data_table_info.type,
+    duration,
+    param_buf_length
+  };
+  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + param_buf_length + data_table_info.size);
+  uart_putb((const void *)&header, sizeof(header));
+  uart_putb((const void *)personality_param_sram, param_buf_length);
+  uart_putb((const void *)data_table, data_table_info.size);
+  frame_end();
+}
+
+
+void send_personality_info(void)
+{
+  frame_start(FRAME_TYPE_PERSONALITY_INFO,
+              sizeof(personality_info) + personality_name_length);
+  uart_putb_P((const void *)&personality_info, sizeof(personality_info));
+  uart_putb_P((const void *)personality_name, personality_name_length);
+  frame_end();
+}
 
 
 /** Send parameters from EEPROM
@@ -227,10 +272,17 @@ const char PSTR_RESET[]     PROGMEM = "RESET";
 
 /** Firmware FSM event handler for receiving a command packet from the host
  *
+ * \param pstate current FSM state
+ * \param cmd the command we are to handle
+ * \return new state
+ *
+ * Implicit parameters via global variables:
+ *   personality_param_sram[0..sizeof(personality_param_sram)-2] param+token data
+ *   personality_param_sram[sizeof(personality_param_sram)-1] size of param+token data
  */
 inline static
 firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
-                                   const uint8_t cmd, const uint8_t length)
+                                   const uint8_t cmd)
 {
   /* temp vars */
   const frame_cmd_t c = (frame_cmd_t)cmd;
@@ -259,7 +311,6 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
     case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
       send_state_P(PSTR("PARAMS_TO_EEPROM"));
-      personality_param_sram[sizeof(personality_param_sram)-1] = length;
       eeprom_update_block(personality_param_sram,
                           personality_param_eeprom,
                           sizeof(personality_param_eeprom));
@@ -461,6 +512,15 @@ int main(void)
       case STF_LENGTH:
         uart_recv_checksum_update(byte);
         len = byte;
+        if (pstate == STP_READY) {
+          /* We can only use the personality_param_sram buffer in the
+           * STP_READY state. By not writing to the buffer after
+           * transitioning from STP_READY, we keep the content of the
+           * buffer from the "start measurement" command for sending
+           * back later.
+           */
+          personality_param_sram[sizeof(personality_param_sram)-1] = len;
+        }
         if (len == 0) {
           next_fstate = STF_CHECKSUM;
         } else if ((len >= personality_param_size) &&
@@ -477,7 +537,16 @@ int main(void)
         break;
       case STF_PARAM:
         uart_recv_checksum_update(byte);
-        personality_param_sram[idx++] = byte;
+        if (pstate == STP_READY) {
+          /* We can only use the personality_param_sram buffer in the
+           * STP_READY state. By not writing to the buffer after
+           * transitioning from STP_READY, we keep the content of the
+           * buffer from the "start measurement" command for sending
+           * back later.
+           */
+          personality_param_sram[idx] = byte;
+        }
+        idx++;
         if (idx < len) {
           next_fstate = STF_PARAM;
         } else {
@@ -487,7 +556,7 @@ int main(void)
       case STF_CHECKSUM:
         if (uart_recv_checksum_matches(byte)) {
           /* checksum successful */
-          pstate = eat_packet(pstate, cmd, len);
+          pstate = eat_packet(pstate, cmd);
           goto restart;
         } else {
           /** \todo Find a way to report checksum failure without
@@ -497,6 +566,7 @@ int main(void)
         }
         break;
       }
+      //uprintf("idx=%u", idx);
       goto skip_errors;
 
     error_restart_nomsg:

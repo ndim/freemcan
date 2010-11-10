@@ -116,10 +116,8 @@ typedef struct {
   uint8_t  type;
   /** duration of measurement that lead to the attached data */
   uint16_t duration;
-  /** total duration (of the measurement in progress) */
-  uint16_t total_duration;
-  /** token - a value sent back unchanged */
-  uint32_t token;
+  /** length of the token (a number of bytes sent back unchanged) */
+  uint8_t param_buf_length;
 } __attribute__ ((packed)) packet_value_table_header_t;
 
 

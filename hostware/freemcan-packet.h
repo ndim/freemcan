@@ -67,11 +67,15 @@ typedef struct {
   unsigned int duration;
 
   /** Total scheduled duration of the measurement in progress, or the
-   * time spent recording all but the last item in the time series. */
+   * time spent recording all but the last item in the time
+   * series. "-1" if undefined. */
   unsigned int total_duration;
 
-  /** Token (value sent back unchanged) */
-  uint32_t token;
+  /** Skip samples value. "-1" if undefined. */
+  unsigned int skip_samples;
+
+  /** Token bytes (value sent back unchanged) */
+  char *token;
 
   /** Value table array (native endian uint32_t) */
   uint32_t elements[];
@@ -102,9 +106,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const uint8_t element_size,
                                              const size_t element_count,
                                              const uint16_t _duration,
-                                             const uint16_t _total_duration,
-                                             const uint32_t _token,
-                                             const void *elements)
+                                             const uint8_t param_buf_length,
+                                             const void *data)
   __attribute__((malloc));
 
 

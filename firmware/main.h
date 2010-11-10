@@ -1,4 +1,4 @@
-/** \file firmware/main.c
+/** \file firmware/main.h
  * \brief API to firmware main loop
  *
  * \author Copyright (C) 2009 samplemaker

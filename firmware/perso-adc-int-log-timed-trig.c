@@ -1,5 +1,5 @@
 /** \file firmware/perso-adc-int-log-timed-trig.c
- * \brief Internal ADC based timed ADC sampling
+ * \brief Personality: Data logger with internal ADC and timed trigger
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

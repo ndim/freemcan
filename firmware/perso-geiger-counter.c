@@ -1,5 +1,5 @@
-/** \file firmware/geiger-counter.c
- * \brief Geiger Counter
+/** \file firmware/perso-geiger-counter.c
+ * \brief Personality: Geiger Counter
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

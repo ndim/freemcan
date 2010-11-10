@@ -1,5 +1,5 @@
-/** \file firmware/PERSO_perso-adc-ext-mca-ext-trig.c
- * \brief External ADC based MCA
+/** \file firmware/perso-adc-ext-mca-ext-trig.c
+ * \brief Personality: MCA with external ADC and external trigger
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

@@ -1,5 +1,5 @@
 /** \file firmware/perso-adc-int-mca-timed-trig.c
- * \brief Internal ADC based MCA (triggered by timer)
+ * \brief Personality: MCA with internal ADC and timed trigger
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

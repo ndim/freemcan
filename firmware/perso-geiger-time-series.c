@@ -1,5 +1,5 @@
-/** \file firmware/geiger-time-series.c
- * \brief Geiger Counter recording time series
+/** \file firmware/perso-geiger-time-series.c
+ * \brief Personality: Geiger Counter Recording Time Series
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

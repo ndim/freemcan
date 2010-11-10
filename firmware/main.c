@@ -108,6 +108,18 @@
 /** Define static string in a single place */
 const char PSTR_INVALID_EEPROM_DATA[] PROGMEM = "Invalid EEPROM data";
 
+/** Define static string in a single place */
+const char PSTR_DONE[]      PROGMEM = "DONE";
+
+/** Define static string in a single place */
+const char PSTR_MEASURING[] PROGMEM = "MEASURING";
+
+/** Define static string in a single place */
+const char PSTR_READY[]     PROGMEM = "READY";
+
+/** Define static string in a single place */
+const char PSTR_RESET[]     PROGMEM = "RESET";
+
 
 /** Define AVR device fuses.
  *
@@ -264,9 +276,11 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
     const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
     if (length == 0xff || length > sizeof(personality_param_sram)) {
       send_text_P(PSTR_INVALID_EEPROM_DATA);
+      send_state_P(PSTR_READY);
       return STP_READY;
     } else {
       general_personality_start_measurement_sram();
+      send_state_P(PSTR_MEASURING);
       return STP_MEASURING;
     }
     break;
@@ -277,19 +291,6 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
     break;
   }
 }
-
-
-/** Define static string in a single place */
-const char PSTR_DONE[]      PROGMEM = "DONE";
-
-/** Define static string in a single place */
-const char PSTR_MEASURING[] PROGMEM = "MEASURING";
-
-/** Define static string in a single place */
-const char PSTR_READY[]     PROGMEM = "READY";
-
-/** Define static string in a single place */
-const char PSTR_RESET[]     PROGMEM = "RESET";
 
 
 /** Firmware FSM event handler for receiving a command packet from the host

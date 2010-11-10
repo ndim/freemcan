@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup timer1_countdown Measurement Timer ISR: Count down to zero then stop
- * \ingroup firmware
+ * \ingroup firmware_personality_groups
  *
  * Measurement timer ISR: Count down to zero then stop
  *

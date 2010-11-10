@@ -20,10 +20,14 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup firmware Firmware
+ * \defgroup firmware_generic Generic Firmware Parts
+ * \ingroup firmware
+ *
+ * \defgroup firmware_personality_groups Firmware Personality Groups
+ * \ingroup firmware
  *
  * \defgroup firmware_memories Memory types and layout
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * There can be a number of kinds of variables.
  *
@@ -69,7 +73,7 @@
  * the absolute maximum sized integer we can use is our self-defined
  * "uint24_t" type.
  *
- * \addtogroup firmware
+ * \addtogroup firmware_generic
  * @{
  */
 
@@ -230,6 +234,23 @@ void general_personality_start_measurement_sram(void)
 }
 
 
+/**
+ * \defgroup firmware_fsm Firmware FSM
+ * \ingroup firmware_generic
+ *
+ * Implements the finite state machine (FSM) as described in \ref
+ * embedded_fsm.  The "ST_foo" and "ST_FOO" definitions from
+ * #firmware_state_t refer to the states from that FSM definition.
+ *
+ * \image html firmware-states.png "Device as State Machine"
+ *
+ * See \ref embedded_fsm for more information on this FSM state
+ * transition diagram.
+ *
+ * @{
+ */
+
+
 /** List of states for firmware state machine
  *
  * \see communication_protocol
@@ -240,12 +261,12 @@ typedef enum {
   STP_DONE,
   STP_ERROR
   /* STP_RESET not actually modelled as a state */
-} firmware_packet_state_t;
+} firmware_state_t;
 
 
 /** Firmware FSM event handler for finished measurement */
 inline static
-firmware_packet_state_t eat_measurement_finished(const firmware_packet_state_t pstate)
+firmware_state_t eat_measurement_finished(const firmware_state_t pstate)
 {
   switch (pstate) {
   case STP_MEASURING:
@@ -265,7 +286,7 @@ firmware_packet_state_t eat_measurement_finished(const firmware_packet_state_t p
 
 /** Firmware FSM event handler for pressed switch */
 inline static
-firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
+firmware_state_t eat_switch_pressed(const firmware_state_t pstate)
 {
   switch (pstate) {
   case STP_READY:
@@ -301,15 +322,15 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
  *   personality_param_sram[sizeof(personality_param_sram)-1] size of param+token data
  */
 inline static
-firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
-                                   const uint8_t cmd)
+firmware_state_t eat_packet(const firmware_state_t pstate,
+                            const uint8_t cmd)
 {
   /* temp vars */
   const frame_cmd_t c = (frame_cmd_t)cmd;
 
   uprintf("EAT PACKET: %c", cmd);
 
-  firmware_packet_state_t next_pstate = STP_ERROR;
+  firmware_state_t next_pstate = STP_ERROR;
 
   switch (pstate) {
   case STP_ERROR:
@@ -433,6 +454,9 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
 }
 
 
+/** @} */
+
+
 /** AVR firmware's main "loop" function
  *
  * Note that we create a "loop" by having the watchdog timer reset the
@@ -440,42 +464,34 @@ firmware_packet_state_t eat_packet(const firmware_packet_state_t pstate,
  * system to start again with the hardware and software in the defined
  * default state.
  *
- * This function implements the finite state machine (FSM) as
- * described in \ref embedded_fsm.  The "ST_foo" and "ST_FOO"
- * definitions from #firmware_state_t refer to the states from that FSM
- * definition.
- *
- * Note that the ST_MEASURING state had to be split into two:
- * ST_MEASURING which prints its name upon entering and immediately
- * continues with ST_MEASURING_nomsg, and ST_MEASURING_nomsg which
- * does not print its name upon entering and is thus feasible for a
- * busy polling loop.
- *
- * avr-gcc knows that int main(void) ending with an endless loop and
- * not returning is normal, so we can avoid the
- *
- *    int main(void) __attribute__((noreturn));
- *
- * declaration and compile without warnings (or an unused return instruction
- * at the end of main).
+ * \dot
+ * digraph firmware_frame_fsm {
+ *   node [shape=ellipse, fontname=Helvetica, fontsize=10];
+ *   edge [fontname=Helvetica, fontsize=10];
+ *   magic [ label="STF_MAGIC" ];
+ *   command [ label="STF_COMMAND" ];
+ *   length [ label="STF_LENGTH" ];
+ *   param [ label="STF_PARAM" ];
+ *   checksum [ label="STF_CHECKSUM" ];
+ *   magic:nw -> magic:nw [ label="mismatch\ni:=0" ];
+ *   magic -> magic [ label="match magic[i++] && i<magic_size\n-/-" ];
+ *   magic -> command [ label="match magic[i++] && i>=magic_size\n-/-" ];
+ *   command -> length;
+ *   length -> param [ label="length>0\ni:=0" ];
+ *   length -> checksum [ label="length==0\n-/-" ];
+ *   param -> param [ label="i<length\ni++" ];
+ *   param -> checksum [ label="i>=length\n-/-" ];
+ *   checksum -> magic [ label="chksum match\nhandle_frame, i:=0" ];
+ *   checksum -> magic [ label="chksum fail\ni:=0" ];
+ * }
+ * \enddot
  */
-int main(void)
+inline static
+void main_event_loop(void)
+  __attribute__ ((noreturn));
+inline static
+void main_event_loop(void)
 {
-  /** No need to initialize global variables here. See \ref
-   *  firmware_memories.
-   */
-
-  /* ST_booting */
-
-  /** We try not to explicitly call initialization functions at the
-   * start of main().  The idea is to implement the initialization
-   * functions as ((naked)) and put them in the ".initN" sections so
-   * they are called automatically before main() is run.
-   */
-
-  send_personality_info();
-  send_state_P(PSTR_READY);
-
   /** Frame parser FSM state */
   typedef enum {
     STF_MAGIC,
@@ -494,7 +510,7 @@ int main(void)
   uint8_t len = 0;
 
   /* Packet FSM State */
-  firmware_packet_state_t pstate = STP_READY;
+  firmware_state_t pstate = STP_READY;
 
   /* Globally enable interrupts */
   sei();
@@ -606,6 +622,37 @@ int main(void)
 
   } /* while (1) main event loop */
 
+} /* void main_event_loop(void); */
+
+
+/** Firmware main() function
+ *
+ * avr-gcc knows that int main(void) ending with an endless loop and
+ * not returning is normal, so we can avoid the
+ *
+ *    int main(void) __attribute__((noreturn));
+ *
+ * declaration and compile without warnings (or an unused return instruction
+ * at the end of main).
+ */
+int main(void)
+{
+  /** No need to initialize global variables here. See \ref
+   *  firmware_memories.
+   */
+
+  /* ST_booting */
+
+  /** We try not to explicitly call initialization functions at the
+   * start of main().  The idea is to implement the initialization
+   * functions as ((naked)) and put them in the ".initN" sections so
+   * they are called automatically before main() is run.
+   */
+
+  send_personality_info();
+  send_state_P(PSTR_READY);
+
+  main_event_loop();
 } /* int main(void) */
 
 

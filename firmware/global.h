@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup global_constants Global Constants And Definitions
- * \ingroup firmware
+ * \ingroup firmware_generic
  * @{
  */
 

@@ -1,5 +1,5 @@
 /** \file firmware/perso-adc-int-mca-ext-trig.c
- * \brief Internal ADC based MCA with external trigger
+ * \brief Personality: MCA with internal ADC and external trigger
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,8 +19,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup perso_adc_int_mca_ext_trig Internal ADC based MCA with external trigger
- * \ingroup firmware
+ * \defgroup perso_adc_int_mca_ext_trig Personality: MCA with internal ADC and external trigger
+ * \ingroup firmware_personality_groups
  *
  * Internal ADC code.
  *

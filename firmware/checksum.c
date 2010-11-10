@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup checksum Communication checksum implementation
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Implements the checksum for the communication protocol.
  *

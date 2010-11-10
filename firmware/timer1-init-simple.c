@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup timer1_init_simple Timer init to simply periodically trigger timer ISR
- * \ingroup firmware
+ * \ingroup firmware_personality_groups
  *
  * Timer init to simply periodically trigger timer ISR.
  *

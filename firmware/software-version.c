@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup software_version Software version string
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Send the software version string on firmware bootup. If the source
  * tree the firmware was not built from is not a git tree, the printed

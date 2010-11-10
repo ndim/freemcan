@@ -1,4 +1,4 @@
-/** \file firmware/perso_adc-ext-global.h
+/** \file firmware/perso-adc-ext-global.h
  * \brief Global adjustments for external ADC related stuff
  *
  * \author Copyright (C) 2010 samplemaker
@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup global_constants_adc_ext Global Constants And Definitions for external ADC
- * \ingroup firmware
+ * \ingroup firmware_personality_groups
  * @{
  */
 

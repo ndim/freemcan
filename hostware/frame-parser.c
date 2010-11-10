@@ -65,7 +65,7 @@ typedef enum {
 } state_t;
 
 
-/** Complete frame parser state */
+/** Internals of opaque #frame_parser_t */
 struct _frame_parser_t {
   /** Reference counter */
   unsigned int refs;

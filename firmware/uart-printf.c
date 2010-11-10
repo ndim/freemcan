@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup uart_printf printf() like functionality via frames over UART
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Inclusion into the firmware image is optional.
  *

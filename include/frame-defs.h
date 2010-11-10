@@ -25,43 +25,57 @@
  *
  * The firmware implements the following state machine:
  *
- * \todo OUTDATED PROTOCOL DESCRIPTION FSM diagram
- *
  * \image html firmware-states.png "Device as State Machine"
  *
- * The input triggering a state transition is either a byte received
- * over the serial line, or a timeout happening (watchdog timeout, or
- * measurement duration has passed).
+ * The input events can be command frames received via the UART and
+ * parsed by the frame FSM, or local events like "timer elapsed" or
+ * "switch depressed".
  *
  * Note1: The "booting" state is a hardware state. The others are
  *        software states.
  *
- * Note2: Entering an upper case state is always reported by a state
- *        packet.
+ * \todo Entering an upper case state is always reported by a state
+ *       packet.
  *
- * Note3: The bold black edges show the default way through the
- *        state transition diagram.
+ * \todo The bold black edges show the default way through the
+ *       state transition diagram.
  *
- * Note4: The red edge are error conditions.
+ * \todo The red edge are error conditions.
  *
- * Note5: The green edges show the actions of the optional 's' (state)
- *        command which just sends the current state and resumes
- *        whatever it was doing at the time.
+ * \todo The green edges show the actions of the optional 's' (state)
+ *       command which just sends the current state and resumes
+ *       whatever it was doing at the time.
  *
- * Note6: The blue edges are reactions to the other optional commands.
+ * \todo The blue edges are reactions to the other optional commands.
  *
  * \section layer_model Layering model
  *
- * To keep the parser in the firmware simple, we use a simpler data
- * format for communication sent from the host to the device (\ref
- * frame_host_to_emb). For the more complex data sent from the device
- * to the hostware, we use the following layering model:
+ * For the commands sent from the host to the device, we use the
+ * following layering (\ref frame_host_to_emb):
  *
  * <table class="table header-top header-left">
  *  <tr><th>layer</th><th>description</th><th>specification</th>
  *      <th>hostware implementation</th><th>firmware implementation</th></tr>
  *  <tr><th>4</th><td>application layer (process the packets' content)</td>
- *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware</td></tr>
+ *      <td>N/A</td><td>TBD</td><td>\ref firmware_generic</td></tr>
+ *  <tr><th>3</th><td>command packets</td>
+ *      <td>TBD</td><td>\ref freemcan_device</td><td>\ref firmware_fsm</td></tr>
+ *  <tr><th>2</th><td>frames of a certain size</td>
+ *      <td>\ref frame_host_to_emb</td><td>\ref freemcan_device</td><td>main_event_loop()</td></tr>
+ *  <tr><th>1</th><td>byte stream to/from serial port</td>
+ *      <td>\ref uart_defs</td><td>\ref freemcan_device</td><td>\ref uart_comm</td></tr>
+ *  <tr><th>0</th><td>physical: bits on the wire between serial ports</td>
+ *      <td>N/A</td><td>N/A</td><td>N/A</td></tr>
+ * </table>
+ *
+ * For the more complex data sent from the device to the hostware, we
+ * use the following layering model:
+ *
+ * <table class="table header-top header-left">
+ *  <tr><th>layer</th><th>description</th><th>specification</th>
+ *      <th>hostware implementation</th><th>firmware implementation</th></tr>
+ *  <tr><th>4</th><td>application layer (process the packets' content)</td>
+ *      <td>N/A</td><td>\ref tui_data_handling</td><td>\ref firmware_generic</td></tr>
  *  <tr><th>3</th><td>packets of a certain type with a certain content</td>
  *      <td>\ref packet_defs</td><td>\ref freemcan_packet_parser</td><td>\ref firmware_comm</td></tr>
  *  <tr><th>2</th><td>frames of a certain size</td>
@@ -87,40 +101,31 @@
  *
  * \subsection frame_host_to_emb Frames sent from hostware to firmware
  *
- * To keep the parser in the firmware simple, most "frames" sent from
- * the hostware to the firmware are actually just a single byte:
- *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
- * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
- * </table>
- *
- * The single exception is the "start measurement" command which looks
- * as follows:
- *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
  * <table class="table header-top">
  *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>1</td> <td>FRAME_CMD_MEASURE</td> <td>#frame_cmd_t</td> <td>frame command type</td></tr>
- *  <tr><td>2</td> <td>?</td> <td>uint16_t</td> <td>timervalue (measurement duration)</td></tr>
- *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over the last three bytes</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>uint32_t or uint8_t[4]</td> <td>magic value marking beginning of frame</td></tr>
+ *  <tr><td>1</td> <td>command</td> <td>#frame_cmd_t</td> <td>frame command</td></tr>
+ *  <tr><td>1</td> <td>length</td> <td>uint8_t</td> <td>length of command parameters (0 or more)</td></tr>
+ *  <tr><td><em>length</em></td> <td>params</td> <td>uint8_t []</td> <td>command parameters (or or more bytes)</td></tr>
+ *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
+ *
+ * Some #frame_cmd_t commands require 0 parameter bytes, others
+ * require a number of parameter bytes depending on the requirements
+ * of the firmware personality. The host shall request and interpret
+ * the firmware personality info packet (#FRAME_CMD_PERSONALITY_INFO)
+ * to determine the number and layout of the parameter bytes.
  *
  * \subsection frame_emb_to_host Frames sent from firmware to hostware
  *
- * \todo OUTDATED PROTOCOL DESCRIPTION
- *
  * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><th>size in bytes</th> <th>value</th> <th>C type define</th> <th>description</th></tr>
  *
- *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>magic value marking beginning of frame</td></tr>
- *  <tr><td>2</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
- *  <tr><td>1</td> <td>#frame_type_t</td> <td>frame type</td></tr>
- *  <tr><td>see above</td> <td>?</td> <td>payload data</td></tr>
- *  <tr><td>1</td> <td>uint8_t</td> <td>checksum</td></tr>
+ *  <tr><td>4</td> <td>#FRAME_MAGIC_LE_U32<br>or #FRAME_MAGIC_STR</td> <td>uint32_t or uint8_t[4]</td> <td>magic value marking beginning of frame</td></tr>
+ *  <tr><td>2</td> <td>payload_size</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
+ *  <tr><td>1</td> <td>frame_type</td> <td>#frame_type_t</td> <td>frame type</td></tr>
+ *  <tr><td><em>payload_size</em></td> <td>payload</td> <td>uint8_t []</td> <td>payload data</td></tr>
+ *  <tr><td>1</td> <td>checksum</td><td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
  *
  * \todo Document checksum algorithm.
@@ -134,26 +139,11 @@
 #include <stdint.h>
 
 
-/** Header magic marker value for data frames to host, AVR uint32_t version.
- *
- * This is good for the little endian AVR controller.
- *
- * Note: Must be kept in sync with #FRAME_MAGIC_STR.
- */
-#define FRAME_MAGIC_LE_U32  \
-  ( \
-   (((uint32_t)'F')<<0) |			\
-   (((uint32_t)'M')<<8) |			\
-   (((uint32_t)'p')<<16) |			\
-   (((uint32_t)'x')<<24)			\
-    )
-
-
 /** Header magic marker value for data frames to host, string version.
  *
  * This is good for endianness independent char-by-char receivers.
  *
- * Note: Must be kept in sync with #FRAME_MAGIC_LE_U32.
+ * Note: Must be 4 bytes long.
  * Note: Must not contain the same character twice.
  */
 #define FRAME_MAGIC_STR "FMpx"

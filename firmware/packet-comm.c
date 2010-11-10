@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup firmware_comm Packet Communication
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Implement packet part of the communication protocol (Layer 3).
  *

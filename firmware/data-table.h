@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup data_table Data table interface between MCA/time series and send_table()
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * @{
  */
@@ -48,7 +48,7 @@
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
  */
 #define PERSONALITY(NAME,                                           \
-                    PARAM_SIZE_TIMER1_COUNT,                         \
+                    PARAM_SIZE_TIMER1_COUNT,                        \
                     PARAM_SIZE_SKIP_SAMPLES,                        \
                     UNITS_PER_SECOND,                               \
                     MAX_BYTES_PER_TABLE,                            \
@@ -57,7 +57,7 @@
     MAX_BYTES_PER_TABLE,                                            \
     TABLE_ELEMENT_SIZE,                                             \
     UNITS_PER_SECOND,                                               \
-    PARAM_SIZE_TIMER1_COUNT,                                         \
+    PARAM_SIZE_TIMER1_COUNT,                                        \
     PARAM_SIZE_SKIP_SAMPLES                                         \
   };                                                                \
   const char personality_name[] PROGMEM = NAME;                     \
@@ -82,6 +82,7 @@ extern const packet_personality_info_t personality_info PROGMEM;
 extern char data_table[];
 
 
+/** Information about the data table */
 typedef struct {
   /** The size of the #data_table in bytes */
   size_t size;
@@ -94,6 +95,10 @@ typedef struct {
 } data_table_info_t;
 
 
+/** Information about the data table
+ *
+ * Set by the personality specific code, and read by send_table().
+ */
 extern data_table_info_t data_table_info;
 
 

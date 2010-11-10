@@ -1,5 +1,5 @@
-/** \file firmware/geiger-counter.c
- * \brief Geiger Counter
+/** \file firmware/perso-geiger-counter.c
+ * \brief Personality: Geiger Counter
  *
  * \author Copyright (C) 2010 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -19,8 +19,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup geiger_counter Geiger Counter
- * \ingroup firmware
+ * \defgroup geiger_counter Personality: Geiger Counter
+ * \ingroup firmware_personality_groups
  *
  * Geiger Counter.
  *

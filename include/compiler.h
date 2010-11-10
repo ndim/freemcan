@@ -24,6 +24,7 @@
 
 
 /** \defgroup compiler_defs Compiler Specific Definitions
+ * \ingroup common
  *
  * These compiler specific definitions are all specific to GCC, but as
  * we are using avr-gcc for the embedded stuff and a native host gcc
@@ -31,6 +32,14 @@
  *
  * @{
  */
+
+
+/** This is defined to have doxygen ignore the packed attribute
+ *
+ * See also the PREDEFINED definition in Doxyfile.
+ */
+#define PACKED __attribute__ ((packed))
+
 
 /** Rename Unused Parameter */
 #define _UP(x) unused_p__ ## x

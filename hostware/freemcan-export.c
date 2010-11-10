@@ -77,6 +77,7 @@ const char *time_rfc_3339(const time_t time)
 }
 
 
+/** Some statistical data for event counter time series */
 typedef struct {
   double counts;
   double counts_error;

@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup frame_comm Frame Communication
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Implement the frame-by-frame part of the communication protocl
  * (Layer 2).
@@ -32,6 +32,10 @@
 #include "uart-comm.h"
 #include "frame-comm.h"
 
+
+char magic_header[4] PROGMEM = FRAME_MAGIC_STR;
+
+
 /** Start a data frame */
 void frame_start(const frame_type_t frame_type,
                  const size_t payload_size)
@@ -39,10 +43,8 @@ void frame_start(const frame_type_t frame_type,
   /* reset the checksum state */
   uart_send_checksum_reset();
 
-  /* Send frame header magic value.  The uint32_t type avoids the
-   * global .data space use a char array would cause. */
-  const uint32_t header = FRAME_MAGIC_LE_U32;
-  uart_putb(&header, sizeof(header));
+  /* Send frame header magic value */
+  uart_putb_P(&magic_header, sizeof(magic_header));
 
   /* send payload size */
   const uint16_t size = payload_size;

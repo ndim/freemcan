@@ -1,4 +1,4 @@
-/** \file firmware/main.c
+/** \file firmware/main.h
  * \brief API to firmware main loop
  *
  * \author Copyright (C) 2009 samplemaker
@@ -21,7 +21,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup firmware_main Firmware Main
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * @{
  */
@@ -35,6 +35,7 @@
 #include "packet-defs.h"
 
 
+/** Firmware internal store for the parameter buffer */
 typedef struct {
   uint8_t length;
   uint8_t params[MAX_PARAM_LENGTH];

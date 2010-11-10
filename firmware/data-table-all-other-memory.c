@@ -21,8 +21,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup data_table_everything_else Data table occupying all the rest of the SRAM
- * \ingroup firmware
+ * \defgroup data_table_all_other_memory Data table occupying all the rest of the SRAM
+ * \ingroup firmware_personality_groups
  *
  * Data table occupying all the rest of the SRAM (in conjunction with
  * linker script data-table-all-other-memory.x).

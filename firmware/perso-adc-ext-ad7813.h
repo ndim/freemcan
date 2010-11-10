@@ -18,6 +18,9 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
+ * \defgroup adc_ext_ad7813 Constants for interface to AD7813 external ADC
+ * \ingroup perso_adc_ext_mca_ext_trig
+ *
  * @{
  */
 

@@ -55,7 +55,7 @@
 #include "uart-defs.h"
 
 
-/** Internals of opaque device type */
+/** Internals of opaque #device_t */
 struct _device_t {
   unsigned int refs;
   int fd;

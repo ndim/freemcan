@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup timer2_debounce_switch Debounce switch using timer2
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Debounce switch using timer2.
  *

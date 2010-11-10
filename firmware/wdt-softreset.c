@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup wdt_softreset AVR Reset via watchdog timer
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Reset the AVR processor via the watchdog timer.
  *

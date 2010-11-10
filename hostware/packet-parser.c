@@ -40,6 +40,7 @@
 #include "packet-parser.h"
 
 
+/** Internals of opaque #packet_parser_t */
 struct _packet_parser_t {
   unsigned int refs;
   packet_handler_value_table_t packet_handler_value_table;

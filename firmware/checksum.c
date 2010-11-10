@@ -31,13 +31,6 @@
 #include "checksum.h"
 
 
-/** Reset checksum state */
-checksum_accu_t checksum_reset(void)
-{
-  return 0x3e59;
-}
-
-
 /** Update checksum
  *
  * \todo Use a good checksum algorithm with good values.

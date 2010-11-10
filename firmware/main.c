@@ -485,7 +485,7 @@ int main(void)
         }
         break;
       case STF_CHECKSUM:
-        if (uart_recv_checksum_check(byte)) {
+        if (uart_recv_checksum_matches(byte)) {
           /* checksum successful */
           pstate = eat_packet(pstate, cmd, len);
           goto restart;

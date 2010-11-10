@@ -127,26 +127,9 @@ void uart_send_checksum(void)
 }
 
 
-/** Check whether received byte c and matches the checksum
- *
- * \return boolean value in char
- */
-char uart_recv_checksum_check(const uint8_t data)
-{
-  const uint8_t v = cs_accu_recv & 0xff;
-  return (v == data);
-}
-
-
 void uart_send_checksum_reset(void)
 {
   cs_accu_send = checksum_reset();
-}
-
-
-void uart_recv_checksum_reset(void)
-{
-  cs_accu_recv = checksum_reset();
 }
 
 
@@ -181,13 +164,6 @@ void uart_putb_P(PGM_VOID_P buf, size_t len)
 }
 
 
-/* update the checksum state with ch */
-void uart_recv_checksum_update(const char ch)
-{
-  cs_accu_recv = checksum_update(cs_accu_recv, ch);
-}
-
-
 /** Read a character from the UART */
 char uart_getc()
 {
@@ -198,6 +174,31 @@ char uart_getc()
     const char ch = UDR0;
 
     return ch;
+}
+
+
+
+
+/** Check whether received byte c and matches the checksum
+ *
+ * \return boolean value in char
+ */
+char uart_recv_checksum_matches(const uint8_t data)
+{
+  return checksum_matches(cs_accu_recv, data);
+}
+
+
+void uart_recv_checksum_reset(void)
+{
+  cs_accu_recv = checksum_reset();
+}
+
+
+/* update the checksum state with ch */
+void uart_recv_checksum_update(const char ch)
+{
+  cs_accu_recv = checksum_update(cs_accu_recv, ch);
 }
 
 

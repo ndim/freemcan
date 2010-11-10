@@ -34,6 +34,7 @@ firmware: Use <util/setbaud.h> for calculating baud rate?
 firmware: Examine how doxygen copes with the new multiple parallel
           definitions of the same function/variable in different
           source files.
+	  Answer: Badly. It just picks one.
 
 firmware: Examine whether e.g. the adc-int and adc-ext histogram
           definitions (which differ only in table size) can be unified

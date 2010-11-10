@@ -185,8 +185,8 @@ void io_init(void)
 /** External INT0, i.e. count a GM event */
 ISR(INT0_vect)
 {
-
-  PORTD ^= _BV(PD6);
+  /** toggle output pin with LED */
+  PIND |= _BV(PD6);
 
   PORTD |= _BV(PD7);
   _delay_us(DELAY_BEEP);

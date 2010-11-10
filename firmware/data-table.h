@@ -48,7 +48,7 @@
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
  */
 #define PERSONALITY(NAME,                                           \
-                    PARAM_SIZE_TIMER1_COUNT,                         \
+                    PARAM_SIZE_TIMER1_COUNT,                        \
                     PARAM_SIZE_SKIP_SAMPLES,                        \
                     UNITS_PER_SECOND,                               \
                     MAX_BYTES_PER_TABLE,                            \
@@ -57,7 +57,7 @@
     MAX_BYTES_PER_TABLE,                                            \
     TABLE_ELEMENT_SIZE,                                             \
     UNITS_PER_SECOND,                                               \
-    PARAM_SIZE_TIMER1_COUNT,                                         \
+    PARAM_SIZE_TIMER1_COUNT,                                        \
     PARAM_SIZE_SKIP_SAMPLES                                         \
   };                                                                \
   const char personality_name[] PROGMEM = NAME;                     \

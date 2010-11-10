@@ -159,8 +159,8 @@ BARE_COMPILE_TIME_ASSERT(sizeof(pparam_sram) == sizeof(pparam_eeprom));
 
 /** Send value table packet to controller via serial port (layer 3).
  *
- * \param type The reason why we are sending the value table
- *             (#packet_value_table_reason_t).
+ * \param reason The reason why we are sending the value table
+ *               (#packet_value_table_reason_t).
  *
  * Note that send_table() might take a significant amount of time.
  * For example, at 9600bps, transmitting a good 3KByte will take a

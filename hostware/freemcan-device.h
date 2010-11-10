@@ -80,7 +80,8 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
  *
  * \param self The device object
  * \param cmd The #frame_cmd_t to send.
- * \param param The uint16_t parameter.
+ * \param params Pointer to the memory area containing the parameters.
+ * \param param_size Size of the memory area containing the parameters.
  */
 void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
                                      void *params, const size_t param_size)

@@ -84,21 +84,26 @@ typedef struct {
 
 /** Create (allocate and initialize) a new packet_value_table_t instance.
  *
- * \param type Reason for sending the value table packet
+ * \param reason Reason for sending the value table packet
+ * \param type Type of value table
  * \param receive_time Timestamp at which the packet was received.
  * \param element_size Size of each element in bytes (1,2,3,4).
  * \param element_count The number of elements received from device.
- * \param duration The duration of the measurement which produced
- *                 the data in elements.
- * \param total_duration The total duration of the running measurement
- *                       until it will be completed.
- * \param elements Pointer to the array of data as received from the
- *                 device.  A NULL pointer is interpreted like an
- *                 array consisting entirely of zeros.
+ * \param _duration The duration of the measurement which produced
+ *                  the data in elements.
+ * \param param_buf_length Length of parameter buffer in bytes.
+ * \param data Pointer to the remaining memory as received from the
+ *             device. The memory contains first the parameter buffer
+ *             followed by the actual value table.
+ *             A NULL pointer is interpreted like an
+ *             array consisting entirely of zeros.
  *
  * Note that the determination of max_value disregards the last value
  * in the array due to that being the value where ADC clamping is
  * counted.
+ *
+ * Note that the parameters starting with an underscore are in device
+ * endianness.
  */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,

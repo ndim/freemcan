@@ -32,7 +32,7 @@
 
 
 /**
- * \newgroup global_flags Global Flags
+ * \defgroup global_flags Global Flags
  * \ingroup firmware
  *
  * The ATmega devices can easily access IO registers below address

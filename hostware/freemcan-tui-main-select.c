@@ -130,6 +130,7 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 }
 
 
+/** Parameter layout with a single uint16_t param and time_t token */
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
   uint16_t _a;
@@ -139,6 +140,7 @@ typedef struct {
 } __attribute__((packed)) measure_params_16_t;
 
 
+/** Parameter layout with two uint16_t params and time_t token */
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
   uint16_t _a;

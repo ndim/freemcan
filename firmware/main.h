@@ -35,6 +35,7 @@
 #include "packet-defs.h"
 
 
+/** Firmware internal store for the parameter buffer */
 typedef struct {
   uint8_t length;
   uint8_t params[MAX_PARAM_LENGTH];

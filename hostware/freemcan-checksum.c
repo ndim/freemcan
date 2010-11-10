@@ -45,6 +45,7 @@
  ************************************************************************/
 
 
+/** Internals of opaque #checksum_t */
 struct _checksum_t {
   unsigned int refs;
   uint16_t checksum_accu;

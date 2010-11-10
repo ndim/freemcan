@@ -507,10 +507,6 @@ int main(void)
 
     skip_errors:
       fstate = next_fstate;
-      /*
-    } else if (switch_is_pressed) {
-      eat_switch_pressed();
-      */
     }
 
   } /* while (1) main event loop */

@@ -19,8 +19,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup geiger_counter Geiger Counter
- * \ingroup firmware
+ * \defgroup geiger_counter Personality: Geiger Counter
+ * \ingroup firmware_personality_groups
  *
  * Geiger Counter.
  *

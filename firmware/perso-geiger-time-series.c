@@ -21,8 +21,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup geiger_time_series Geiger Counter Recording Time Series
- * \ingroup firmware
+ * \defgroup geiger_time_series Personality: Geiger Counter Recording Time Series
+ * \ingroup firmware_personality_groups
  *
  * Geiger Counter recording time series
  *

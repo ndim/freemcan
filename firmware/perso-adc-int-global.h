@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup global_constants_adc_int Global Constants And Definitions for internal ADC
- * \ingroup firmware
+ * \ingroup firmware_personality_groups
  * @{
  */
 

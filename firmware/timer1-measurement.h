@@ -19,7 +19,9 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup timer1_measurement
+ * \defgroup timer1_measurement Timer1 as measurement timer
+ * \ingroup firmware_generic
+ *
  * @{
  */
 

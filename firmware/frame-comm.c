@@ -19,7 +19,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup frame_comm Frame Communication
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Implement the frame-by-frame part of the communication protocl
  * (Layer 2).

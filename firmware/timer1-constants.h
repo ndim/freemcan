@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup timer1_constants Constants for setting up timer1
- * \ingroup firmware
+ * \ingroup firmware_generic
  * @{
  */
 

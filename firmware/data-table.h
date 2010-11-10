@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup data_table Data table interface between MCA/time series and send_table()
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * @{
  */

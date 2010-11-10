@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup table_element Table Element type
- * \ingroup firmware
+ * \ingroup firmware_generic
  * @{
  */
 

@@ -19,8 +19,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup perso_adc_int_log_timed_trig Internal ADC based timed ADC sampling
- * \ingroup firmware
+ * \defgroup perso_adc_int_log_timed_trig Personality: Data logger with internal ADC and timed trigger
+ * \ingroup firmware_personality_groups
  *
  * Internal ADC based timed ADC sampling.
  *

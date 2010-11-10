@@ -21,7 +21,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup firmware_main Firmware Main
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * @{
  */

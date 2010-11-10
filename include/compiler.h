@@ -24,6 +24,7 @@
 
 
 /** \defgroup compiler_defs Compiler Specific Definitions
+ * \ingroup common
  *
  * These compiler specific definitions are all specific to GCC, but as
  * we are using avr-gcc for the embedded stuff and a native host gcc

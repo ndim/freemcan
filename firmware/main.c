@@ -20,10 +20,14 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup firmware Firmware
+ * \defgroup firmware_generic Generic Firmware Parts
+ * \ingroup firmware
+ *
+ * \defgroup firmware_personality_groups Firmware Personality Groups
+ * \ingroup firmware
  *
  * \defgroup firmware_memories Memory types and layout
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * There can be a number of kinds of variables.
  *
@@ -69,7 +73,7 @@
  * the absolute maximum sized integer we can use is our self-defined
  * "uint24_t" type.
  *
- * \addtogroup firmware
+ * \addtogroup firmware_generic
  * @{
  */
 

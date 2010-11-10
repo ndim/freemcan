@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup timer1_adc_trigger Timer hardware directly triggering ADC
- * \ingroup firmware
+ * \ingroup firmware_personality_groups
  *
  * Timer hardware directly triggering ADC
  *

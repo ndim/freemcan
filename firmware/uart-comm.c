@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup uart_comm Firmware UART Communications
- * \ingroup firmware
+ * \ingroup firmware_generic
  *
  * Implements the byte stream part of the communication protocol
  * (Layer 1).

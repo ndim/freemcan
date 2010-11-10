@@ -19,8 +19,8 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup perso_adc_ext_mca_ext_trig External ADC based MCA
- * \ingroup firmware
+ * \defgroup perso_adc_ext_mca_ext_trig Personality: MCA with external ADC and external trigger
+ * \ingroup firmware_personality_groups
  *
  * External ADC code.
  *

@@ -137,7 +137,7 @@ typedef struct {
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
-} __attribute__((packed)) measure_params_16_t;
+} PACKED measure_params_16_t;
 
 
 /** Parameter layout with two uint16_t params and time_t token */
@@ -148,7 +148,7 @@ typedef struct {
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
-} __attribute__((packed)) measure_params_16_16_t;
+} PACKED measure_params_16_16_t;
 
 
 void tui_device_send_command_16(const frame_cmd_t cmd,

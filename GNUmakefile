@@ -80,7 +80,11 @@ dox: Doxyfile dox-files
 	$(DOXYGEN) $<
 
 .PHONY: dox-files
-dox-files: dox/built/firmware-states.png
+dox-files: dox/built/firmware/firmware-fsm.png
+
+dox/built/firmware/firmware-fsm.png: include/firmware-fsm.png
+	mkdir -p "$(@D)"
+	cp $< $@
 
 dox/built/%.png: include/%.neato
 	mkdir -p "$(@D)"

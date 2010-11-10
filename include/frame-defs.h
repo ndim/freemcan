@@ -25,7 +25,7 @@
  *
  * The firmware implements the following state machine:
  *
- * \image html firmware-states.png "Device as State Machine"
+ * \image html firmware-fsm.png "Device as State Machine"
  *
  * The input events can be command frames received via the UART and
  * parsed by the frame FSM, or local events like "timer elapsed" or

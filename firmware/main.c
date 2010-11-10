@@ -242,7 +242,7 @@ void general_personality_start_measurement_sram(void)
  * embedded_fsm.  The "ST_foo" and "ST_FOO" definitions from
  * #firmware_state_t refer to the states from that FSM definition.
  *
- * \image html firmware-states.png "Device as State Machine"
+ * \image html firmware-fsm.png "Device as State Machine"
  *
  * See \ref embedded_fsm for more information on this FSM state
  * transition diagram.

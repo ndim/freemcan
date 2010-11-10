@@ -273,8 +273,9 @@ firmware_packet_state_t eat_switch_pressed(const firmware_packet_state_t pstate)
   switch (pstate) {
   case STP_READY:
     params_copy_from_eeprom_to_sram();
-    const uint8_t length = personality_param_sram[sizeof(personality_param_sram)-1];
-    if (length == 0xff || length > sizeof(personality_param_sram)) {
+    const uint8_t length =
+      personality_param_sram[sizeof(personality_param_sram)-1];
+    if ((length == 0xff) || length > (sizeof(personality_param_sram)-1)) {
       send_text_P(PSTR_INVALID_EEPROM_DATA);
       send_state_P(PSTR_READY);
       return STP_READY;

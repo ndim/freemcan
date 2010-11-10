@@ -24,21 +24,28 @@
  *
  * \section packet_host_to_emb Packets sent from hostware to firmware
  *
- * The host never sends packets to the firmware. It only sends
- * simplified frames.  See the \ref frame_defs "frame documentation".
+ * The host never sends packets to the firmware. It only sends frames.
+ * See the \ref frame_defs "frame documentation".
  *
  * \section packet_emb_to_host From firmware to hostware: Value table packet
  *
  * The size of the value table data is determined from the total
  * packet data size (i.e. the frame's payload size) by subtracting the
- * size of the #packet_value_table_header_t that is sent in front of
- * the actual value table data.
+ * size of the #packet_value_table_header_t header that is sent in
+ * front of the actual value table data, and then subtracting the
+ * param_buf_length as taken from the header.
  *
  * <table class="table header-top">
- *  <tr><th>size in bytes</th> <th>C type define</th> <th>description</th></tr>
- *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>packet_value_table_header_t</td> <td>value table packet header</td></tr>
- *  <tr><td>see above</td> <td>uintX_t []</td> <td>value table data</td></tr>
+ *  <tr><th>size in bytes</th> <th>name</th> <th>C type define</th> <th>description</th></tr>
+ *  <tr><td>sizeof(packet_value_table_header_t)</td> <td>header</td> <td>packet_value_table_header_t</td> <td>value table packet header</td></tr>
+ *  <tr><td><em>header.param_buf_length</em></td> <td>param_buf</td> <td>uint8_t []</td> <td>firmware sends back the same parameter buffer that started the measurement</td></tr>
+ *  <tr><td><em>see text</em></td> <td>data_table</td> <td>uintX_t []</td> <td>value table data</td></tr>
  * </table>
+ *
+ * \section packet_emb_to_host From firmware to hostware: Personality Information packet
+ *
+ * The personality information packet just contains a single instance
+ * of the #packet_personality_info_t data structure.
  *
  */
 
@@ -47,6 +54,8 @@
 
 
 #include <stdint.h>
+
+#include "compiler.h"
 
 
 
@@ -118,10 +127,10 @@ typedef struct {
   uint16_t duration;
   /** length of the token (a number of bytes sent back unchanged) */
   uint8_t param_buf_length;
-} __attribute__ ((packed)) packet_value_table_header_t;
+} PACKED packet_value_table_header_t;
 
 
-
+/** Personality Information packet content */
 typedef struct {
   /** Maximum size of the complete table in byte */
   uint16_t sizeof_table;
@@ -132,7 +141,7 @@ typedef struct {
   /** Size of measurement command's parameter elements */
   uint8_t param_data_size_timer_count;
   uint8_t param_data_size_skip_samples;
-} __attribute__ ((packed)) packet_personality_info_t;
+} PACKED packet_personality_info_t;
 
 
 

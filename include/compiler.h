@@ -33,6 +33,14 @@
  * @{
  */
 
+
+/** This is defined to have doxygen ignore the packed attribute
+ *
+ * See also the PREDEFINED definition in Doxyfile.
+ */
+#define PACKED __attribute__ ((packed))
+
+
 /** Rename Unused Parameter */
 #define _UP(x) unused_p__ ## x
 

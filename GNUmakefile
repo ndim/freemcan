@@ -94,11 +94,12 @@ RSYNC_USER ?= rsync_user
 RSYNC_HOST ?= rsync-host.example.com
 RSYNC_USERHOST ?= $(RSYNC_USER)@$(RSYNC_HOST)
 RSYNC_SUBDIR ?= sub/dir/
+RSYNC_OPTS ?=
 
 .PHONY: upload-dox
 upload-dox: dox
 	chmod -R a+rX dox/html
-	rsync -avz dox/html/ $(RSYNC_USERHOST):$(RSYNC_SUBDIR)
+	rsync -avz $(RSYNC_OPTS) dox/html/ $(RSYNC_USERHOST):$(RSYNC_SUBDIR)
 
 .PHONY: sloccount
 sloccount:

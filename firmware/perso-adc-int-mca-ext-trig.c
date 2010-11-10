@@ -45,6 +45,8 @@
 #include "table-element.h"
 #include "data-table.h"
 
+#include "timer1-measurement.h"
+
 
 /** Number of elements in the histogram table */
 #define MAX_COUNTER (1<<ADC_RESOLUTION)
@@ -215,6 +217,12 @@ void adc_int_init(void)
   /* wait until conversion is complete */
   loop_until_bit_is_clear(ADCSRA, ADSC);
 
+  /* Either we should discharge the peak/hold cap here to make sure
+   * that the first proper ADCW read will measure a good value, or we
+   * just discount the first value as being irrelevant for the whole
+   * histogram.
+   */
+
   /* clear returned AD value, other next conversion value is not ovrtaken */
   result = ADCW;
 
@@ -234,9 +242,7 @@ void adc_int_init(void)
 
 
 /** ADC subsystem and trigger setup */
-void adc_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void adc_init(void)
 {
   /** configure INT0 pin 16 */
@@ -245,6 +251,15 @@ void adc_init(void)
   /** configure AREF at pin 32 and single shot auto trigger over int0
    * at pin 40 ADC0 */
   adc_int_init();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  adc_init();
+  timer1_init(*timer1_value);
 }
 
 

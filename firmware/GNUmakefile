@@ -272,6 +272,7 @@ COMMON_OBJ += frame-comm.o
 COMMON_OBJ += packet-comm.o
 COMMON_OBJ += wdt-softreset.o
 COMMON_OBJ += software-version.o
+COMMON_OBJ += timer2-debounce-switch.o
 
 
 # Link time checks

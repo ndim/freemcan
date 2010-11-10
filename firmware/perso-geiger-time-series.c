@@ -277,9 +277,7 @@ uint16_t get_duration(void)
  * Trigger on falling edge
  * Enable pull up resistor on Pin 16 (20-50kOhm)
  */
-void trigger_src_conf(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void trigger_src_conf(void)
 {
 
@@ -317,6 +315,15 @@ void trigger_src_conf(void)
 void on_measurement_finished(void)
 {
   timer1_init_quick();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  trigger_src_conf();
+  timer1_init(*timer1_value);
 }
 
 

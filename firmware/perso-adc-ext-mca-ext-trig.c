@@ -44,6 +44,7 @@
 #include "packet-comm.h"
 #include "table-element.h"
 #include "data-table.h"
+#include "timer1-measurement.h"
 
 #include "perso-adc-ext-ad7813.h"
 
@@ -304,13 +305,20 @@ void AD7813_init(void)
 
 
 /** ADC subsystem and trigger setup */
-void adc_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
+static
 void adc_init(void)
 {
   AD7813_init();
   trigger_src_conf();
+}
+
+
+void personality_start_measurement_sram(void)
+{
+  const void *voidp = &personality_param_sram[0];
+  const uint16_t *timer1_value = voidp;
+  adc_init();
+  timer1_init(*timer1_value);
 }
 
 

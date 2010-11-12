@@ -120,6 +120,8 @@ FUSES = {
  * Defines
  *------------------------------------------------------------------------------
  */
+#define BITF(VALUE, BITNAME, BITNO)			\
+  ((((VALUE)>>BITNO)&1) * (1<<(BITNAME##BITNO)))
 
 
 /** Number of elements in the histogram table */
@@ -217,72 +219,78 @@ void wdt_init(void)
   return;
 }
 
-
-/** AD conversion complete interrupt entry point
+/** ADC exception handler
  *
- * This function is called when an A/D conversion has completed.
- * Update histogram
- * Discharge peak hold capacitor
+ * If a double jump to this function occurs but no input event is captured
+ * a fault is detected
  */
-ISR(ADC_vect)
+// ISR(TIMER1_OVF_vect){}
+
+/** AD conversion start function
+ *
+ * Remove input capture glitches and enable input capture interrupt
+ * Load timer and start an output compare match to trigger an ADC
+ */
+ISR(INT0_vect){
+
+  /* Debounce non valid previous input captures (glitches)                                */
+  TIFR1 |= ICF1;
+
+  /* Input capture event interrupt enable (engage ADC callback function)                  */
+  TIMSK1 |= _BV(ICIE1);
+
+  /* Set pin 19 (OC1A) on compare match, (pull pin to 5V on compare match) to start ADC   */
+  TCCR1A |= (_BV(COM1A0) | _BV(COM1A1));
+
+  /* Load timer with a dummy value to force an output compare and start the ADC           */
+  TCNT1H = 0xFF;
+  TCNT1L = 0xF0;
+
+  /* Start timer. Start ADC when the timer overruns. Prescaler settings & clock select    */
+  TCCR1B |= BITF(TIMER_PRESCALER, CS1, 2) | BITF(TIMER_PRESCALER, CS1, 1) | BITF(TIMER_PRESCALER, CS1, 0) ;
+
+}
+
+/** AD conversion complete callback function (get_adc())
+ *
+ * Read the timer input capture value which is proportional to the SH-Voltage
+ * Reset the timer and disable input capture interrupt
+ */
+ISR(TIMER1_CAPT_vect)
 {
-  /* pull pin to discharge peak hold capacitor                    */
-  /** \todo worst case calculation: runtime & R7010 */
-  PORTD |= _BV(PD6);
 
-  /* Read analog value */
-  uint16_t result = ADCW;
+  /* Debug */
+  PORTD ^= _BV(PD4);
 
-  /* We are confident that the range of values the ADC gives us
-   * is within the specced 10bit range of 0..1023. */
+  /* Read analog value (input capture timer value) */
+  const uint8_t resultl = ICR1L;
+  const uint8_t resulth = ICR1H;
 
-  /* cut off 2, 1 or 0 LSB */
-  const uint16_t index = result >> (10-ADC_RESOLUTION);
+  /* Stop timer */
+  TCCR1B &= ~(BITF(TIMER_PRESCALER, CS1, 2) | BITF(TIMER_PRESCALER, CS1, 1) | BITF(TIMER_PRESCALER, CS1, 0)) ;
 
-  /* For 24bit values, the source code looks a little more complicated
-   * than just table[index]++ (even though the generated machine
-   * instructions are not).  Anyway, we needed to move the increment
-   * into a properly defined _inc function.
-   */
+  /* Reset pin 19 (OC1A): clear pin 19 on compare match,
+     (pull pin to GND on compare match)                                                   */
+  TCCR1A &= ~_BV(COM1A0);
+  TCCR1A |= _BV(COM1A1);
+  /* Force an output compare match on channel A in order to reset the pin                 */
+  TCCR1C |= _BV(FOC1A);
+  /* The OC1A output function will be reconfigured in the next timer
+     set up (ADC start, INT0)                                                             */
+
+  /* Update histogram                                                                     */
+  uint16_t index = (resulth << 8) | resultl;
+
+  index = (index >> ADC_ATTENUATION) & ((1 << ADC_RESOLUTION) - 1);
+
   volatile histogram_element_t *element = &(table[index]);
   histogram_element_inc(element);
 
-  /* set pin to GND and release peak hold capacitor   */
-  PORTD &=~ _BV(PD6);
+  /* Input capture event interrupt disable. To be enabled from ADC trigger function       */
+  TIMSK1 &= ~_BV(ICIE1);
 
-  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
-   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
-   * not executed and therefore this flag is not reset automatically.
-   * To reset this flag the bit at position INTF0 must be set.
-   */
-  EIFR |= _BV(INTF0);
 }
 
-
-/** 16 Bit timer ISR
- *
- * When timer has elapsed, the global #timer_flag (8bit, therefore
- * atomic read/writes) is set.
- *
- * Note that we are counting down the timer_count, so it will start
- * with its maximum value and count down to zero.
- *
- * \see last_timer_count, get_duration
- */
-ISR(TIMER1_COMPA_vect)
-{
-  /* toggle a sign PORTD ^= _BV(PD5); (done automatically) */
-
-  if (!timer_flag) {
-    /* We do not touch the timer_flag ever again after setting it */
-    last_timer_count = timer_count;
-    timer_count--;
-    if (timer_count == 0) {
-      /* timer has elapsed, set the flag to signal the main program */
-      timer_flag = 1;
-    }
-  }
-}
 
 
 
@@ -341,14 +349,8 @@ ISR(TIMER1_COMPA_vect)
 inline static
 uint16_t get_duration(void)
 {
-  uint16_t a, b;
-  do {
-    a = timer_count;
-    b = last_timer_count;
-  } while ((b-a) != 1);
-  /* Now 'a' contains a valid value. Use it. */
-  const uint16_t duration = orig_timer_count - a;
-  return duration;
+
+  return 1;
 }
 
 
@@ -364,7 +366,7 @@ void trigger_src_conf(void)
 
     /* Configure INT0 pin 16 as input */
     /* Reset Int0 pin 16 bit DDRD in port D Data direction register */
-    DDRD &= ~(_BV(DDD2));
+    DDRD &= ~(_BV(PD2));
     /* Port D data register: Enable pull up on pin 16, 20-50kOhm */
     PORTD |= _BV(PD2);
 
@@ -387,63 +389,9 @@ void trigger_src_conf(void)
      * vector table  */
     EIFR |= _BV(INTF0);
     /* reenable interrupt INT0 (External interrupt mask
-     * register). we do not want to jump to the ISR in case of an interrupt
-     * so we do not set this bit  */
-    // EIMSK |= (_BV(INT0));
+     * register). jump to the ISR in case of an interrupt  */
+    EIMSK |= (_BV(INT0));
 
-}
-
-
-/** ADC initialisation and configuration
- *
- * ADC configured as auto trigger
- * Trigger source INT0
- * Use external analog reference AREF at PIN 32
- * AD input channel on Pin 40 ADC0
- */
-inline static
-void adc_init(void)
-{
-  uint16_t result;
-
-  /* channel number: PIN 40 ADC0 -> ADMUX=0 */
-  ADMUX = 0;
-
-  /* select voltage reference: external AREF Pin 32 as reference */
-  ADMUX &= ~(_BV(REFS1) | _BV(REFS0));
-
-  /* clear ADC Control and Status Register A
-   * enable ADC & configure IO-Pins to ADC (ADC ENable) */
-  ADCSRA = _BV(ADEN);
-
-  /* ADC prescaler selection (ADC Prescaler Select Bits) */
-  /* bits ADPS0 .. ADPS2 */
-  ADCSRA |= ((((ADC_PRESCALER >> 2) & 0x1)*_BV(ADPS2)) |
-             (((ADC_PRESCALER >> 1) & 0x1)*_BV(ADPS1)) |
-              ((ADC_PRESCALER & 0x01)*_BV(ADPS0)));
-
-  /* dummy read out (first conversion takes some time) */
-  /* software triggered AD-Conversion */
-  ADCSRA |= _BV(ADSC);
-
-  /* wait until conversion is complete */
-  loop_until_bit_is_clear(ADCSRA, ADSC);
-
-  /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
-
-  /* Enable AD conversion complete interrupt if I-Flag in sreg is set
-   * (-> ADC interrupt enable) */
-  ADCSRA |= _BV(ADIE);
-
-   /* Configure ADC trigger source:
-    * Select external trigger "interrupt request 0"
-    * Interrupt on rising edge                         */
-  ADCSRB |= _BV(ADTS1);
-  ADCSRB &= ~(_BV(ADTS0) | _BV(ADTS2));
-
-  /* ADC auto trigger enable: ADC will be started by trigger signal */
-  ADCSRA |= _BV(ADATE);
 }
 
 
@@ -476,27 +424,19 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
         [timer1] "r" (timer1)
       );
 
-  /* Prepare timer 0 control register A and B for
-     clear timer on compare match (CTC)                           */
-  TCCR1A = 0;
-  TCCR1B =  _BV(WGM12);
+  /* Normal mode, count upwards, overrun when 0xFFFF is reached (WGM3:0)                  */
+  //TCCR1A &= ~(_BV(WGM11) | _BV(WGM10));
+  //TCCR1B &= ~(_BV(WGM13) | _BV(WGM12));
 
-  /* Configure "measurement in progress LED"                      */
-  /* configure pin 19 as an output */
-  DDRD |= (_BV(DDD5));
-  /* toggle LED pin 19 on compare match automatically             */
-  TCCR1A |= _BV(COM1A0);
+  /* Exception handler if no capture event occurs but an ADC is triggered                 */
+  // TIMSK1 |= _BV(TOIE1);
 
-  /* Prescaler settings on timer conrtrol reg. B                  */
-  TCCR1B |=  ((((TIMER_PRESCALER >> 2) & 0x1)*_BV(CS12)) |
-              (((TIMER_PRESCALER >> 1) & 0x1)*_BV(CS11)) |
-              ((TIMER_PRESCALER & 0x01)*_BV(CS10)));
+  /* Input capture edge select, rising edge generates a capture                           */
+  // TCCR1B |= _BV(ICES1);
 
-  /* Compare match value into output compare reg. A               */
-  OCR1A = TIMER_COMPARE_MATCH_VAL;
+  /* No noise canceling (delay of 4 clks)                                                 */
+  // TCCR1B &= ~_BV(ICNC1);
 
-  /* output compare match A interrupt enable                      */
-  TIMSK1 |= _BV(OCIE1A);
 }
 
 
@@ -507,15 +447,7 @@ void timer_init(const uint8_t timer0, const uint8_t timer1)
 inline static
 void timer_init_quick(void)
 {
-  const uint8_t old_tccr1b = TCCR1B;
-  /* pause the clock */
-  TCCR1B &= ~(_BV(CS12) | _BV(CS11) | _BV(CS10));
-  /* faster blinking */
-  OCR1A = TIMER_COMPARE_MATCH_VAL / 4;
-  /* start counting from 0, needs clock to be paused */
-  TCNT1 = 0;
-  /* unpause the clock */
-  TCCR1B = old_tccr1b;
+
 }
 
 
@@ -527,12 +459,19 @@ void timer_init_quick(void)
 inline static
 void io_init(void)
 {
-    /* configure pin 20 as an output                               */
-    DDRD |= (_BV(DDD6));
-    /* set pin 20 to ground                                        */
-    PORTD &= ~_BV(PD6);
 
-    /** \todo configure unused pins */
+  /* debug */
+  DDRD |= _BV(PD4);
+  PORTD &= ~_BV(PD4);
+
+
+  /* configure pin 19 (OC1A) as an output (start ADC) */
+  DDRD |= _BV(PD5);
+
+  /* configure pin 20 (ICP) as an input (conversion complete) */
+  DDRD &= ~_BV(PD6);
+  /* enable pull up */
+  PORTD |= _BV(PD6);
 }
 
 
@@ -675,9 +614,6 @@ int main(void)
     /* configure INT0 pin 16 */
     trigger_src_conf();
 
-    /* configure AREF at pin 32 and single shot auto trigger over int0
-     * at pin 40 ADC0 */
-    adc_init();
 
     /** Used while receiving "m" command */
     register uint8_t timer0 = 0;

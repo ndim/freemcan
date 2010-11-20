@@ -9,8 +9,8 @@
 #
 # ./plot-time-series.R secondspersample=150 filename=blubber.dat downsamplefactor= tubesensitivity=
 #
-# # Ludlum  44-2: tubesensitivity=0.060584
-# # VALVO ZP1320: tubesensitivity=76.4
+# # Ludlum  44-2: tubesensitivity=0.060584 [nSv/h*CPM]
+# # VALVO ZP1320: tubesensitivity=76.4     [nSv/h*CPM]
 #
 #  tubesensitivity  <- doserate [nSv/h] / countrate [CPM] (can be left emtpty)
 #  downsamplefactor <- number of samples added together to get a new sample set (can be left emtpty)
@@ -106,7 +106,7 @@ downsample <- function(x, k) {
 # quantiles
 #
 # if the mean value is less than 50 a poisson distribution occurs rather than
-# a gaussian distribution. in this case the function returns only one sigma threshold
+# a gaussian distribution. in this case the function returns only the mean value
 
 quantile <- function(x) {
   len <- length(x)
@@ -115,7 +115,7 @@ quantile <- function(x) {
   {
   if (mean<50) {
     #if the mean value is below 50 we will have rahter a poisson distribution
-    return(c(mean-sigma, mean))
+    return(mean)
   }
   else{
     #if not we are going to get a gaussian distribution
@@ -222,44 +222,71 @@ ticklabel <- as.POSIXct(unclass(ticklabel), origin="1970-01-01")
 ticklabel <- format(ticklabel, format = "%H:%M")
 axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
-legend(x="bottomleft", bty="n", lty=c(1,1), col=c("darkgreen","red"), 
-       legend=c(paste("raw data unfiltered [counts per", period, "sec]"), 
-       ifelse(tubesensitivity, "doserate filtered [nSv/h]", "count rate filtered [CPM]")))
+legend(x="bottomleft", bty="n",cex=0.7, lty=c(1,1,2), col=c("darkgreen","red","blue"), 
+       legend=c(paste("Raw data unfiltered [counts per", period, "sec]"), 
+       ifelse(tubesensitivity, "Doserate filtered [nSv/h]", "Count rate filtered [CPM]"),"+/-Sqrt(mean)"))
 
 if(tubesensitivity == FALSE){
-  legend(x="bottomright", bty="n",cex=0.8, legend=c(  
-         paste("overall average:",round(overallmean,2),"CPM"),
-         "overall one sigma-",
-         paste("accuracy:+/-",round(overallmeanaccuracy,2),"CPM")))
+  legend(x="bottomright", bty="n",cex=0.7, legend=c(  
+         paste("Overall mean:",round(overallmean,2),"CPM"),
+         "Overall one sigma accuracy",
+         paste("Sqrt(mean):+/-",round(overallmeanaccuracy,2),"CPM")))
 }else{
-  legend(x="bottomright", bty="n",cex=0.8, legend=c(  
-         paste("overall average:",round(overallmean*tubesensitivity,2),"nSv/h"),
-         "overall one sigma-",
-         paste("accuracy:+/-",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
+  legend(x="bottomright", bty="n",cex=0.7, legend=c(  
+         paste("Overall mean:",round(overallmean*tubesensitivity,2),"nSv/h"),
+         "Overall one sigma accuracy",
+         paste("Sqrt(mean):+/-",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
 }
 
 # a histogram is created from data and plotted in the second plot area.
-# the histogram is plot blue if the bar is below one sigma otherwise red
-hx <- hist(counts, breaks = 90, plot = FALSE)
 
-if (overallmean < 50){
+if (mean(counts) < 50){
   #poisson distribution coloring
-  plot(hx,col=ifelse(((hx$breaks < q[1])), "blue", "red") ,
-       xlab=paste("rawdata of", period, "seconds"))
+  # p(x) = lambda^x exp(-lambda)/x!
+  # E(X) = Var(X) = lambda
+   
+   hx <- hist(counts,breaks=seq(min(counts), max(counts)), plot = FALSE)
+   cntsd <- sd(counts)
+   cntmean <- q[1]
+   xhist <- c(min(hx$breaks),hx$breaks)
+   yhist <- c(0,hx$density,0)
+   #only integers allowed for dpois
+   xfit <- seq(min(counts),max(counts))
+   yfit <- dpois(xfit,lambda=cntmean)
+
+   plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
+        col="blue",
+        xlab=paste("Expected poisson pdf and histogram of raw data samples per", period, 
+        "seconds"),ylab="Density",main="Goodness of fit")
+   #draw theoretical density function according to mean value only (color: green)
+   lines(xfit,yfit, col="darkgreen",lwd=1,type="b")
+ 
+   legend(x="topleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","blue"), 
+       legend=c("Theoretical fit based on mean value",
+                "Measured distribution"))
+ 
+   legend(x="topright", bty="n",cex=0.7, 
+         legend=c(paste("Mean value of measured data:",round(cntmean,2),"/",period,"sec")
+		  ))
+       
 }else{
    #gaussian distribution
+   hx <- hist(counts,breaks=seq(min(counts), max(counts)), plot = FALSE)
    cntsd <- sd(counts)
    cntmean <- q[3]
    xhist <- c(min(hx$breaks),hx$breaks)
    yhist <- c(0,hx$density,0)
    xfit <- seq(min(counts),max(counts),length=100)
    yfit <- dnorm(xfit,mean=cntmean,sd=sqrt(mean(counts)))
+   #draw measured histogram including measured standart deviation
    plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
-        col=ifelse(((hx$breaks < (cntmean-cntsd)) | (hx$breaks > (cntmean+cntsd))),
-        "blue", "red"), xlab=paste("Expected normal pdf and histogram of raw data samples per", period, 
-	"seconds"),ylab="density",main="Goodness of fit")
-   lines(xfit,yfit, col="darkgreen",lwd=1)
+#        col=ifelse(((hx$breaks < (cntmean-cntsd)) | (hx$breaks > (cntmean+cntsd))),"blue", "red"),
+        col="blue",
+         xlab=paste("Expected normal pdf and histogram of raw data samples per", period, 
+	 "seconds"),ylab="Density",main="Goodness of fit")
 
+   #draw theoretical density function according to mean value only (color: green)
+   lines(xfit,yfit, col="darkgreen",lwd=1)
    lines(c(q[1],q[1]),c(0,dnorm(q[1],mean=q[3],sd=sqrt(mean(counts)))), 
          col="darkgreen", lty="dashed", lwd=2)
    lines(c(q[2],q[2]),c(0,dnorm(q[2],mean=q[3],sd=sqrt(mean(counts)))), 
@@ -268,9 +295,15 @@ if (overallmean < 50){
          col="darkgreen", lty="dashed", lwd=2)
    #text(q, max(yhist,yfit), round(q,1), col="black", lwd=1, pos=4)
 
-  legend(x="topright", bty="n",cex=0.8, legend=c(paste("standard deviation:",round(cntsd,0),"CPM"),  
-	 paste("sqrt(mean):",round(sqrt(mean(counts)),0),"CPM"),
-         paste("mean:",round(cntmean,0),"CPM")))
+  legend(x="topleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","blue"), 
+       legend=c("Theoretical fit based on mean value",
+                "Measured distribution"))
+
+  legend(x="topright", bty="n",cex=0.7, 
+         legend=c(paste("Mean value of measured data:",round(cntmean,0),"/",period,"sec"),
+	          paste("Measured standard deviation:",round(cntsd,1),"/",period,"sec"),  
+	          paste("Theoretical standart deviation (sqrt(mean)):",round(sqrt(mean(counts)),1),"/",period,"sec")
+		  ))
 
 }
 

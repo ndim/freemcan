@@ -245,12 +245,12 @@ if (mean(counts) < 50){
   # p(x) = lambda^x exp(-lambda)/x!
   # E(X) = Var(X) = lambda
    
-   hx <- hist(counts,breaks=seq(min(counts), max(counts)), plot = FALSE)
+   hx <- hist(counts,breaks=seq(min(counts)-0.5, max(counts)+0.5, 1), plot = FALSE)
    cntsd <- sd(counts)
    cntmean <- q[1]
-   xhist <- c(min(hx$breaks),hx$breaks)
-   yhist <- c(0,hx$density,0)
-   #only integers allowed for dpois
+   xhist <- hx$mids
+   yhist <- hx$density
+   #get the propability density function of poisson distribution. only integers allowed for dpois
    xfit <- seq(min(counts),max(counts))
    yfit <- dpois(xfit,lambda=cntmean)
 
@@ -260,7 +260,7 @@ if (mean(counts) < 50){
         "seconds"),ylab="Density",main="Goodness of fit")
    #draw theoretical density function according to mean value only (color: green)
    lines(xfit,yfit, col="darkgreen",lwd=1,type="b")
- 
+   #lines(density(counts), col="red")
    legend(x="topleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","blue"), 
        legend=c("Theoretical fit based on mean value",
                 "Measured distribution"))
@@ -271,11 +271,11 @@ if (mean(counts) < 50){
        
 }else{
    #gaussian distribution
-   hx <- hist(counts,breaks=seq(min(counts), max(counts)), plot = FALSE)
+   hx <- hist(counts,breaks=seq(min(counts)-0.5, max(counts)+0.5, 1), plot = FALSE)
    cntsd <- sd(counts)
    cntmean <- q[3]
-   xhist <- c(min(hx$breaks),hx$breaks)
-   yhist <- c(0,hx$density,0)
+   xhist <- hx$mids
+   yhist <- hx$density
    xfit <- seq(min(counts),max(counts),length=100)
    yfit <- dnorm(xfit,mean=cntmean,sd=sqrt(mean(counts)))
    #draw measured histogram including measured standart deviation
@@ -284,6 +284,7 @@ if (mean(counts) < 50){
         col="blue",
          xlab=paste("Expected normal pdf and histogram of raw data samples per", period, 
 	 "seconds"),ylab="Density",main="Goodness of fit")
+   #lines(density(counts), col="red")
 
    #draw theoretical density function according to mean value only (color: green)
    lines(xfit,yfit, col="darkgreen",lwd=1)

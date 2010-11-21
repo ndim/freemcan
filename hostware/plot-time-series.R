@@ -23,6 +23,21 @@ rm(list = ls())
 
 
 
+####################################################################################
+# enter global defines here
+####################################################################################
+
+#order of moving average: mean over 1+2*num_ma samples
+num_ma <- 10
+
+
+
+####################################################################################
+# global functions
+####################################################################################
+
+
+
 # returns useful tick and label locations based on the given axis to be scaled
 #
 # limsrc: axis-borders (min max) of the source axis in the plotarea
@@ -53,6 +68,7 @@ axisrescaler <- function(limsrc,limdst) {
 
   return(cbind(tickposition,ticklabels));
 }
+
 
 
 
@@ -102,6 +118,7 @@ ma <- function(x,k) {
 
 
 
+
 # Infinite impulse response filter of first order (PT1)
 #
 # x: input data vector
@@ -123,7 +140,9 @@ pt1 <- function(x,k) {
   }
   return(x);
 }
- 
+
+
+
  
 # Simply downsample by an integer factor of k by summing up
 # neighbouring values like
@@ -168,6 +187,7 @@ quantile <- function(x) {
   }
   }
 }
+
 
 
 ####################################################################################
@@ -239,7 +259,7 @@ par(new=TRUE)
 # to have both curves on the same place in the plot area we do not rescale the curve itself
 # but only the axis. so we first of all make a second plot but without plotting the axis
 # countsfiltered <- pt1(counts, 4)
-countsfiltered <- ma(counts, 5)
+countsfiltered <- ma(counts, num_ma)
 
 plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",filename), 
      xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
@@ -271,7 +291,8 @@ axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
 legend(x="bottomleft", bty="n",cex=0.7, lty=c(1,1,2), col=c("darkgreen","red","blue"), 
        legend=c(paste("Raw data unfiltered [counts per", period, "sec]"), 
-       ifelse(tubesensitivity, "Doserate filtered [nSv/h]", "Count rate filtered [CPM]"),"+/-Sqrt(mean)"))
+       paste(ifelse(tubesensitivity, "Doserate [nSv/h] moving average over", "Count rate [CPM] moving average over"),1+2*num_ma,"samples"),
+       "Mean +/-sqrt(mean) thresholds"))
 
 if(tubesensitivity == FALSE){
   legend(x="bottomright", bty="n",cex=0.7, legend=c(  

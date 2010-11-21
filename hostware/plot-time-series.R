@@ -56,6 +56,52 @@ axisrescaler <- function(limsrc,limdst) {
 
 
 
+# Moving average
+#
+# x: input data vector
+# k: output is the mean from -k to k 
+
+ma <- function(x,k) {
+
+  # destiny vector with zeros
+  y <- rep(0, length(x)) 
+
+  # proceed the first view 1 .. k elements of the input vector
+  # calculate the 1, 2, 3 ..k moving average
+  y[1] <- x[1]
+  for (i in 2:k){
+     u <- 0
+     for (j in 1:(2*i-1)) {
+        u <- u + x[j]   
+     }
+     y[i] <- (u/(2.0*i-1.0))
+  }
+
+  # proceed mid of the input vector
+  for (i in (k + 1):(length(x) - k)) {
+     u <- 0
+     for (j in (i-k):(i+k)) {
+         u <- u + x[j]   
+     }
+     y[i] <- (u/(2.0*k+1.0))
+  }
+
+  # proceed the trailing elements of the input vector
+  ofs <- length(x)
+  for (i in (length(x) - k + 1):(length(x) - 1)) {
+     u <- 0
+     for (j in (i - (ofs - i)):(i + (ofs - i))) {
+         u <- u + x[j]   
+     }
+     y[i] <- (u/(2.0*(ofs-i)+1.0))
+  }
+  y[length(x)] <- x[length(x)]
+   
+  return(y);
+}
+
+
+
 # Infinite impulse response filter of first order (PT1)
 #
 # x: input data vector
@@ -78,7 +124,6 @@ pt1 <- function(x,k) {
   return(x);
 }
  
-
  
 # Simply downsample by an integer factor of k by summing up
 # neighbouring values like
@@ -193,7 +238,9 @@ par(new=TRUE)
 
 # to have both curves on the same place in the plot area we do not rescale the curve itself
 # but only the axis. so we first of all make a second plot but without plotting the axis
-countsfiltered <- pt1(counts,4)
+# countsfiltered <- pt1(counts, 4)
+countsfiltered <- ma(counts, 5)
+
 plot(index,countsfiltered, type="l", col="red", main = paste("Datastream from:",filename), 
      xlab=" ", ylab=" ", ylim=c(min(0),max(counts)))
 mtext(ifelse(tubesensitivity, "[nSv/h]", "[cnts/min]"), side=4,adj=0, line=3)
@@ -279,6 +326,7 @@ if (mean(counts) < 50){
    xfit <- seq(min(counts),max(counts),length=100)
    yfit <- dnorm(xfit,mean=cntmean,sd=sqrt(mean(counts)))
    #draw measured histogram including measured standart deviation
+   #type h,s
    plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
 #        col=ifelse(((hx$breaks < (cntmean-cntsd)) | (hx$breaks > (cntmean+cntsd))),"blue", "red"),
         col="blue",
@@ -301,7 +349,7 @@ if (mean(counts) < 50){
                 "Measured distribution"))
 
   legend(x="topright", bty="n",cex=0.7, 
-         legend=c(paste("Mean value of measured data:",round(cntmean,0),"/",period,"sec"),
+         legend=c(paste("Mean value of measured data:",round(cntmean,1),"/",period,"sec"),
 	          paste("Measured standard deviation:",round(cntsd,1),"/",period,"sec"),  
 	          paste("Theoretical standart deviation (sqrt(mean)):",round(sqrt(mean(counts)),1),"/",period,"sec")
 		  ))

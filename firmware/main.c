@@ -97,6 +97,7 @@
 #include "packet-defs.h"
 #include "wdt-softreset.h"
 #include "timer1-measurement.h"
+#include "timer1-get-duration.h"
 #include "main.h"
 #include "data-table.h"
 #include "timer2-debounce-switch.h"

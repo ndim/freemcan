@@ -292,6 +292,7 @@ PERSONALITIES += adc-ext-mca
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-adc-ext-mca.elf : .objs/timer1-init-simple.o
 firmware-adc-ext-mca.elf : .objs/timer1-countdown-and-stop.o
+firmware-adc-ext-mca.elf : .objs/timer1-get-duration.o
 firmware-adc-ext-mca.elf : .objs/perso-adc-ext-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
@@ -301,6 +302,7 @@ PERSONALITIES += adc-int-mca
 firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-adc-int-mca.elf : .objs/timer1-init-simple.o
 firmware-adc-int-mca.elf : .objs/timer1-countdown-and-stop.o
+firmware-adc-int-mca.elf : .objs/timer1-get-duration.o
 firmware-adc-int-mca.elf : .objs/perso-adc-int-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
@@ -329,6 +331,7 @@ PERSONALITIES += geiger-counter
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-geiger-counter.elf : .objs/timer1-init-simple.o
 firmware-geiger-counter.elf : .objs/timer1-countdown-and-stop.o
+firmware-geiger-counter.elf : .objs/timer1-get-duration.o
 firmware-geiger-counter.elf : .objs/perso-geiger-counter.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
@@ -339,6 +342,7 @@ firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-geiger-ts.elf : data-table-all-other-memory.x
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-geiger-ts.elf : .objs/timer1-init-simple.o
+firmware-geiger-ts.elf : .objs/timer1-get-duration.o
 firmware-geiger-ts.elf : .objs/data-table-all-other-memory.o
 firmware-geiger-ts.elf : .objs/perso-geiger-time-series.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@

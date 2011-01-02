@@ -52,21 +52,6 @@
 extern volatile uint16_t timer1_count;
 
 
-/** Last value of timer counter
- *
- * Used for pseudo synchronized reading of the timer1_count multi-byte
- * variable in the main program, while timer1_count may be written to
- * by the timer ISR.
- *
- * \see get_duration, ISR(TIMER1_COMPA_vect)
- *
- * The initial default value of last_timer1_count was 1
- * originally. However, a last_timer1_count value of 0 should not make
- * a difference, so we now rely on the implicit initialization to 0.
- */
-extern volatile uint16_t last_timer1_count;
-
-
 /** Original timer count received in the command.
  *
  * Used later for determining how much time has elapsed yet. Written
@@ -81,10 +66,6 @@ void timer1_init(const uint16_t timer1_value);
 
 /** Make timer run more quickly */
 void timer1_init_quick(void);
-
-
-/** \todo document this */
-uint16_t get_duration(void);
 
 
 /** @} */

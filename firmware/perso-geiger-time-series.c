@@ -194,7 +194,6 @@ ISR(INT0_vect)
 
 
 volatile uint16_t timer1_count;
-volatile uint16_t last_timer1_count;
 volatile uint16_t orig_timer1_count;
 
 
@@ -205,7 +204,6 @@ ISR(TIMER1_COMPA_vect)
   if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
     /** We do not touch the measurement_finished flag ever again after
      * setting it. */
-    last_timer1_count = timer1_count;
     timer1_count--;
     if (timer1_count == 0) {
       /* Timer has elapsed. Advance to next counter element in time
@@ -219,35 +217,6 @@ ISR(TIMER1_COMPA_vect)
       }
     }
   }
-}
-
-
-/** Get pseudo synchronized duration value
- *
- * \todo Cheap copy of the get_duration() method from
- *       measurement-timer-ISR-countdown-and-stop.c - this should be
- *       properly linked from somewhere.
- *
- * For now, we have placed this function right beside the timer ISR
- * which needs to properly update the values for get_duration() to
- * work.
- */
-uint16_t get_duration(void)
-{
-  uint16_t a, b;
-  do {
-    a = timer1_count;
-    if (bit_is_clear(SREG, 7)) {
-      /* If the interrupt flag clear now, it was clear during above
-       * assignment of a as well, so a contains a valid value, and we
-       * can just use it without any potentially endless loops. */
-      break;
-    }
-    b = last_timer1_count;
-  } while ((b-a) != 1);
-  /* Now 'a' contains a valid value. Use it. */
-  const uint16_t duration = orig_timer1_count - a;
-  return duration;
 }
 
 

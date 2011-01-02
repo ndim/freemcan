@@ -57,17 +57,6 @@ volatile uint16_t timer1_count;
 volatile uint16_t timer1_count;
 
 
-/** Last value of timer counter
- *
- * Used for pseudo synchronized reading of the timer1_count multi-byte
- * variable in the main program, while timer1_count may be written to
- * by the timer ISR.
- *
- * \see get_duration, ISR(TIMER1_COMPA_vect)
- */
-volatile uint16_t last_timer1_count = 1;
-
-
 /** Original timer count received in the command.
  *
  * Used later for determining how much time has elapsed yet. Written

@@ -87,10 +87,6 @@ PERSONALITY("adc-int-mca-timed",
             ELEMENT_SIZE_IN_BYTES);
 
 
-/** \todo Needs proper inclusion */
-extern volatile uint16_t last_timer1_count;
-
-
 /** AD conversion complete interrupt entry point
   *
   * This function is called when an A/D conversion has completed.
@@ -120,7 +116,6 @@ ISR(ADC_vect)
 
   /* measurement duration */
   if (GF_IS_CLEARED(GF_MEASUREMENT_FINISHED)) {
-    last_timer1_count = timer1_count;
     timer1_count--;
     if (timer1_count == 0) {
       GF_SET(GF_MEASUREMENT_FINISHED);

@@ -533,6 +533,7 @@ clean:
 	rm -f check-*.check
 	rm -f *.lst
 	rm -f *.o
+	rm -f *~
 	rm -f *.d *.d.[0-9]*
 
 

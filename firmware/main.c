@@ -259,8 +259,8 @@ void general_personality_start_measurement_sram(void)
 typedef enum {
   STP_READY,
   STP_MEASURING,
-  STP_DONE,
-  STP_ERROR
+  STP_DONE
+  /* STP_ERROR not actually modelled as a state */
   /* STP_RESET not actually modelled as a state */
 } firmware_state_t;
 
@@ -331,14 +331,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
 
   uprintf("EAT PACKET: %c", cmd);
 
-  firmware_state_t next_pstate = STP_ERROR;
-
   switch (pstate) {
-  case STP_ERROR:
-  goto_STP_ERROR:
-    send_text_P(PSTR("STP_ERROR again"));
-    wdt_soft_reset();
-    break;
   case STP_READY:
     switch (c) {
     case FRAME_CMD_PERSONALITY_INFO:
@@ -348,7 +341,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
     case FRAME_CMD_INTERMEDIATE:
     case FRAME_CMD_STATE:
       send_state_P(PSTR_READY);
-      next_pstate = STP_READY;
+      return STP_READY;
       break;
     case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
@@ -356,19 +349,19 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
       eeprom_update_block(&pparam_sram, &pparam_eeprom,
                           sizeof(pparam_eeprom));
       send_state_P(PSTR_READY);
-      next_pstate = STP_READY;
+      return STP_READY;
       break;
     case FRAME_CMD_PARAMS_FROM_EEPROM:
       params_copy_from_eeprom_to_sram();
       send_eeprom_params_in_sram();
       send_state_P(PSTR_READY);
-      next_pstate = STP_READY;
+      return STP_READY;
       break;
     case FRAME_CMD_MEASURE:
       /* The param length has already been checked by the frame parser */
       general_personality_start_measurement_sram();
       send_state_P(PSTR_MEASURING);
-      next_pstate = STP_MEASURING;
+      return STP_MEASURING;
       break;
     case FRAME_CMD_RESET:
       send_state_P(PSTR_RESET);
@@ -403,7 +396,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
        */
       send_table(PACKET_VALUE_TABLE_INTERMEDIATE);
       send_state_P(PSTR_MEASURING);
-      next_pstate = STP_MEASURING;
+      return STP_MEASURING;
       break;
     case FRAME_CMD_PERSONALITY_INFO:
       send_personality_info();
@@ -414,7 +407,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
     case FRAME_CMD_RESET:
     case FRAME_CMD_STATE:
       send_state_P(PSTR_MEASURING);
-      next_pstate = STP_MEASURING;
+      return STP_MEASURING;
       break;
     case FRAME_CMD_ABORT:
       send_state_P(PSTR_DONE);
@@ -422,7 +415,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
       send_table(PACKET_VALUE_TABLE_ABORTED);
       on_measurement_finished();
       send_state_P(PSTR_DONE);
-      next_pstate = STP_DONE;
+      return STP_DONE;
       break;
     }
     break;
@@ -433,7 +426,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
       /* fall through */
     case FRAME_CMD_STATE:
       send_state_P(PSTR_DONE);
-      next_pstate = STP_DONE;
+      return STP_DONE;
       break;
     case FRAME_CMD_RESET:
       send_state_P(PSTR_RESET);
@@ -442,16 +435,13 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
     default:
       send_table(PACKET_VALUE_TABLE_RESEND);
       send_state_P(PSTR_DONE);
-      next_pstate = STP_DONE;
+      return STP_DONE;
       break;
     }
     break;
   }
-  uprintf("Next pstate: %d", (int)next_pstate);
-  if (STP_ERROR == next_pstate) {
-    goto goto_STP_ERROR;
-  }
-  return next_pstate;
+  send_text_P(PSTR("STP_ERROR"));
+  wdt_soft_reset();
 }
 
 

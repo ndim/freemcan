@@ -526,8 +526,10 @@ void main_event_loop(void)
   /* Globally enable interrupts */
   sei();
 
-  /* Firmware FSM loop */
+  /* Firmware main event loop */
   while (1) {
+
+    /* check for "measurement finished" event */
     if (GF_ISSET(GF_MEASUREMENT_FINISHED)) {
       pstate = firmware_handle_measurement_finished(pstate);
       GF_CLEAR(GF_MEASUREMENT_FINISHED);
@@ -629,7 +631,7 @@ void main_event_loop(void)
 
     skip_errors:
       fstate = next_fstate;
-    }
+    } /* character received on UART */
 
   } /* while (1) main event loop */
 

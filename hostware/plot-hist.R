@@ -29,16 +29,43 @@ rm(list = ls())
 ####################################################################################
 
 
-calibration_points <- cbind(c(88,239),c(213,583))
+#calibration_points <- cbind(c(126,352),c(217,610))
+#calibration_points <- cbind(c(87,239),c(212,583))
+calibration_points <- cbind(c(73,202),c(111,307))
 
-# some most prominent gamma energies for natural decay chains
+# some most prominent gamma energies for natural and non natural decay chains (full energy peaks)
 
 chain_name <- "Thorium decay chain"
 decay_chain <- cbind(c(239,"Pb-212"),c(338,"Ac-228"),c(510,"Tl-208"),c(583,"Tl-208"),c(727,"Bi-212"),c(911,"Ac-228"),c(965,"Ac-228"),c(1588,"Ac-228"),c(2614,"Tl-208"))
 
+
 #chain_name <- "Natural uranium chain"
 #decay_chain <- cbind(c(184,"U-235"),c(242,"Pb-214"),c(295,"Pb-214"),c(352,"Pb-214"),c(610,"Bi-214"),c(770,"Bi-214"),c(935,"Bi-214"),c(1120,"Bi-214"),c(1240,"Bi-214"),c(1380,"Bi-214"),c(1760,"Bi-214"))
 
+#chain_name <- "Lutetium Lu-176"
+#decay_chain <- cbind(c(55,"X-Ray"),c(63,"X-Ray"),c(88,"Lu-176"),c(202,"Lu-176"),c(307,"Lu-176"))
+#decay_chain <- cbind(c(202,"Lu-176"),c(307,"Lu-176"))
+
+#chain_name <- "Potassium K-40"
+#decay_chain <- cbind(c(1461,"K-40"))
+
+#chain_name <- "Annihilation"
+#decay_chain <- cbind(c(512,"Annihilation"))
+
+#chain_name <- "Iod I-131"
+#decay_chain <- cbind(c(284,"I-131"),c(364,"I-131"),c(637,"I-131"))
+
+#chain_name <- "Technetium Tc-99m"
+#decay_chain <- cbind(c(141,"Tc-99m"))
+
+#chain_name <- "Cobalt Co-60"
+#decay_chain <- cbind(c(1173,"Co-60"),c(1333,"Co-60"))
+
+#chain_name <- "Caesium Cs-137"
+#decay_chain <- cbind(c(662,"Cs-137"))
+
+#chain_name <- "ALL"
+#decay_chain <- cbind(c(141,"Tc-99m"),c(284,"I-131"),c(364,"I-131"),c(512,"Annihilation"),c(637,"I-131"),c(662,"Cs-137"),c(1173,"Co-60"),c(1333,"Co-60"),c(1461,"K-40"))
 
 
 
@@ -130,33 +157,33 @@ cat("duration:",duration,"\n")
 histdata<-read.table(data1, header=TRUE, sep="\t")
 len <-  length(histdata[,1]) - 1
 # skip last channel (residual counts)
-counts <- histdata$count[seq(1,len,1)]
-index <- histdata$channel[seq(1,len,1)]
+counts <- histdata[,2][seq(1,len,1)]
+index <- histdata[,1][seq(1,len,1)]
 
 if(data2 == FALSE){
   # if there is no background data available set data2 to zero
   len_bg <-  len
   counts_bg <- rep(0, len)
-  index_bg <- histdata$channel[seq(1,len,1)]
+  index_bg <- histdata[,1][seq(1,len,1)]
   # one sigma of the overall distribution and accuracy of the overal mean value:
-  overallmean <- 60*sum(histdata$count)/duration
+  overallmean <- 60*sum(histdata[,2])/duration
   overallmeanaccuracy <- sqrt(overallmean)
-  residual_counts <- histdata$count[len+1]
+  residual_counts <- histdata[,2][len+1]
 }else{
   histdata_bg<-read.table(data2, header=TRUE, sep="\t")
   len_bg <-  length(histdata_bg[,1]) - 1
   # skip last channel
-  counts_bg <- histdata_bg$count[seq(1,len_bg,1)]
-  index_bg <- histdata_bg$channel[seq(1,len_bg,1)]
+  counts_bg <- histdata_bg[,2][seq(1,len_bg,1)]
+  index_bg <- histdata_bg[,1][seq(1,len_bg,1)]
   # one sigma of the overall distribution and accuracy of the overal mean value:
-  overallmean <- 60*sum(histdata$count-histdata_bg$count)/duration
+  overallmean <- 60*sum(histdata[,2]-histdata_bg[,2])/duration
   overallmeanaccuracy <- sqrt(overallmean)
-  residual_counts <- histdata$count[len+1] - histdata_bg$count[len+1]
+  residual_counts <- histdata[,2][len+1] - histdata_bg[,2][len+1]
 }
 
 # configure the plot output and plotting area (2 rows, 1 columns)
  x11(width=13,height=7)
-# postscript(width=13, height=7, horizontal=TRUE)
+# postscript(width=10, height=6, horizontal=TRUE)
 # pdf(width=13, height=7)
 
 

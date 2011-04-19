@@ -245,6 +245,7 @@ q <- quantile(counts)
 # configure the plot output and plotting area (2 rows, 1 columns)
 x11(width=10,height=8)
 #postscript(width=10, height=8, horizontal=TRUE)
+#pdf(width=10, height=8)
 par(mfrow=c(2,1))
 
 # in the first plot the filtered rawdata and the unfiltered rawdata is plot including 
@@ -278,8 +279,8 @@ ticklabel <- newaxis[,2]
 axis(4,line=0,col="black",at=tickposition, labels = ticklabel)
 
 # prepare a second x-axis with customized time stamps:
-# we therefore calculate the elapsed time in minutes and put this time
-# to the axisrescaler function to have "nice looking" axis labels
+# calculate the elapsed time in minutes and put this time
+# to the axisrescaler function to have "nice looking" labels
 axisminutes = c((unclass(times[1]))/60,(unclass(times[length(times)])/60))
 axiscounts = c(0,length(index))
 newaxis <- axisrescaler(axiscounts,axisminutes)
@@ -289,21 +290,25 @@ ticklabel <- as.POSIXct(unclass(ticklabel), origin="1970-01-01")
 ticklabel <- format(ticklabel, format = "%H:%M")
 axis(1,line=2.5,col="darkgrey",at=tickposition, labels = ticklabel)
 
+if (mean(counts) < 50){
+   legend(x="bottomleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","red"), 
+          legend=c(paste("Raw data unfiltered [counts per", period, "sec]"), 
+                   paste(ifelse(tubesensitivity, "Moving average over", "Count rate moving average over"),1+2*num_ma,"samples") ))
+}else{
 legend(x="bottomleft", bty="n",cex=0.7, lty=c(1,1,2), col=c("darkgreen","red","blue"), 
        legend=c(paste("Raw data unfiltered [counts per", period, "sec]"), 
-       paste(ifelse(tubesensitivity, "Doserate [nSv/h] moving average over", "Count rate [CPM] moving average over"),1+2*num_ma,"samples"),
-       "Mean +/-sqrt(mean) thresholds"))
+                paste(ifelse(tubesensitivity, "Moving average over", "Count rate moving average over"),1+2*num_ma,"samples"),
+                "+/-Sqrt(Mean) thresholds"))
+}
 
 if(tubesensitivity == FALSE){
   legend(x="bottomright", bty="n",cex=0.7, legend=c(  
-         paste("Overall mean:",round(overallmean,2),"CPM"),
-         "Overall one sigma accuracy",
-         paste("Sqrt(mean):+/-",round(overallmeanaccuracy,2),"CPM")))
+         paste("Mean:",round(overallmean,2),"CPM"),
+         paste("Sqrt(Mean):",round(overallmeanaccuracy,2),"CPM")))
 }else{
   legend(x="bottomright", bty="n",cex=0.7, legend=c(  
-         paste("Overall mean:",round(overallmean*tubesensitivity,2),"nSv/h"),
-         "Overall one sigma accuracy",
-         paste("Sqrt(mean):+/-",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
+         paste("Mean:",round(overallmean*tubesensitivity,2),"nSv/h"),
+         paste("Sqrt(Mean):",round(overallmeanaccuracy*tubesensitivity,2),"nSv/h")))
 }
 
 # a histogram is created from data and plotted in the second plot area.
@@ -324,17 +329,17 @@ if (mean(counts) < 50){
 
    plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
         col="blue",
-        xlab=paste("Expected poisson pdf and histogram of raw data samples per", period, 
-        "seconds"),ylab="Density",main="Goodness of fit")
+        xlab=paste("Expected poisson pdf and histogram of raw data [samples per", period, 
+        "seconds]"),ylab="Density",main="Goodness of fit")
    #draw theoretical density function according to mean value only (color: green)
    lines(xfit,yfit, col="darkgreen",lwd=1,type="b")
    #lines(density(counts), col="red")
    legend(x="topleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","blue"), 
-       legend=c("Theoretical fit based on mean value",
+       legend=c("Theoretical fit based on mean",
                 "Measured distribution"))
  
    legend(x="topright", bty="n",cex=0.7, 
-         legend=c(paste("Mean value of measured data:",round(cntmean,2),"/",period,"sec")
+         legend=c(paste("Mean:",round(cntmean,2),"cnts")
 		  ))
        
 }else{
@@ -351,8 +356,8 @@ if (mean(counts) < 50){
    plot(xhist,yhist,type="h",lwd=1,ylim=c(0,max(yhist,yfit)),
 #        col=ifelse(((hx$breaks < (cntmean-cntsd)) | (hx$breaks > (cntmean+cntsd))),"blue", "red"),
         col="blue",
-         xlab=paste("Expected normal pdf and histogram of raw data samples per", period, 
-	 "seconds"),ylab="Density",main="Goodness of fit")
+         xlab=paste("Expected normal pdf and histogram of raw data [samples per", period, 
+	 "seconds]"),ylab="Density",main="Goodness of fit")
    #lines(density(counts), col="red")
 
    #draw theoretical density function according to mean value only (color: green)
@@ -366,13 +371,13 @@ if (mean(counts) < 50){
    #text(q, max(yhist,yfit), round(q,1), col="black", lwd=1, pos=4)
 
   legend(x="topleft", bty="n",cex=0.7, lty=c(1,1), col=c("darkgreen","blue"), 
-       legend=c("Theoretical fit based on mean value",
+       legend=c("Theoretical fit based on mean",
                 "Measured distribution"))
 
   legend(x="topright", bty="n",cex=0.7, 
-         legend=c(paste("Mean value of measured data:",round(cntmean,1),"/",period,"sec"),
-	          paste("Measured standard deviation:",round(cntsd,1),"/",period,"sec"),  
-	          paste("Theoretical standart deviation (sqrt(mean)):",round(sqrt(mean(counts)),1),"/",period,"sec")
+         legend=c(paste("Mean:",round(cntmean,1),"cnts"),
+	          paste("Standard deviation:",round(cntsd,1),"cnts"),  
+	          paste("Sqrt(Mean):",round(sqrt(mean(counts)),1),"cnts")
 		  ))
 
 }

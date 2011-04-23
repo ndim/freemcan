@@ -42,7 +42,9 @@ packet_parser_t *packet_parser_new(packet_handler_value_table_t value_table_pack
                                    packet_handler_text_t text_packet_handler,
                                    packet_handler_personality_info_t packet_handler_personality_info,
                                    packet_handler_params_from_eeprom_t ph_params_from_eeprom,
-                                   void *data);
+                                   void *data)
+  __attribute__(( warn_unused_result ))
+  __attribute__(( malloc ));
 
 
 void packet_parser_ref(packet_parser_t *self)
@@ -55,14 +57,16 @@ void packet_parser_unref(packet_parser_t *self)
 
 #include "frame.h"
 
-void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame);
+void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
+  __attribute__(( nonnull(1,2) ));
 
 /** Reset packet handler callbacks.
  *
  * This also unregisters the packet parser callback from the frame
  * parser.
  */
-void packet_parser_reset_handlers(packet_parser_t *self);
+void packet_parser_reset_handlers(packet_parser_t *self)
+  __attribute__(( nonnull(1) ));
 
 
 /** @} */

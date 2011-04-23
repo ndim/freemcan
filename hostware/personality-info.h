@@ -51,15 +51,19 @@ personality_info_t *personality_info_new(const uint16_t _sizeof_table,
                                          const uint8_t param_data_size_skip_samples,
                                          const uint16_t _personality_name_size,
                                          const char *personality_name)
-  __attribute__((malloc));
+  __attribute__(( warn_unused_result ))
+  __attribute__(( nonnull(7) ))
+  __attribute__(( malloc ));
 
 
 /** Call this when you want to use value_table and store a pointer to it. */
-void personality_info_ref(personality_info_t *pi);
+void personality_info_ref(personality_info_t *pi)
+  __attribute__(( nonnull(1) ));
 
 
 /** Call this when you have finished using your pointer to value_table. */
-void personality_info_unref(personality_info_t *pi);
+void personality_info_unref(personality_info_t *pi)
+  __attribute__(( nonnull(1) ));
 
 
 /** Personality info from TUI (HACK) */

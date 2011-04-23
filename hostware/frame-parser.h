@@ -42,6 +42,7 @@ typedef struct _frame_parser_t frame_parser_t;
 
 frame_parser_t *frame_parser_new(packet_parser_t *packet_parser)
   __attribute__(( malloc ))
+  __attribute__((warn_unused_result))
   __attribute__(( nonnull(1) ));
 
 

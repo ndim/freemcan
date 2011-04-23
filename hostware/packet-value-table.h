@@ -101,15 +101,18 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                                              const uint16_t _duration,
                                              const uint8_t param_buf_length,
                                              const void *data)
+  __attribute__((warn_unused_result))
   __attribute__((malloc));
 
 
 /** Call this when you want to use value_table and store a pointer to it. */
-void packet_value_table_ref(packet_value_table_t *value_table);
+void packet_value_table_ref(packet_value_table_t *value_table)
+  __attribute__((nonnull(1)));
 
 
 /** Call this when you have finished using your pointer to value_table. */
-void packet_value_table_unref(packet_value_table_t *value_table);
+void packet_value_table_unref(packet_value_table_t *value_table)
+  __attribute__((nonnull(1)));
 
 
 /** @} */

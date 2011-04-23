@@ -102,15 +102,15 @@ struct _frame_parser_t {
 frame_parser_t *frame_parser_new(packet_parser_t *packet_parser)
 {
   assert(packet_parser);
-  frame_parser_t *ps = calloc(1, sizeof(*ps));
-  assert(ps);
-  ps->refs = 1;
-  ps->state = STATE_MAGIC;
-  ps->checksum_input = checksum_new();
-  ps->packet_parser = packet_parser;
-  packet_parser_ref(ps->packet_parser);
+  frame_parser_t *self = calloc(1, sizeof(*self));
+  assert(self);
+  self->refs = 1;
+  self->state = STATE_MAGIC;
+  self->checksum_input = checksum_new();
+  self->packet_parser = packet_parser;
+  packet_parser_ref(self->packet_parser);
   /* everything else initialized to 0 and NULL courtesy of calloc(3) */
-  return ps;
+  return self;
 }
 
 
@@ -144,48 +144,48 @@ void frame_parser_unref(frame_parser_t *self)
 bool enable_layer2_dump = false;
 
 
-/** step the parser FSM */
+/** Step the parser FSM */
 static
-void step_fsm(frame_parser_t *ps, const char ch)
+void step_fsm(frame_parser_t *self, const char ch)
 {
   const uint8_t u = ch;
 
-  switch (ps->state) {
+  switch (self->state) {
   case STATE_MAGIC:
-    if (ch == magic[ps->offset]) {
-      if (ps->offset == 0) {
+    if (ch == magic[self->offset]) {
+      if (self->offset == 0) {
         /* beginning of magic and header and frame */
         /* start new checksum */
-        checksum_reset(ps->checksum_input);
+        checksum_reset(self->checksum_input);
       }
-      checksum_update(ps->checksum_input, u);
-      ps->offset++;
-      if (ps->offset <= 3) {
-        ps->state = STATE_MAGIC;
+      checksum_update(self->checksum_input, u);
+      self->offset++;
+      if (self->offset <= 3) {
+        self->state = STATE_MAGIC;
         return;
       } else {
-        ps->offset = 0;
-        ps->state = STATE_SIZE;
+        self->offset = 0;
+        self->state = STATE_SIZE;
         return;
       }
     } else { /* start looking for beginning of magic again */
-      ps->offset = 0;
-      ps->state = STATE_MAGIC;
+      self->offset = 0;
+      self->state = STATE_MAGIC;
       return;
     }
     break;
   case STATE_SIZE:
-    checksum_update(ps->checksum_input, u);
-    switch (ps->offset) {
+    checksum_update(self->checksum_input, u);
+    switch (self->offset) {
     case 0:
-      ps->frame_size = (ps->frame_size & 0xff00) | u;
-      ps->offset = 1;
-      ps->state = STATE_SIZE;
+      self->frame_size = (self->frame_size & 0xff00) | u;
+      self->offset = 1;
+      self->state = STATE_SIZE;
       return;
     case 1:
-      ps->frame_size = (ps->frame_size & 0x00ff) | (((uint16_t)u)<<8);
-      ps->offset = 0;
-      ps->state = STATE_FRAME_TYPE;
+      self->frame_size = (self->frame_size & 0x00ff) | (((uint16_t)u)<<8);
+      self->offset = 0;
+      self->state = STATE_FRAME_TYPE;
       return;
       /* We have the value of (offset) firmly under control from
        * within this very function, so we do not need to catch any
@@ -193,41 +193,41 @@ void step_fsm(frame_parser_t *ps, const char ch)
     }
     break;
   case STATE_FRAME_TYPE:
-    checksum_update(ps->checksum_input, u);
-    ps->frame_type = u;
-    ps->offset = 0;
+    checksum_update(self->checksum_input, u);
+    self->frame_type = u;
+    self->offset = 0;
     /* Total size composed from:
      *  - size fixed parts of frame_t data structure
      *  - dynamic payload size
      *  - terminating convenience nul byte
      */
-    ps->frame_wip = frame_new(ps->frame_size+1);
-    assert(ps->frame_wip);
-    ps->state = STATE_PAYLOAD;
+    self->frame_wip = frame_new(self->frame_size+1);
+    assert(self->frame_wip);
+    self->state = STATE_PAYLOAD;
     return;
   case STATE_PAYLOAD:
-    checksum_update(ps->checksum_input, u);
-    ps->frame_wip->payload[ps->offset] = u;
-    ps->offset++;
-    if (ps->offset < ps->frame_size) {
-      ps->state = STATE_PAYLOAD;
+    checksum_update(self->checksum_input, u);
+    self->frame_wip->payload[self->offset] = u;
+    self->offset++;
+    if (self->offset < self->frame_size) {
+      self->state = STATE_PAYLOAD;
       return;
-    } else if (ps->offset == ps->frame_size) {
-      ps->state = STATE_CHECKSUM;
+    } else if (self->offset == self->frame_size) {
+      self->state = STATE_CHECKSUM;
       return;
     }
     break;
   case STATE_CHECKSUM:
-    ps->frame_checksum = u;
-    if (checksum_match(ps->checksum_input, ps->frame_checksum)) {
-      if (ps->packet_parser) {
+    self->frame_checksum = u;
+    if (checksum_match(self->checksum_input, self->frame_checksum)) {
+      if (self->packet_parser) {
         /* nul-terminate the payload buffer for convenience */
-        ps->frame_wip->payload[ps->offset] = '\0';
-        ps->frame_wip->type = ps->frame_type;
-        ps->frame_wip->size = ps->frame_size;
+        self->frame_wip->payload[self->offset] = '\0';
+        self->frame_wip->type = self->frame_type;
+        self->frame_wip->size = self->frame_size;
         if (enable_layer2_dump) {
-          const frame_type_t type = ps->frame_wip->type;
-          const uint16_t size     = ps->frame_wip->size;
+          const frame_type_t type = self->frame_wip->type;
+          const uint16_t size     = self->frame_wip->size;
           if ((32<=type) && (type<127)) {
             fmlog("<Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
                   type, type, type, size, size);
@@ -235,26 +235,26 @@ void step_fsm(frame_parser_t *ps, const char ch)
             fmlog("<Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
                   type, type, size, size);
           }
-          fmlog_data("<<", ps->frame_wip->payload, size);
+          fmlog_data("<<", self->frame_wip->payload, size);
         }
-        update_last_received_size(ps->frame_wip->size);
-        packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
+        update_last_received_size(self->frame_wip->size);
+        packet_parser_handle_frame(self->packet_parser, self->frame_wip);
       }
-      frame_unref(ps->frame_wip);
-      ps->offset = 0;
-      ps->state = STATE_MAGIC;
+      frame_unref(self->frame_wip);
+      self->offset = 0;
+      self->state = STATE_MAGIC;
       return;
     } else {
-      ps->checksum_errors++;
-      ps->offset = 0;
-      ps->state = STATE_MAGIC;
+      self->checksum_errors++;
+      self->offset = 0;
+      self->state = STATE_MAGIC;
       return;
     }
     break;
   /* No "default:" case on purpose: Let compiler complain about
    * unhandled values. */
   }
-  fmlog("Illegal frame parser state %d.", ps->state);
+  fmlog("Illegal frame parser state %d.", self->state);
   abort();
 }
 

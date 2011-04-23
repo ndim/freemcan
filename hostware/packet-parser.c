@@ -21,6 +21,10 @@
  * \defgroup freemcan_packet_parser Data Packet Parser
  * \ingroup hostware_generic
  *
+ * The packet parser (#packet_parser_t) is fed received frames,
+ * interprets their contents, and calls the application and packet
+ * specific callback functions for the properly parsed packet.
+ *
  * @{
  */
 

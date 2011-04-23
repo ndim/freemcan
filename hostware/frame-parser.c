@@ -55,17 +55,22 @@
 /** Static magic constant for comparision */
 static const char *magic = FRAME_MAGIC_STR;
 
-/** Parser state machine states */
+/** Parser state machine state
+ *
+ * Note that the states expecting bytes for multi-byte frame fields
+ * always require considering the #_frame_parser_t::offset field as
+ * well.
+ */
 typedef enum {
-  /** waiting for magic number bytes to appear */
+  /** waiting for magic number bytes to appear (together with offset) */
   STATE_MAGIC,
-  /** waiting for frame size bytes */
+  /** waiting for frame size bytes (together with offset) */
   STATE_SIZE,
-  /** waiting for frame type byte */
+  /** waiting for frame type byte (1 byte only, no offset required) */
   STATE_FRAME_TYPE,
-  /** waiting for payload bytes */
+  /** waiting for payload bytes (together with offset) */
   STATE_PAYLOAD,
-  /** waiting for checksum byte */
+  /** waiting for checksum byte (1 byte only, no offset required) */
   STATE_CHECKSUM
 } state_t;
 

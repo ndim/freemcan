@@ -42,12 +42,21 @@
 
 /** Internals of opaque #packet_parser_t */
 struct _packet_parser_t {
+  /** reference counter */
   unsigned int refs;
+
+  /** handler callback function for value tables (i.e. measurement results) */
   packet_handler_value_table_t packet_handler_value_table;
+  /** handler callback function for state frames */
   packet_handler_state_t     packet_handler_state;
+  /** handler callback function for text frames */
   packet_handler_text_t      packet_handler_text;
+  /** handler callback function for personality info frames */
   packet_handler_personality_info_t packet_handler_personality_info;
+  /** handler callback function for parameter from eeprom frames */
   packet_handler_params_from_eeprom_t packet_handler_params_from_eeprom;
+
+  /** private data for callback functions*/
   void *                     packet_handler_data;
 };
 

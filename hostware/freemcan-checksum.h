@@ -38,25 +38,37 @@ struct _checksum_t;
 typedef struct _checksum_t checksum_t;
 
 /** New checksum state */
-checksum_t *checksum_new(void);
+checksum_t *checksum_new(void)
+  __attribute__(( warn_unused_result ))
+  __attribute__(( malloc ));
 
-void checksum_ref(checksum_t *self);
-void checksum_unref(checksum_t *self);
+void checksum_ref(checksum_t *self)
+  __attribute__(( nonnull(1) ));
+
+void checksum_unref(checksum_t *self)
+  __attribute__(( nonnull(1) ));
 
 /** Reset checksum state machine */
-void checksum_reset(checksum_t *self);
+void checksum_reset(checksum_t *self)
+  __attribute__(( nonnull(1) ));
 
 /** Update checksum state machine with value */
-void checksum_update(checksum_t *self, const uint8_t value);
+void checksum_update(checksum_t *self, const uint8_t value)
+  __attribute__(( nonnull(1) ));
 
 /** Write checksum to file descriptor */
-void checksum_write(checksum_t *self, const int fd);
+void checksum_write(checksum_t *self, const int fd)
+  __attribute__(( nonnull(1) ));
 
 /** Get checksum */
-uint8_t checksum_get(checksum_t *self);
+uint8_t checksum_get(checksum_t *self)
+  __attribute__(( warn_unused_result ))
+  __attribute__(( nonnull(1) ));
 
 /** Match value against internal checksum state */
-bool checksum_match(checksum_t *self, const uint8_t value);
+bool checksum_match(checksum_t *self, const uint8_t value)
+  __attribute__(( warn_unused_result ))
+  __attribute__(( nonnull(1) ));
 
 
 /** @} */

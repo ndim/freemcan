@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
   /** initialize output module */
   tui_init();
 
-  /** device init */
+  /** device init and setting up the "network stack" */
   frame_parser_t *fp = frame_parser_new(tui_packet_parser);
   device = device_new(fp);
   device_open(device, device_name);

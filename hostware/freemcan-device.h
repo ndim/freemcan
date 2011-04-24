@@ -41,6 +41,8 @@ typedef struct _device_t device_t;
 
 /** New device */
 device_t *device_new(frame_parser_t *frame_parser)
+  __attribute__(( warn_unused_result ))
+  __attribute__(( malloc ))
   __attribute__(( nonnull(1) ));
 
 
@@ -64,6 +66,7 @@ void device_close(device_t *self)
 
 /** Get device file descriptor */
 int device_get_fd(device_t *self)
+  __attribute__(( warn_unused_result ))
   __attribute__(( nonnull(1) ));
 
 

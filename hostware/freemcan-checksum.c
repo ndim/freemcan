@@ -21,9 +21,6 @@
  * \defgroup freemcan_frame_checksum Data Frame Checksum (Layer 2)
  * \ingroup hostware_generic
  *
- * \note The checksum engine uses a global state. Only use it for
- * one communication streams at a time.
- *
  * @{
  */
 

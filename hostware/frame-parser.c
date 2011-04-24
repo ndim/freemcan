@@ -21,14 +21,14 @@
  * \defgroup freemcan_frame_parser Data Frame Parser
  * \ingroup hostware_generic
  *
- * The only potential endianness issue in hostware/frame-parser.c is
- * the frame payload size in #_frame_parser_t::frame_size which is read byte by byte in
- * an endianness independent fashion.
- *
  * The frame parser (#frame_parser_t) is the code which composes
  * received bytes into complete frames. When a complete frame has been
  * received, it is handed to the next layer by calling
  * #packet_parser_handle_frame on it.
+ *
+ * The only potential endianness issue in hostware/frame-parser.c is
+ * the frame payload size in #_frame_parser_t::frame_size which is read byte by byte in
+ * an endianness independent fashion.
  *
  * @{
  */

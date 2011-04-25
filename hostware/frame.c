@@ -50,7 +50,9 @@ frame_t *frame_new(const size_t payload_size)
   return frame;
 }
 
-
+/** Helper functions for reference counting of complex frame parser data only
+  *
+  */
 void frame_ref(frame_t *self)
 {
   assert(self->refs > 0);

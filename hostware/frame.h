@@ -40,7 +40,7 @@
 typedef struct {
   /** Reference counter */
   int refs;
-  /** Frame type */
+  /** Frame type (text, state, histogram etc.)*/
   frame_type_t type;
   /** Payload size in bytes */
   uint16_t size;

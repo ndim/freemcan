@@ -30,7 +30,11 @@
 #include "packet-defs.h"
 
 
-/** Parsed histogram packet. */
+/** Parsed histogram packet.
+  *
+  * Structure holds the completely processed and parsed histogram
+  */
+
 typedef struct {
   /** Reference counter */
   int refs;

@@ -68,7 +68,7 @@ int tui_select_set_in(fd_set *in_fdset, int maxfd)
  */
 void tui_select_do_io(fd_set *in_fdset)
 {
-  /* user interface do_io */
+  /* check if there is data available on terminal. if so process the data */
   if (FD_ISSET(STDIN_FILENO, in_fdset)) {
     tui_do_io();
   }
@@ -86,7 +86,7 @@ void tui_select_do_io(fd_set *in_fdset)
 device_t *device = NULL;
 
 
-/* documented in dfreemcan-device-select.h */
+
 int device_select_set_in(fd_set *in_fdset, int maxfd)
 {
   assert(device);
@@ -100,12 +100,12 @@ int device_select_set_in(fd_set *in_fdset, int maxfd)
 }
 
 
-/* documented in dfreemcan-device-select.h */
 void device_select_do_io(fd_set *in_fdset)
 {
   assert(device);
   const int device_fd = device_get_fd(device);
   assert(device_fd >= 0);
+  /* check if there is data available on uart. if so process the data */
   if (FD_ISSET(device_fd, in_fdset)) {
     device_do_io(device);
   }
@@ -132,30 +132,43 @@ void tui_device_send_command(const frame_cmd_t cmd, const uint16_t param)
 /** TUI's main program with select(2) based main loop */
 int main(int argc, char *argv[])
 {
+  /* get device name from command line */
   const char *device_name = main_init(argc, argv);
 
-  /** initialize output module */
+   /* initialize output module
+    *
+    * - initialize tui specific terminal
+    * - initialize tui_packet_parser with packet_parser_new() */
   tui_init();
 
-  /** device init */
+  /* create a new frame parser and register the packet parser in the frame parser  */
   frame_parser_t *fp = frame_parser_new(tui_packet_parser);
+  /* create the uart device and register the frame parser in the device structure  */
   device = device_new(fp);
+  /* open serial port */
   device_open(device, device_name);
   assert(device_get_fd(device) >= 0);
 
-  /** startup messages */
+  /* startup messages */
   tui_startup_messages();
 
-  /** main loop */
+  /* main loop */
   while (1) {
     fd_set in_fdset;
+    /* set file descriptor to null (no action) */
     FD_ZERO(&in_fdset);
 
     int max_fd = -1;
+    /* check for any changes in file descriptor numbers. max_fd is the number
+       of the highest file descriptor */
+    /* stdio file descriptor */
     max_fd = tui_select_set_in(&in_fdset, max_fd);
+    /* file descriptor uart */
     max_fd = device_select_set_in(&in_fdset, max_fd);
+
     assert(max_fd >= 0);
 
+    /* if there are changes either (a datastream arrived on uart or terminal) */
     const int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
     if (n<0) { /* error */
       if (errno != EINTR) {
@@ -166,6 +179,7 @@ int main(int argc, char *argv[])
       fmlog("select(2) timeout");
       abort();
     } else { /* n>0 */
+      /* find out where the change was coming from and proceed the stuff */
       device_select_do_io(&in_fdset);
       tui_select_do_io(&in_fdset);
     }
@@ -178,6 +192,7 @@ int main(int argc, char *argv[])
 
   /* clean up */
   device_unref(device);
+  /* end of program - restore terminal */
   tui_fini();
 
   /* implicitly call atexit_func */

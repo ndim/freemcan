@@ -64,7 +64,15 @@ typedef enum {
 } state_t;
 
 
-/** Complete frame parser state */
+/** Structure for controlling the frame parser main code and processing incoming data.
+  *
+  * The processed data (data sent by the firmware) is collected in -> frame_wip which is a frame_t type
+  * which collects type size and payload of the frame.
+  *
+  * packet_parser_t holds information about the actual packet parser processing the completed
+  * frame in the next layer (3) in the packet parser. Packet parser is a pass-through feature
+  * which is set by the caller function (which calls the frame parser)
+  */
 struct _frame_parser_t {
   /** Reference counter */
   unsigned int refs;
@@ -112,14 +120,20 @@ frame_parser_t *frame_parser_new(packet_parser_t *packet_parser)
   return ps;
 }
 
-
+/** Helper function for reference counting (frame parser)
+  *
+  */
 void frame_parser_ref(frame_parser_t *self)
 {
   assert(self->refs > 0);
   self->refs++;
 }
 
-
+/** Helper function for reference counting (frame parser)
+  *
+  * If there is no code using the frame any more (refs is zero)
+  * free memory.
+  */
 void frame_parser_unref(frame_parser_t *self)
 {
   assert(self->refs > 0);
@@ -143,7 +157,25 @@ void frame_parser_unref(frame_parser_t *self)
 bool enable_layer2_dump = false;
 
 
-/** step the parser FSM */
+/** Step the parser FSM
+  *
+  * Core function where the actual frame parsing takes place.
+  * There are different types of frames sent by the firmware (Text, Histogram etc) but
+  * there is only one type of frame format which contains following fields:
+  *
+  *  1.) magic value marking beginning of frame ('FMPK')
+  *  2.) size of payload data
+  *  3.) frame_type_t enumerator (which type of frame received)
+  *  4.) payload data
+  *  5.) checksum
+  *
+  * This frame format is parsed within a state machine. The processed frame is stored within
+  * frame_wip which is a complex structure for holding frame info and payload.
+  *
+  * Once a frame is completed the packet parser packet_parser_handle_frame() is called
+  * to proceed the collected frame (Layer 3).
+  *
+  */
 static
 void step_fsm(frame_parser_t *ps, const char ch)
 {
@@ -195,7 +227,10 @@ void step_fsm(frame_parser_t *ps, const char ch)
     checksum_update(ps->checksum_input, u);
     ps->frame_type = u;
     ps->offset = 0;
-    /* Total size composed from:
+    /* Create a frame_t for collecting the frame data into a structure.
+     * Lateron frame_wip is given to the packet parser.
+     *
+     * Total size composed from:
      *  - size fixed parts of frame_t data structure
      *  - dynamic payload size
      *  - terminating convenience nul byte
@@ -219,6 +254,8 @@ void step_fsm(frame_parser_t *ps, const char ch)
   case STATE_CHECKSUM:
     ps->frame_checksum = u;
     if (checksum_match(ps->checksum_input, ps->frame_checksum)) {
+      /* during boot: if data is received but if there is no packet parser set up we must
+         avoid a segfault */
       if (ps->packet_parser) {
         /* nul-terminate the payload buffer for convenience */
         ps->frame_wip->payload[ps->offset] = '\0';
@@ -236,6 +273,7 @@ void step_fsm(frame_parser_t *ps, const char ch)
           }
           fmlog_data(ps->frame_wip->payload, size);
         }
+        /* Once a frame is completed and valid the acutual packet parser is called for postprocessing */
         packet_parser_handle_frame(ps->packet_parser, ps->frame_wip);
       }
       frame_unref(ps->frame_wip);
@@ -261,7 +299,10 @@ void step_fsm(frame_parser_t *ps, const char ch)
 bool enable_layer1_dump = false;
 
 
-/* documented in freemcan-frame.h */
+/** Entry function for incoming data
+  *
+  * The data is processed asynchronously and bytewise in the step_fsm() function.
+  */
 void frame_parser_bytes(frame_parser_t *self,
                         const void *buf, const size_t size)
 {

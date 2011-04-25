@@ -62,7 +62,7 @@ struct _device_t {
   checksum_t *checksum_output;
 };
 
-
+/** Creates a new device (uart) and registeres the frame parser to process the frame */
 device_t *device_new(frame_parser_t *frame_parser)
 {
   device_t *device = malloc(sizeof(*device));
@@ -139,10 +139,10 @@ int open_unix_socket(const char *socket_name)
   return sock;
 }
 
-
 void device_open(device_t *self, const char *device_name)
 {
   struct stat sb;
+  /* what kind of device will be used? */
   const int stat_ret = stat(device_name, &sb);
   if (stat_ret == -1) {
     perror("stat()");
@@ -153,7 +153,7 @@ void device_open(device_t *self, const char *device_name)
   }
   if (S_ISCHR(sb.st_mode)) { /* open serial port to the hardware device */
     self->fd = open_char_device(device_name);
-  } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the emulator */
+  } else if (S_ISSOCK(sb.st_mode)) { /* open UNIX domain socket to the erlang emulator */
     self->fd = open_unix_socket(device_name);
   } else {
     fmlog("device of unknown type: %s", device_name);
@@ -169,7 +169,7 @@ void device_close(device_t *self)
   self->fd = -1;
 }
 
-
+/** Send commands to the firmware by uart */
 void device_send_command(device_t *self,
                          const frame_cmd_t cmd, const uint16_t param)
 {
@@ -216,7 +216,11 @@ void device_send_command(device_t *self,
 }
 
 
-/* documented in freemcan-device.h */
+/** Function takes the data from the device and calls the registered frame parser
+  *
+  * If data has been arrived this function is called. The function gets the data from
+  * the device and calls frame_parser_bytes() for processing the data asynchronously
+  * by its reserved frame parser.                                                   */
 void device_do_io(device_t *self)
 {
     const int fd = self->fd;
@@ -237,6 +241,7 @@ void device_do_io(device_t *self)
       fmlog("Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data(buf, read_bytes);
     }
+    /* call the frame parser to process the data */
     frame_parser_bytes(self->frame_parser, buf, read_bytes);
 }
 

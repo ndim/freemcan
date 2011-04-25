@@ -38,7 +38,12 @@
 
 #include "packet-parser.h"
 
-
+/** Structure for holding functional pointers for processing the completed packet
+  *
+  * Holding functional pointers for either processing histogram, state and text data either.
+  * Holding also the data to be postprocessed
+  *
+  */
 struct _packet_parser_t {
   unsigned int refs;
   packet_handler_histogram_t packet_handler_histogram;
@@ -47,7 +52,12 @@ struct _packet_parser_t {
   void *                     packet_handler_data;
 };
 
-
+/** Create object containing handler functions and data for processing
+  *
+  * This is a simple feed through to provide eihter a GUI for processing the frame
+  * or a text user interface to process the data. Caller function will determine the parser
+  * functions to processing the data.
+  */
 packet_parser_t *packet_parser_new(packet_handler_histogram_t histogram_packet_handler,
                                    packet_handler_state_t state_packet_handler,
                                    packet_handler_text_t text_packet_handler,
@@ -81,11 +91,19 @@ void packet_parser_unref(packet_parser_t *self)
   }
 }
 
-
+/** Data distribution to the handler functions respectively.
+  *
+  * This function is called if a frame is completed.
+  *
+  * Distribute the actual collected frame data to the handlerfunctions respectively according
+  * to the three frame types existing (histogram, text for debugging and state frame).
+  * Therefore the handlerfunctions are called directly from the packet_parser_t structure.
+  */
 void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
 {
   switch (frame->type) {
   case FRAME_TYPE_STATE:
+    /* if we have a handler for a state frame give the data to the handler function */
     if (self->packet_handler_state) {
       self->packet_handler_state((const char *)frame->payload,
                                  self->packet_handler_data);
@@ -99,13 +117,19 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
     return;
   case FRAME_TYPE_HISTOGRAM:
     if (self->packet_handler_histogram) {
+      /* Inside the frame payload we have a header field (element size in bytes, type, duration etc.)
+         and a data field. The header of the frame is processed by a pointercast to
+         packet_istogram_header_t                                               */
       const packet_histogram_header_t *header =
         (const packet_histogram_header_t *)&(frame->payload[0]);
       /* We need to do endianness conversion on all multi-byte values
        * in header, i.e. on header->duration. */
+      /* The netto histogram data size is the payload size minus the header size */
       const size_t hist_size = frame->size - sizeof(*header);
       assert(hist_size > 0);
       const size_t element_count = hist_size/header->element_size;
+      /* Create a new histogram data structure containing the histogram data and the header informations of
+         the histogram  */
       packet_histogram_t *hist = packet_histogram_new(header->type,
                                                       time(NULL),
                                                       header->element_size,
@@ -113,7 +137,11 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
                                                       letoh16(header->duration),
                                                       letoh16(header->total_duration),
                                                       &(frame->payload[sizeof(*header)]));
+      /* Call the handler function for processing the histogram structure, e.g. the tui packet_handler_histogram function */
       self->packet_handler_histogram(hist, self->packet_handler_data);
+      /* The packet handler must have increased his reference counter to the historgram
+         not to loose the data. However we do not need the histogram at this point any more and therefore we
+         do an unref here */
       packet_histogram_unref(hist);
     }
     return;

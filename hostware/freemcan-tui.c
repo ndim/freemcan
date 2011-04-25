@@ -66,7 +66,7 @@
 #include "git-version.h"
 
 
-/* Forward declaration */
+/* Forward declaration for acutal packet handler functions used */
 static void packet_handler_state(const char *state, void *data);
 static void packet_handler_text(const char *text, void *data);
 static void packet_handler_histogram(packet_histogram_t *histogram_packet, void *data);
@@ -206,7 +206,7 @@ static int tty_reset()
 /************************************************************************/
 
 
-/** Handle ABRT signal */
+/** Handle ABRT signal - 'abort' in code -> reset tty */
 static void sigabrt_handler(int i __attribute__((unused)))
 {
   tty_reset();

@@ -36,7 +36,9 @@
 #include "freemcan-packet.h"
 #include "endian-conversion.h"
 
-
+/** Create a histogram data structure from the payload field processed by the packet parser
+  *
+  */
 packet_histogram_t *packet_histogram_new(const packet_histogram_type_t type,
                                          const time_t receive_time,
                                          const uint8_t element_size,

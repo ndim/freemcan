@@ -98,6 +98,12 @@ uint16_t get_duration(void)
   uint16_t a, b;
   do {
     a = timer1_count;
+    if (bit_is_clear(SREG, 7)) {
+      /* If the interrupt flag clear now, it was clear during above
+       * assignment of a as well, so a contains a valid value, and we
+       * can just use it without any potentially endless loops. */
+      break;
+    }
     b = last_timer1_count;
   } while ((b-a) != 1);
   /* Now 'a' contains a valid value. Use it. */

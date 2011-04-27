@@ -1,4 +1,5 @@
 /.deps/
+/.objs/
 /*.d
 /*.o
 /*.strace

@@ -238,22 +238,22 @@ ALL: all
 # Optional firmware features
 
 ifeq ($(BUILD_FREEMCAN_PRINTF),yes)
-COMMON_OBJ += uart-printf.o
+COMMON_OBJ += .objs/uart-printf.o
 CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
 # BUG: Needs proper hooking up with new unified-firmware build system
 ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-COMMON_OBJ += invented-histogram.o
+COMMON_OBJ += .objs/invented-histogram.o
 CPPFLAGS += -DINVENTED_HISTOGRAM
 endif
 
 CLEANFILES += invented-histogram.bin
-invented-histogram.bin: ../emulator/histogram_emulator.erl
+.objs/invented-histogram.bin: ../emulator/histogram_emulator.erl
 	$(MAKE) -C ../emulator histogram_emulator.beam
 	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
 
-invented-histogram.o: invented-histogram.bin
+.objs/invented-histogram.o: .objs/invented-histogram.bin
 	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
 		--rename-section .data=.text,contents,alloc,load,readonly,code \
 		"$<" "$@"
@@ -265,14 +265,14 @@ invented-histogram.o: invented-histogram.bin
 
 # Define the common object files.
 # The object files specific to firmware personalities will not be listed here.
-COMMON_OBJ += main.o
-COMMON_OBJ += checksum.o
-COMMON_OBJ += uart-comm.o
-COMMON_OBJ += frame-comm.o
-COMMON_OBJ += packet-comm.o
-COMMON_OBJ += wdt-softreset.o
-COMMON_OBJ += software-version.o
-COMMON_OBJ += timer2-debounce-switch.o
+COMMON_OBJ += .objs/main.o
+COMMON_OBJ += .objs/checksum.o
+COMMON_OBJ += .objs/uart-comm.o
+COMMON_OBJ += .objs/frame-comm.o
+COMMON_OBJ += .objs/packet-comm.o
+COMMON_OBJ += .objs/wdt-softreset.o
+COMMON_OBJ += .objs/software-version.o
+COMMON_OBJ += .objs/timer2-debounce-switch.o
 
 
 # Link time checks
@@ -290,26 +290,26 @@ COMMON_X += check-data-stack-in-SRAM.x
 # Firmware personality: MCA using external ADC
 PERSONALITIES += adc-ext-mca
 firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-adc-ext-mca.elf : timer1-init-simple.o
-firmware-adc-ext-mca.elf : timer1-countdown-and-stop.o
-firmware-adc-ext-mca.elf : perso-adc-ext-mca-ext-trig.o
+firmware-adc-ext-mca.elf : .objs/timer1-init-simple.o
+firmware-adc-ext-mca.elf : .objs/timer1-countdown-and-stop.o
+firmware-adc-ext-mca.elf : .objs/perso-adc-ext-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC
 PERSONALITIES += adc-int-mca
 firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-adc-int-mca.elf : timer1-init-simple.o
-firmware-adc-int-mca.elf : timer1-countdown-and-stop.o
-firmware-adc-int-mca.elf : perso-adc-int-mca-ext-trig.o
+firmware-adc-int-mca.elf : .objs/timer1-init-simple.o
+firmware-adc-int-mca.elf : .objs/timer1-countdown-and-stop.o
+firmware-adc-int-mca.elf : .objs/perso-adc-int-mca-ext-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC, timed trigger
 PERSONALITIES += adc-int-mca-timed
 firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-adc-int-mca-timed.elf : timer1-adc-trigger.o
-firmware-adc-int-mca-timed.elf : perso-adc-int-mca-timed-trig.o
+firmware-adc-int-mca-timed.elf : .objs/timer1-adc-trigger.o
+firmware-adc-int-mca-timed.elf : .objs/perso-adc-int-mca-timed-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
@@ -318,18 +318,18 @@ PERSONALITIES += adc-int-timed-sampling
 firmware-adc-int-timed-sampling.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.x
 firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-adc-int-timed-sampling.elf : timer1-adc-trigger.o
-firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.o
-firmware-adc-int-timed-sampling.elf : perso-adc-int-log-timed-trig.o
+firmware-adc-int-timed-sampling.elf : .objs/timer1-adc-trigger.o
+firmware-adc-int-timed-sampling.elf : .objs/data-table-all-other-memory.o
+firmware-adc-int-timed-sampling.elf : .objs/perso-adc-int-log-timed-trig.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Geiger Counter without time series
 PERSONALITIES += geiger-counter
 firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-geiger-counter.elf : timer1-init-simple.o
-firmware-geiger-counter.elf : timer1-countdown-and-stop.o
-firmware-geiger-counter.elf : perso-geiger-counter.o
+firmware-geiger-counter.elf : .objs/timer1-init-simple.o
+firmware-geiger-counter.elf : .objs/timer1-countdown-and-stop.o
+firmware-geiger-counter.elf : .objs/perso-geiger-counter.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
@@ -338,9 +338,9 @@ PERSONALITIES += geiger-ts
 firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-geiger-ts.elf : data-table-all-other-memory.x
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-geiger-ts.elf : timer1-init-simple.o
-firmware-geiger-ts.elf : data-table-all-other-memory.o
-firmware-geiger-ts.elf : perso-geiger-time-series.o
+firmware-geiger-ts.elf : .objs/timer1-init-simple.o
+firmware-geiger-ts.elf : .objs/data-table-all-other-memory.o
+firmware-geiger-ts.elf : .objs/perso-geiger-time-series.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 
@@ -493,12 +493,14 @@ program program-eeprom:
 # Compilation rules
 
 # Compile: create object files from C source files.
-.c.o:
+.objs/%.o: %.c
+	@$(MKDIR_P) $(@D)
 	$(COMPILE.c) $< -o $@
 
 
 # Assemble: create object files from assembler source files.
-.S.o:
+.objs/%.o: %.S
+	@$(MKDIR_P) $(@D)
 	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
 
 
@@ -509,14 +511,14 @@ program program-eeprom:
 	@set -e; rm -f $@; \
 		$(MKDIR_P) $(@D); \
 		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
-		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		$(SED) 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 .deps/%.c.dep: %.c
 	@set -e; rm -f $@; \
 		$(MKDIR_P) $(@D); \
 		$(COMPILE.c) -MM $< > $@.$$$$; \
-		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		$(SED) 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 include $(foreach F, $(wildcard *.c *.S), .deps/$(F).dep)
@@ -534,7 +536,7 @@ clean:
 	rm -f *.lst
 	rm -f *.o
 	rm -f *~
-	rm -rf *.deps
+	rm -rf .deps .objs
 
 
 ########################################################################

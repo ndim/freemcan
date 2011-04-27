@@ -42,37 +42,41 @@ ALL: all
 .PHONY: clean
 clean:
 	rm -f $(CLEANFILES)
-	rm -rf .deps
+	rm -f *~
+	rm -rf .deps .objs
 	rm -f *.o
 
 
-freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
-freemcan-device.o : CFLAGS += -D_GNU_SOURCE
-freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
-freemcan-tui-main-select.o : CFLAGS += -D_GNU_SOURCE
+.objs/freemcan-signals.o : CFLAGS += -D_GNU_SOURCE
+.objs/freemcan-device.o : CFLAGS += -D_GNU_SOURCE
+.objs/freemcan-tui.o : CFLAGS += -D_GNU_SOURCE
+.objs/freemcan-tui-main-select.o : CFLAGS += -D_GNU_SOURCE
 
 TUI_COMMON_OBJ =
-TUI_COMMON_OBJ += freemcan-checksum.o
-TUI_COMMON_OBJ += freemcan-device.o
-TUI_COMMON_OBJ += freemcan-export.o
-TUI_COMMON_OBJ += frame.o
-TUI_COMMON_OBJ += frame-parser.o
-TUI_COMMON_OBJ += freemcan-iohelpers.o
-TUI_COMMON_OBJ += freemcan-log.o
-TUI_COMMON_OBJ += freemcan-packet.o
-TUI_COMMON_OBJ += packet-value-table.o
-TUI_COMMON_OBJ += personality-info.o
-TUI_COMMON_OBJ += packet-parser.o
-TUI_COMMON_OBJ += freemcan-signals.o
-TUI_COMMON_OBJ += freemcan-tui.o
-TUI_COMMON_OBJ += serial-setup.o
+TUI_COMMON_OBJ += .objs/freemcan-checksum.o
+TUI_COMMON_OBJ += .objs/freemcan-device.o
+TUI_COMMON_OBJ += .objs/freemcan-export.o
+TUI_COMMON_OBJ += .objs/frame.o
+TUI_COMMON_OBJ += .objs/frame-parser.o
+TUI_COMMON_OBJ += .objs/freemcan-iohelpers.o
+TUI_COMMON_OBJ += .objs/freemcan-log.o
+TUI_COMMON_OBJ += .objs/freemcan-packet.o
+TUI_COMMON_OBJ += .objs/packet-value-table.o
+TUI_COMMON_OBJ += .objs/personality-info.o
+TUI_COMMON_OBJ += .objs/packet-parser.o
+TUI_COMMON_OBJ += .objs/freemcan-signals.o
+TUI_COMMON_OBJ += .objs/freemcan-tui.o
+TUI_COMMON_OBJ += .objs/serial-setup.o
 
-freemcan-tui : freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
+freemcan-tui : .objs/freemcan-tui-main-select.o $(TUI_COMMON_OBJ)
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
-test-log : test-log.o freemcan-log.o
+test-log : .objs/test-log.o .objs/freemcan-log.o
 	$(LINK.c) $^ $(LDLIBS) -o $@
 
+.objs/%.o: %.c
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.c) -o $@ $<
 
 ########################################################################
 # Automatic dependency generation
@@ -81,7 +85,7 @@ test-log : test-log.o freemcan-log.o
 	@set -e; rm -f $@; \
 		$(MKDIR_P) $(@D); \
 		$(COMPILE.c) -MM $< > $@.$$$$; \
-		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+		sed 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 include $(foreach F, $(wildcard *.c), .deps/$(F).dep)

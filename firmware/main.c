@@ -381,9 +381,9 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
       /** The value table will be updated asynchronously from ISRs
        * like ISR(ADC_vect) or ISR(TIMER1_foo), i.e. independent from
        * this main loop.  This will cause glitches in the intermediate
-       * values as the values are larger than 1 byte.  However, we
-       * have decided that for *intermediate* results, those glitches
-       * are acceptable.
+       * values as the values in the table often consist of more than
+       * a single 8bit machine word.  However, we have decided that
+       * for *intermediate* results, those glitches are acceptable.
        *
        * Keeping interrupts enabled has the additional advantage that
        * the measurement continues during send_table(), so we need not

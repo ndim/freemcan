@@ -216,6 +216,10 @@ ISR(TIMER2_COMPA_vect)
  * That is not much of a difference, so keeping on using the C ISR
  * makes sense.
  *
+ * (If we would globally assign three registers for the ISR's
+ * exclusive use, we could get only it down to 13 cycles total aka
+ * 0.67ms per second).
+ *
  * #include <avr/io.h>
  * #include <avr/interrupt.h>
  *
@@ -232,12 +236,14 @@ ISR(TIMER2_COMPA_vect)
  *         ; shift register: 13CLK
  *         lds   r24, switch_is_inactive   ; 2CLK
  *         lds   r25, switch_is_inactive+1 ; 2CLK
+ *
  *         clc   ; clear carry flag        ; 1CLK
  *         ; 'sbic' = Skip 'sec' if Bit in IO register is Cleared (i.e. PB0)
  *         sbic  _SFR_IO_ADDR(PINB), 0     ; 2 CLK from here until after 'sec'
  *         sec   ; set carry flag
  *         rol   r24                       ; 1CLK rotate through carry
  *         rol   r25                       ; 1CLK rotate through carry
+ *
  *         sts   switch_is_inactive, r24   ; 2CLK
  *         sts   switch_is_inactive+1, r25 ; 2CLK
  *

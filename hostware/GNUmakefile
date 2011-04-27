@@ -42,7 +42,7 @@ ALL: all
 .PHONY: clean
 clean:
 	rm -f $(CLEANFILES)
-	rm -f *.d *.d.[0-9]*
+	rm -rf .deps
 	rm -f *.o
 
 
@@ -77,14 +77,14 @@ test-log : test-log.o freemcan-log.o
 ########################################################################
 # Automatic dependency generation
 
-%.d: %.c
+.deps/%.c.dep: %.c
 	@set -e; rm -f $@; \
+		$(MKDIR_P) $(@D); \
 		$(COMPILE.c) -MM $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
-ALL_CSOURCES = $(wildcard *.c)
-include $(ALL_CSOURCES:.c=.d)
+include $(foreach F, $(wildcard *.c), .deps/$(F).dep)
 
 
 ########################################################################

@@ -1,3 +1,4 @@
+/.deps/
 /*.d
 /*.o
 /*.strace

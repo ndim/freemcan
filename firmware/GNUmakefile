@@ -505,21 +505,21 @@ program program-eeprom:
 ########################################################################
 # Automatic dependency generation
 
-%.d: %.S
+.deps/%.S.dep: %.S
 	@set -e; rm -f $@; \
+		$(MKDIR_P) $(@D); \
 		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
 		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
-%.d: %.c
+.deps/%.c.dep: %.c
 	@set -e; rm -f $@; \
+		$(MKDIR_P) $(@D); \
 		$(COMPILE.c) -MM $< > $@.$$$$; \
 		$(SED) 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
-ALL_CSOURCES = $(wildcard *.c)
-ALL_ASOURCES = $(wildcard *.S)
-include $(ALL_CSOURCES:.c=.d) $(ALL_ASOURCES:.S=.d)
+include $(foreach F, $(wildcard *.c *.S), .deps/$(F).dep)
 
 
 ########################################################################
@@ -534,7 +534,7 @@ clean:
 	rm -f *.lst
 	rm -f *.o
 	rm -f *~
-	rm -f *.d *.d.[0-9]*
+	rm -rf *.deps
 
 
 ########################################################################

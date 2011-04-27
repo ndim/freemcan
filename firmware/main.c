@@ -647,6 +647,10 @@ int main(void)
    * start of main().  The idea is to implement the initialization
    * functions as ((naked)) and put them in the ".initN" sections so
    * they are called automatically before main() is run.
+   *
+   * This keeps all foo.c related initialization code inside foo.c,
+   * and it also saves us a few bytes in the firmware image which
+   * would be used by the call/return instructions.
    */
 
   send_personality_info();

@@ -266,7 +266,7 @@ typedef enum {
 
 /** Firmware FSM event handler for finished measurement */
 inline static
-firmware_state_t eat_measurement_finished(const firmware_state_t pstate)
+firmware_state_t firmware_handle_measurement_finished(const firmware_state_t pstate)
 {
   switch (pstate) {
   case STP_MEASURING:
@@ -286,7 +286,7 @@ firmware_state_t eat_measurement_finished(const firmware_state_t pstate)
 
 /** Firmware FSM event handler for pressed switch */
 inline static
-firmware_state_t eat_switch_pressed(const firmware_state_t pstate)
+firmware_state_t firmware_handle_switch_pressed(const firmware_state_t pstate)
 {
   switch (pstate) {
   case STP_READY:
@@ -322,8 +322,8 @@ firmware_state_t eat_switch_pressed(const firmware_state_t pstate)
  *   personality_param_sram[sizeof(personality_param_sram)-1] size of param+token data
  */
 inline static
-firmware_state_t eat_packet(const firmware_state_t pstate,
-                            const uint8_t cmd)
+firmware_state_t firmware_handle_command(const firmware_state_t pstate,
+                                         const uint8_t cmd)
 {
   /* temp vars */
   const frame_cmd_t c = (frame_cmd_t)cmd;
@@ -518,10 +518,10 @@ void main_event_loop(void)
   /* Firmware FSM loop */
   while (1) {
     if (GF_ISSET(GF_MEASUREMENT_FINISHED)) {
-      pstate = eat_measurement_finished(pstate);
+      pstate = firmware_handle_measurement_finished(pstate);
       GF_CLEAR(GF_MEASUREMENT_FINISHED);
     } else if (!switch_is_inactive) {
-      pstate = eat_switch_pressed(pstate);
+      pstate = firmware_handle_switch_pressed(pstate);
     } else if (bit_is_set(UCSR0A, RXC0)) {
 
       /* A byte arrived via UART, so fetch it */
@@ -596,7 +596,7 @@ void main_event_loop(void)
       case STF_CHECKSUM:
         if (uart_recv_checksum_matches(byte)) {
           /* checksum successful */
-          pstate = eat_packet(pstate, cmd);
+          pstate = firmware_handle_command(pstate, cmd);
           goto restart;
         } else {
           /** \todo Find a way to report checksum failure without

@@ -533,11 +533,17 @@ void main_event_loop(void)
     if (GF_ISSET(GF_MEASUREMENT_FINISHED)) {
       pstate = firmware_handle_measurement_finished(pstate);
       GF_CLEAR(GF_MEASUREMENT_FINISHED);
-    } else if (!switch_is_inactive) {
-      pstate = firmware_handle_switch_pressed(pstate);
-    } else if (bit_is_set(UCSR0A, RXC0)) {
+      continue;
+    }
 
-      /* A byte arrived via UART, so fetch it */
+    /* check whether (debounced) key is being pressed */
+    if (!switch_is_inactive) {
+      pstate = firmware_handle_switch_pressed(pstate);
+      continue;
+    }
+
+    /* check whether a byte has arrived via UART */
+    if (bit_is_set(UCSR0A, RXC0)) {
       const char ch = uart_getc();
       const uint8_t byte = (uint8_t)ch;
 
@@ -631,6 +637,8 @@ void main_event_loop(void)
 
     skip_errors:
       fstate = next_fstate;
+
+      continue;
     } /* character received on UART */
 
   } /* while (1) main event loop */

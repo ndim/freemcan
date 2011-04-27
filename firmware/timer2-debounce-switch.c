@@ -58,7 +58,8 @@
 
 /** Shift register width
  *
- * Must be the same as sizeof(switch_is_inactive)!
+ * Must be the same as the size of the #switch_is_inactive variable in
+ * bits!
  */
 #define SHIFT_REGISTER_WIDTH 16ULL
 
@@ -157,10 +158,17 @@ void timer2_init_and_start(void)
 }
 
 
-/** Stop timer2 instantly by turning off its clock */
+/** Stop timer2 instantly by turning off its clock, and set the switch
+ * flag to a final "switch is dead" value.
+ */
 void timer2_stop(void)
 {
   TCCR2B &= ~(_BV(CS22)|_BV(CS21)|_BV(CS20));
+  /** Setting #switch_is_inactive to a non-zero value here is very
+   * important, as the main loop will rely on #switch_is_inactive
+   * signalling no pressed switch.
+   */
+  switch_is_inactive = 0xdead;
 }
 
 

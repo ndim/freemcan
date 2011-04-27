@@ -457,12 +457,23 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
 /** @} */
 
 
-/** AVR firmware's main "loop" function
+/** AVR firmware's main event loop function
  *
- * Note that we create a "loop" by having the watchdog timer reset the
- * AVR device when one loop iteration is finished. This will cause the
- * system to start again with the hardware and software in the defined
- * default state.
+ * The main event loop detects all incoming events and dispatches them
+ * to the appropriate handler functions (firmware_handle_*).
+ *
+ * Incoming events are e.g. "button pressed", "incoming byte on
+ * USART", or "measurement finished".
+ *
+ * Note that eventually we are always forcing the system through a
+ * reset after a measurement has finished (by having the watchdog
+ * timer reset the AVR device). This ensures the device is in a
+ * well-defined default state when the next measurement is being set
+ * up.
+ *
+ * The main event loop function directly integrates the following FSM
+ * which parses the incoming bytes from the USART into command frames
+ * in order to save code size.
  *
  * \dot
  * digraph firmware_frame_fsm {
@@ -502,14 +513,14 @@ void main_event_loop(void)
   } frame_state_t;
   frame_state_t fstate = STF_MAGIC;
 
-  /** Index into magic/data */
+  /** Frame parser offset/index into magic/data */
   uint8_t idx = 0;
-  /** Stored data for current frame */
+  /** Frame parser cached data for current frame */
   uint8_t cmd = 0;
-  /** Stored data for current frame */
+  /** Frame parser cached data for current frame */
   uint8_t len = 0;
 
-  /* Packet FSM State */
+  /* Firmware FSM State */
   firmware_state_t pstate = STP_READY;
 
   /* Globally enable interrupts */

@@ -188,6 +188,10 @@ uint16_t switch_is_inactive = 0xffff;
 /** Debounce input switch at PB0
  *
  * This should be called with a frequency of about TIMER2_ISR_HZ.
+ *
+ * The generated AVR machine code takes 51 cycles + ISR entry + ISR
+ * return aka 59 cycles total. This means that at 20MHz, of every
+ * second, we spend about (1s/20E6)*1024*59 = 3.0ms in this ISR.
  */
 ISR(TIMER2_COMPA_vect)
 {
@@ -197,6 +201,56 @@ ISR(TIMER2_COMPA_vect)
    */
   switch_is_inactive = (switch_is_inactive << 1) | bit_is_set(PINB, PB0);
 }
+
+
+/* The assembly version of ISR(TIMER2_COMPA_vect) below takes 29
+ * cycles + ISR entry + ISR return aka 37 cycles total. This means
+ * that every second at 20MHz, we would spend about (1s/20E6)*1024*37
+ * = 1.9ms in this ISR.
+ *
+ * That is 22 cycles less than the C ISR, we could save 1.1ms
+ * every. That might only start to make sense for pulse counting rates
+ * on the order of >> 100/s or >> 6000/min. The GM tube only has about
+ * 1/s, though... so this is very hypothetical.
+ *
+ * That is not much of a difference, so keeping on using the C ISR
+ * makes sense.
+ *
+ * #include <avr/io.h>
+ * #include <avr/interrupt.h>
+ *
+ * .global TIMER2_COMPA_vect
+ *         .type TIMER2_COMPA_vect, @function
+ * TIMER2_COMPA_vect:
+ *
+ *         ; PUSH: 8CLK
+ *         push  r24                       ; 2CLK
+ *         push  r25                       ; 2CLK
+ *         in    r24, __SREG__             ; 2CLK
+ *         push  r24                       ; 2CLK
+ *
+ *         ; shift register: 13CLK
+ *         lds   r24, switch_is_inactive   ; 2CLK
+ *         lds   r25, switch_is_inactive+1 ; 2CLK
+ *         clc   ; clear carry flag        ; 1CLK
+ *         ; 'sbic' = Skip 'sec' if Bit in IO register is Cleared (i.e. PB0)
+ *         sbic  _SFR_IO_ADDR(PINB), 0     ; 2 CLK from here until after 'sec'
+ *         sec   ; set carry flag
+ *         rol   r24                       ; 1CLK rotate through carry
+ *         rol   r25                       ; 1CLK rotate through carry
+ *         sts   switch_is_inactive, r24   ; 2CLK
+ *         sts   switch_is_inactive+1, r25 ; 2CLK
+ *
+ *         ; POP: 8CLK
+ *         pop   r24                       ; 2CLK
+ *         out   __SREG__, r24             ; 2CLK
+ *         pop   r25                       ; 2CLK
+ *         pop   r24                       ; 2CLK
+ *
+ *         reti
+ *         .size TIMER2_COMPA_vect, . - TIMER2_COMPA_vect
+ *
+ */
 
 
 /** @} */

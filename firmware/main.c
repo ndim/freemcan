@@ -292,7 +292,7 @@ firmware_state_t firmware_handle_switch_pressed(const firmware_state_t pstate)
   case STP_READY:
     params_copy_from_eeprom_to_sram();
     const uint8_t length = pparam_sram.length;
-    if ((length == 0xff) || length > sizeof(pparam_sram.params)) {
+    if ((length == 0xff) || (length > sizeof(pparam_sram.params))) {
       send_text_P(PSTR_INVALID_EEPROM_DATA);
       send_state_P(PSTR_READY);
       return STP_READY;

@@ -294,7 +294,8 @@ void device_do_io(device_t *self)
       fmlog("<Received %d bytes from device at fd %d", read_bytes, fd);
       fmlog_data("<<", buf, read_bytes);
     }
-    frame_parser_bytes(self->frame_parser, buf, read_bytes);
+    frame_parser_handle_bytes(self->frame_parser,
+                              buf, read_bytes);
 }
 
 

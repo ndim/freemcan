@@ -274,8 +274,8 @@ bool enable_layer1_dump = false;
 
 
 /* documented in freemcan-frame.h */
-void frame_parser_bytes(frame_parser_t *self,
-                        const void *buf, const size_t size)
+void frame_parser_handle_bytes(frame_parser_t *self,
+                               const void *buf, const size_t size)
 {
   const char *cbuf = (const char *)buf;
   if (enable_layer1_dump) {

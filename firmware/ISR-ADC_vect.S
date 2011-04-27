@@ -53,6 +53,7 @@
  * to global.h before linking this ISR into the firmware image.
  */
 .global moo_ADC_vect
+	.type	moo_ADC_vect, @function
 moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 
 	/* save SREG */
@@ -118,6 +119,7 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	sbi	_SFR_IO_ADDR(EIFR), INTF0				/* 2 */
 
 	reti								/* 5 */
+	.size	moo_ADC_vect, . - moo_ADC_vect
 
 
 /* Total cycles:

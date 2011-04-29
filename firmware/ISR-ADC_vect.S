@@ -55,6 +55,8 @@
  * Also, DO re-introdurce the sreg_save definition and register reservation
  * to global.h before linking this ISR into the firmware image.
  */
+#define sreg_save r13
+
 .global moo_ADC_vect
 	.type	moo_ADC_vect, @function
 moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */

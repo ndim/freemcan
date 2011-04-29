@@ -44,6 +44,9 @@
 /* avr-gcc docs say that __zero_reg__ is always r1 */
 #define __zero_reg__ r1
 
+/* status register is always 0x3f */
+#define __SREG__ 0x3f
+
 .extern	table
 
 /* Rename to ADC_vect if you want to actually link this
@@ -57,7 +60,7 @@
 moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 
 	/* save SREG */
-	in	sreg_save, _SFR_IO_ADDR(SREG)				/* 1 */
+	in	sreg_save, __SREG__					/* 1 */
 
 	/* save pointer register */
 	push	tmpidx0							/* 2 */
@@ -113,7 +116,7 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	pop	tmpidx0							/* 2 */
 
 	/* restore SREG */
-	out	_SFR_IO_ADDR(SREG), sreg_save				/* 1 */
+	out	__SREG__, sreg_save					/* 1 */
 
 	/* Reset the interrupt flag: EIFR |= BIT(INTF0) */
 	sbi	_SFR_IO_ADDR(EIFR), INTF0				/* 2 */

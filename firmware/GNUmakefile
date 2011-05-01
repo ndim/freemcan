@@ -316,16 +316,6 @@ firmware-adc-int-timed-sampling.elf : .objs/perso-adc-int-log-timed-trig.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
-# Firmware personality: Geiger Counter without time series
-PERSONALITIES += geiger-counter
-firmware-geiger-counter.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-geiger-counter.elf : .objs/timer1-init-simple.o
-firmware-geiger-counter.elf : .objs/timer1-countdown-and-stop.o
-firmware-geiger-counter.elf : .objs/timer1-get-duration.o
-firmware-geiger-counter.elf : .objs/perso-geiger-counter.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
-
-# ======================================================================
 # Firmware personality: Geiger Counter with time series
 PERSONALITIES += geiger-ts
 firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x

@@ -315,7 +315,7 @@ firmware-adc-int-mca-timed.elf : .objs/perso-adc-int-mca-timed-trig.o
 	$(LINK.c) $^ $(LDLIBS) --output $@
 
 # ======================================================================
-# Firmware personality: MCA using internal ADC, timed trigger
+# Firmware personality: Sample recording using internal ADC, timed trigger
 PERSONALITIES += adc-int-timed-sampling
 firmware-adc-int-timed-sampling.elf : LDFLAGS += -T data-table-all-other-memory.x
 firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.x

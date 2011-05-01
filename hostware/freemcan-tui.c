@@ -705,6 +705,20 @@ static void packet_handler_value_table(packet_value_table_t *value_table_packet,
 /** @} */
 
 
+void tui_fmlog_command_line_help(const char *const argv0)
+{
+  const char *last_slash = strrchr(argv0, '/');
+  const char *prog = last_slash?(last_slash+1):(argv0);
+  fmlog("Usage: %s <SERIAL_PORT>", prog);
+  fmlog("       %s <option>", prog);
+  fmlog("Connect to and communicate with a FreeMCAn device connected to <SERIAL_PORT>.\n");
+  fmlog("Options:");
+  fmlog("   -h --help     Print help message and and exit");
+  fmlog("   -V --version  Print version message and exit\n");
+  tui_fmlog_help();
+}
+
+
 /** Init TUI main loop (select/poll independent)
  *
  * Parse command line parameters, etc.
@@ -713,15 +727,21 @@ const char *main_init(int argc, char *argv[])
 {
   assert(argv[0]);
   if (argc != 2) {
-    fmlog("Fatal: Wrong command line parameter count.\n"
-          "\n"
-          "Synopsis:\n"
-          "    %s <serial-port-device>\n",
-          argv[0]);
+    fmlog_error("Fatal: Wrong command line parameter count.");
+    tui_fmlog_command_line_help(argv[0]);
     abort();
   }
   assert(argc == 2);
   assert(argv[1]);
+
+  if ((0 == strcmp("-h", argv[1])) || (0 == strcmp("--help", argv[1]))) {
+    tui_fmlog_command_line_help(argv[0]);
+    exit(EXIT_SUCCESS);
+  } else if ((0 == strcmp("-V", argv[1])) || (0 == strcmp("--version", argv[1]))) {
+    fmlog("freemcan-tui " GIT_VERSION);
+    exit(EXIT_SUCCESS);
+  }
+
   assert(isatty(STDIN_FILENO));
   assert(isatty(STDOUT_FILENO));
 

@@ -62,6 +62,13 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   result->duration          = letoh16(_duration);
   size_t ofs = 0;
   const char *cdata = (const char *)data;
+
+  if (!personality_info) {
+    fmlog_error("We have not received a personality_info packet yet. Aborting.");
+    fmlog_error("Maybe the firmware interrupt load is too high so it drops "
+                "the command frames?");
+    abort();
+  }
   if (ofs+2 < param_buf_length && personality_info->param_data_size_timer_count) {
     const uint16_t _total_duration = *((const uint16_t *)&cdata[ofs]);
     assert(2 == personality_info->param_data_size_timer_count);

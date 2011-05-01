@@ -287,16 +287,6 @@ COMMON_X += check-data-stack-in-SRAM.x
 
 
 # ======================================================================
-# Firmware personality: MCA using external ADC
-PERSONALITIES += adc-ext-mca
-firmware-adc-ext-mca.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-adc-ext-mca.elf : .objs/timer1-init-simple.o
-firmware-adc-ext-mca.elf : .objs/timer1-countdown-and-stop.o
-firmware-adc-ext-mca.elf : .objs/timer1-get-duration.o
-firmware-adc-ext-mca.elf : .objs/perso-adc-ext-mca-ext-trig.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
-
-# ======================================================================
 # Firmware personality: MCA using internal ADC
 PERSONALITIES += adc-int-mca
 firmware-adc-int-mca.elf : $(COMMON_OBJ) $(COMMON_X)

@@ -69,6 +69,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
                 "the command frames?");
     abort();
   }
+
+  /* read total_duration parameter from packet if present */
   if (ofs+2 < param_buf_length && personality_info->param_data_size_timer_count) {
     const uint16_t _total_duration = *((const uint16_t *)&cdata[ofs]);
     assert(2 == personality_info->param_data_size_timer_count);
@@ -77,6 +79,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   } else {
     result->total_duration    = -1;
   }
+
+  /* read skip_samples parameter from packet if present */
   if (ofs+2 < param_buf_length && personality_info->param_data_size_skip_samples) {
     const uint16_t _skip_samples = *((const uint16_t *)&cdata[ofs]);
     assert(2 == personality_info->param_data_size_skip_samples);
@@ -85,6 +89,8 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   } else {
     result->skip_samples    = -1;
   }
+
+  /* read token from packet if present */
   result->token = NULL;
   if (ofs < param_buf_length) {
     const size_t token_size = param_buf_length-ofs;

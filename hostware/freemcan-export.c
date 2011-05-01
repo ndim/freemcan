@@ -80,11 +80,19 @@ const char *time_rfc_3339(const time_t time)
 /** Some statistical data for event counter time series */
 typedef struct {
   double counts;
-  double counts_error;
   double duration;
-  double avg_cpm;   /**< counts per minute */
-  double avg_cpm_error; /**< error in counts per minute */
-  double statistical_error;
+  /**< normalized count rate expectation [counts per minute]*/
+  double avg_cpm;
+  /**< error band (confidence interval) to a certain confidence level for the normalized count rate*/
+  double avg_cpm_error;
+  /**< error band (confidence interval) to a certain confidence level for the bare counts */
+  double counts_error;
+  /** estimated standard deviation/variance of the total count sample (statistical counting problem only) */
+  double deviation;
+  /**< specifies the error band (confidence interval) in +- k-multiples of the standard deviation */
+  double k;
+  /** confidence on which the error band was calculated */
+  double confidence;
 } statistics_t;
 
 
@@ -166,15 +174,73 @@ void time_series_stats(FILE *datfile, const char *prefix, const char *eol,
                        const statistics_t *s)
 {
   fprintf(datfile, "%sTotal statistics (so far)%s", prefix, eol);
+  fprintf(datfile, "%s  giving a %1.1f %% confidence level the true count rates are within: %s",
+          prefix, s->confidence, eol);
   fprintf(datfile, "%s  total duration:         %.1f seconds = %.2f minutes = %.4f hours%s",
           prefix, s->duration, s->duration/60.0, s->duration/3600.0, eol);
-  fprintf(datfile, "%s  total counts:           %.0f +- %1.2f counts (avg is within 1 sigma)%s",
+  fprintf(datfile, "%s  total counts:           %.0f +- %1.2f counts %s",
           prefix, s->counts, s->counts_error, eol);
-  fprintf(datfile, "%s  counts per minute:      %1.2f +- %1.2f cpm (avg is within 1 sigma)%s",
+  fprintf(datfile, "%s  counts per minute:      %1.2f +- %1.2f cpm %s",
           prefix, s->avg_cpm, s->avg_cpm_error, eol);
-  fprintf(datfile, "%s  statistical error:      %1.1f %%%s",
-          prefix, s->statistical_error, eol);
 }
+
+
+/** Counting Statistics (theoretical background)
+*
+* 1.) The observed count rate is the number of N counts observed
+* within one unit observation period.
+* 2.) The probability distribution is derived from the uncertainty/spread
+* of the observed count rates over unit observation periods. For a
+* distribution mean (the expectation or the true count rate)
+* N0>50 counts/period the sample counts can be assumed normally distributed
+* In case of a counting statistic one will find out the special result:
+* sample deviation s=sqrt(N0).
+* 3.) Knowing the cumulative normal distribution the probability of
+* observing a "N count sample" within a band N0 +/- k*s is
+* p(k)=erf(k/sqrt(2)).
+* 4.) Point 2. can be understood vice versa: For a true count rate N0 to
+* be within an error band or confidence interval N +/- k*s where N is the
+* observed count rate one can give a confidence level p(k)=erf(k/sqrt(2)).
+* Evaluation of the errorfunction gives:
+* k=1: 68.27%
+* k=2: 95.45%
+* k=3: 99.73%
+* For e.g. k=1 this means: In 68 measurements (from 100 taken) the true
+* doserate N0 is really within the band N observed samples +/- sqrt(N).
+* 5.) Normalizing gives a dose rate or normalized sample rate. Increasing
+* the amount of taken samples / increasing the measuring time the
+* error band for the dose rate at a fix confidence gets smaller. Averaging
+* an infinite amount of count rates (infinite sample mean) would give
+* the true dose rate.
+*
+* Examples:
+*
+* i.) From several sample measurements the total counts measured were
+* N=100000 cnts within a total observing time of 600 seconds.
+* Give the accuracy.
+* -> Normalizing gives N*=10000 cpm. Giving a 95% confidence the true
+* count rate N0 is within 10000 cpm +/- 63 cpm. [+/-2*sqrt(N)*(60/600)]
+*
+* ii.) A doserate shall be measured up to an accuracy of 1% within a
+* confidence of 68%.
+* -> The doserate (and its error) is proportional to the count rate
+* (and its error) within a certain observation period. A confidence of 68%
+* gives k=1 and therefore an error of +/- (sqrt(N)/N) which shall be equal to 1%.
+* The measurement must at least record N=10000 counts to give the required
+* accuracy and confidence.
+*
+* iii.) From 1000 taken samples we get a sample mean of 400 cnts/period.
+* Whats the probability to find one measurement with >500 cnts/period
+* within the whole measurement?
+* -> For answering this question the expectation N0 (true count rate) is
+* unknown. To give an estimate an appropiate estimator is N0=400cnts
+* and s=sqrt(400)=20cnts. We get 500cnts - 400cnts = 100 cnts which
+* is k=100/20=5 standard deviations. The probability to have an
+* observed count rate > 500 cnts in one period unit is
+* p=0.5*(1-erf(5/sqrt(2))). The probability to have it within 1000
+* measurements is 1000*p or 0.029%.
+*
+*/
 
 
 static
@@ -235,11 +301,16 @@ void export_time_series_vtable(FILE *datfile,
 
   statistics_t s;
   s.counts = total_count;
-  s.counts_error = sqrt(s.counts);
   s.duration = (double)(elapsed_time);
   s.avg_cpm = 60.0*s.counts/s.duration;
-  s.avg_cpm_error = s.avg_cpm*s.counts_error/s.counts;
-  s.statistical_error = 100.0 * s.avg_cpm_error / s.avg_cpm;
+  s.deviation = sqrt(s.counts);
+  /* k=1.0: 68.27% confidence
+*  * k=2.0: 95.45% confidence
+*  * k=3.0: 99.73% confidence */
+  s.k = 2.0;
+  s.confidence = 100*erf(s.k/sqrt(2));
+  s.counts_error = s.k*s.deviation;
+  s.avg_cpm_error = s.k*s.deviation*60.0/s.duration;
 
   time_series_stats(stdout,  "<    ", "\r\n", &s);
   if (datfile) {

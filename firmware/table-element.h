@@ -126,6 +126,22 @@ void table_element_inc(volatile freemcan_uint24_t *element)
                );
 }
 #else
+
+/** Zero 8bit, 16bit, or 32bit unsigned integer */
+inline static
+void table_element_zero(volatile table_element_t *dest)
+{
+  *dest = 0;
+}
+
+/** Copy 8bit, 16bit, or 32bit unsigned integer */
+inline static
+void table_element_copy(volatile table_element_t *dest,
+                        volatile table_element_t *source)
+{
+  *dest = *source;
+}
+
 /** Increment 8bit, 16bit, or 32bit unsigned integer */
 inline static
 void table_element_inc(volatile table_element_t *element)

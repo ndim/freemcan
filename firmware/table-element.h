@@ -152,7 +152,7 @@ uint8_t table_element_cmp_eq(volatile freemcan_uint24_t *element,
         "	eor	%[result],    %[result]\n"
 
         "	ldd	__tmp_reg__,  %a[elem]+2\n"
-        "	cpc	__tmp_reg__,  %C[valu]\n"
+        "	cp	__tmp_reg__,  %C[valu]\n"
 
         "	ldd	__tmp_reg__,  %a[elem]+1\n"
         "	cpc	__tmp_reg__,  %B[valu]\n"

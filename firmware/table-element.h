@@ -125,6 +125,55 @@ void table_element_inc(volatile freemcan_uint24_t *element)
                  /* : let compiler decide which regs to clobber via register var accu var */
                );
 }
+
+
+/** Compare table element to value for equality.
+ *
+ * \param element Pointer to the table element to compare.
+ * \param value   The value to compare the element against.
+ *
+ * Note that #value has a different type from #*element here, as the
+ * compiler would not know how to generate or pass such a
+ * freemcan_uint24_t value.
+ *
+ * Caveats: Ignores the upper 8bit of the uint32_t constant. Generates
+ * more instructions than strictly necessary. Clobbers more registers
+ * than strictly necessary. Generates a lot more instructions than
+ * strictly necessary if compiling to an immediate value.
+ */
+inline static
+uint8_t table_element_cmp_eq(volatile freemcan_uint24_t *element,
+                             const uint32_t value)
+{
+  uint8_t result_bool;
+  asm volatile(
+        "\n\t"
+	/* presume non-equal, i.e. false */
+        "	eor	%[result],    %[result]\n"
+
+        "	ldd	__tmp_reg__,  %a[elem]+2\n"
+        "	cpc	__tmp_reg__,  %C[valu]\n"
+
+        "	ldd	__tmp_reg__,  %a[elem]+1\n"
+        "	cpc	__tmp_reg__,  %B[valu]\n"
+
+        "	ld	__tmp_reg__,  %a[elem]\n"
+        "	cpc	__tmp_reg__,  %A[valu]\n"
+
+        "	brne	1f\n"
+        "	ldi	%[result],    1\n"
+        "1:\t\n"
+
+        : /* output operands */
+          [result] "=&r" (result_bool)
+        : /* input operands */
+          [elem] "b" (element),
+          [valu] "r" (value)
+               );
+  return result_bool;
+}
+
+
 #else
 
 /** Zero 8bit, 16bit, or 32bit unsigned integer */
@@ -148,6 +197,21 @@ void table_element_inc(volatile table_element_t *element)
 {
   (*element)++;
 }
+
+/** Compare table element to a value for equality.
+ *
+ * \param element Pointer to the table element
+ * \param value   Value to compare table element with.
+ *
+ * Note that #value has the same type as #*element here.
+ */
+inline static
+uint8_t table_element_cmp_eq(volatile table_element_t *element,
+                             const table_element_t value)
+{
+  return ((*element) == value);
+}
+
 #endif
 
 

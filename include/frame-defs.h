@@ -145,6 +145,17 @@
  *
  * Note: Must be 4 bytes long.
  * Note: Must not contain the same character twice.
+ *
+ * Do NOT reuse past magic strings. If you change the magic string,
+ * ALWAYS add the old one here. List of past magic strings sorted by
+ * ASCII string value:
+ *
+ *   - "FMPK"
+ *   - "FMPk"
+ *   - "FMpf"
+ *   - "FMpk"
+ *   - "FMpk"
+ *   - "FMpx"
  */
 #define FRAME_MAGIC_STR "FMpx"
 

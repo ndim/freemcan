@@ -309,8 +309,9 @@ void export_time_series_vtable(FILE *datfile,
   s.avg_cpm = 60.0*s.counts/s.duration;
   s.deviation = sqrt(s.counts);
   /* k=1.0: 68.27% confidence
-*  * k=2.0: 95.45% confidence
-*  * k=3.0: 99.73% confidence */
+   * k=2.0: 95.45% confidence
+   * k=3.0: 99.73% confidence
+   */
   s.k = 2.0;
   s.confidence = 100*erf(s.k/sqrt(2));
   s.counts_error = s.k*s.deviation;

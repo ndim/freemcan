@@ -184,7 +184,8 @@ void send_table(const packet_value_table_reason_t reason)
     duration,
     pparam_sram.length
   };
-  frame_start(FRAME_TYPE_VALUE_TABLE, sizeof(header) + pparam_sram.length + data_table_info.size);
+  frame_start(FRAME_TYPE_VALUE_TABLE,
+              sizeof(header) + pparam_sram.length + data_table_info.size);
   uart_putb((const void *)&header, sizeof(header));
   uart_putb((const void *)pparam_sram.params, pparam_sram.length);
   uart_putb((const void *)data_table, data_table_info.size);

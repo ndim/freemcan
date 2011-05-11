@@ -150,14 +150,15 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
         frame->size - sizeof(*header) - header->param_buf_length;
       assert(value_table_size > 0);
       const size_t element_count = value_table_size/header->element_size;
-      packet_value_table_t *vtab = packet_value_table_new(header->reason,
-                                                          header->type,
-                                                          time(NULL),
-                                                          header->element_size,
-                                                          element_count,
-                                                          header->duration,
-                                                          header->param_buf_length,
-                                                          &(frame->payload[sizeof(*header)]));
+      packet_value_table_t *vtab =
+        packet_value_table_new(header->reason,
+                               header->type,
+                               time(NULL),
+                               header->element_size,
+                               element_count,
+                               header->duration,
+                               header->param_buf_length,
+                               &(frame->payload[sizeof(*header)]));
       self->packet_handler_value_table(vtab, self->packet_handler_data);
       packet_value_table_unref(vtab);
     }

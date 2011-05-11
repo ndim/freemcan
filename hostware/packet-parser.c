@@ -146,9 +146,10 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
     if (self->packet_handler_value_table) {
       const packet_value_table_header_t *header =
         (const packet_value_table_header_t *)&(frame->payload[0]);
-      const size_t vtab_size = frame->size - sizeof(*header) - header->param_buf_length;
-      assert(vtab_size > 0);
-      const size_t element_count = vtab_size/header->element_size;
+      const size_t value_table_size =
+        frame->size - sizeof(*header) - header->param_buf_length;
+      assert(value_table_size > 0);
+      const size_t element_count = value_table_size/header->element_size;
       packet_value_table_t *vtab = packet_value_table_new(header->reason,
                                                           header->type,
                                                           time(NULL),

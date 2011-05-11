@@ -267,7 +267,9 @@ void export_time_series_vtable(FILE *datfile,
     switch (value_table_packet->reason) {
     case PACKET_VALUE_TABLE_DONE:
     case PACKET_VALUE_TABLE_RESEND:
-      min_value = v;
+      if (v < min_value) {
+        min_value = v;
+      }
       break;
     case PACKET_VALUE_TABLE_ABORTED:
     case PACKET_VALUE_TABLE_INTERMEDIATE:

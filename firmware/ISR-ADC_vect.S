@@ -28,7 +28,7 @@
 # error Unsupported MCU!
 #endif
 
-/** \bug Cause compile time error when ELEMENT_SIZE_IN_BYTES != 3. */
+/** \bug Cause compile time error when BITS_PER_VALUE != 24. */
 
 /* define register names in a single place */
 #define tmpcnt0 r24

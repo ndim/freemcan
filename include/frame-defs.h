@@ -157,7 +157,7 @@
  *   - "FMpk"
  *   - "FMpx"
  */
-#define FRAME_MAGIC_STR "FMpx"
+#define FRAME_MAGIC_STR "FMpX"
 
 
 /** Data frame types (data frame to host)

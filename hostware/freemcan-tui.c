@@ -648,13 +648,13 @@ static void packet_handler_personality_info(personality_info_t *pi,
 {
   fmlog("<PERSONALITY INFO: personality_name:\"%s\" units_per_second=%u",
         pi->personality_name, pi->units_per_second);
-  fmlog("<                  sizeof_table:%u sizeof_value:%u",
-        pi->sizeof_table, pi->sizeof_value);
+  fmlog("<                  sizeof_table:%u bits_per_value:%u",
+        pi->sizeof_table, pi->bits_per_value);
   fmlog("<                  sz(timer_count):%u sz(skip_samples):%u",
         pi->param_data_size_timer_count, pi->param_data_size_skip_samples);
-  fmlog("<                  %u elements of %ubits each",
+  fmlog("<                  %u elements of %u bits each",
 
-        pi->sizeof_table / pi->sizeof_value, 8*pi->sizeof_value);
+        8*pi->sizeof_table / pi->bits_per_value, pi->bits_per_value);
   if (personality_info) {
     personality_info_unref(personality_info);
   }

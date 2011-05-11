@@ -117,8 +117,8 @@ typedef enum {
  *   * native gcc-4.5.1 on i386
  */
 typedef struct {
-  /** value table element size in bytes (1,2,3,4) */
-  uint8_t  element_size;
+  /** value table element size in bits (8,16,24,32) */
+  uint8_t  bits_per_value;
   /** Reason for sending value table (#packet_value_table_reason_t cast to uint8_t) */
   uint8_t  reason;
   /** Type of value table (#packet_value_table_type_t cast to uint8_t) */
@@ -134,8 +134,8 @@ typedef struct {
 typedef struct {
   /** Maximum size of the complete table in byte */
   uint16_t sizeof_table;
-  /** Size of a single table value in byte */
-  uint16_t sizeof_value;
+  /** Size of a single table value in bits */
+  uint8_t bits_per_value;
   /** Time units per second */
   uint8_t units_per_second;
   /** Size of measurement command's parameter elements */

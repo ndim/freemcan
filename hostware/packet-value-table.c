@@ -49,7 +49,7 @@
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,
                                              const time_t receive_time,
-                                             const uint8_t element_size,
+                                             const uint8_t bits_per_value,
                                              const size_t element_count,
                                              const uint16_t _duration,
                                              const uint8_t param_buf_length,
@@ -64,7 +64,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
   result->type              = type;
   result->receive_time      = receive_time;
   result->element_count     = element_count;
-  result->orig_element_size = element_size;
+  result->orig_bits_per_value = bits_per_value;
   result->duration          = letoh16(_duration);
   size_t ofs = 0;
   const char *cdata = (const char *)data;
@@ -116,14 +116,14 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
 
   const uint8_t *e8  = elements;
 
-  switch (element_size) {
-  case 1:
+  switch (bits_per_value) {
+  case 8:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v = e8[i];
       result->elements[i] = v;
     }
     break;
-  case 2:
+  case 16:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
         (((uint32_t)e8[2*i+0]) << 0) +
@@ -131,7 +131,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
       result->elements[i] = v;
     }
     break;
-  case 3:
+  case 24:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
         (((uint32_t)e8[3*i+0]) << 0) +
@@ -140,7 +140,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
       result->elements[i] = v;
     }
     break;
-  case 4:
+  case 32:
     for (size_t i=0; i<element_count; i++) {
       const uint32_t v =
         (((uint32_t)e8[4*i+0]) << 0) +
@@ -151,6 +151,7 @@ packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t r
     }
     break;
   default:
+    fmlog("Fatal: Unhandled bits_per_value: %d\n", bits_per_value);
     abort(); /* invalid value table element size */
     break;
   }

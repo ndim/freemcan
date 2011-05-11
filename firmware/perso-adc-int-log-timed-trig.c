@@ -36,7 +36,7 @@
 
 
 /** Histogram element size */
-#define ELEMENT_SIZE_IN_BYTES 2
+#define BITS_PER_VALUE 16
 
 /** Make sure we use the sub 1 second timer resolution */
 #define TIMER1_SUB_1SEC
@@ -86,7 +86,7 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_SAMPLES,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES
+  BITS_PER_VALUE
 };
 
 
@@ -95,7 +95,7 @@ PERSONALITY("adc-int-timed-sampling",
             0,2,
             10,
             ((size_t)(&data_table_size)),
-            ELEMENT_SIZE_IN_BYTES);
+            BITS_PER_VALUE);
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */

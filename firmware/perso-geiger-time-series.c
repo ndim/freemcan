@@ -39,7 +39,7 @@
 
 
 /** Histogram element size */
-#define ELEMENT_SIZE_IN_BYTES 1
+#define BITS_PER_VALUE 8
 
 
 #include "compiler.h"
@@ -88,7 +88,7 @@ data_table_info_t data_table_info = {
   /** Type of value table we send */
   VALUE_TABLE_TYPE_TIME_SERIES,
   /** Table element size */
-  ELEMENT_SIZE_IN_BYTES
+  BITS_PER_VALUE
 };
 
 
@@ -97,7 +97,7 @@ PERSONALITY("geiger-time-series",
             2,0,
             1,
             ((size_t)(&data_table_size)),
-            ELEMENT_SIZE_IN_BYTES);
+            BITS_PER_VALUE);
 
 
 /** End of the table: Never write to *table_cur when (table_cur>=table_end)! */

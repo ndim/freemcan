@@ -140,9 +140,8 @@ void export_common_vtable(FILE *datfile,
     fprintf(datfile, "# receive_time:             %lu (%s)\n",
             receive_time, time_rfc_3339(receive_time));
 
-    const size_t orig_element_size = value_table_packet->orig_element_size;
-    fprintf(datfile, "# orig_element_size:        %d byte (%d bit)\n",
-            orig_element_size, 8*orig_element_size);
+    fprintf(datfile, "# orig_element_size:        %d bit\n",
+            value_table_packet->orig_bits_per_value);
   }
 }
 
@@ -292,7 +291,7 @@ void export_time_series_vtable(FILE *datfile,
 
     fprintf(datfile, "# measurements done:        %u\n", element_count);
     const size_t total_element_count =
-      (personality_info->sizeof_table / personality_info->sizeof_value);
+      (8 * personality_info->sizeof_table / personality_info->bits_per_value);
     const size_t elements_to_go = total_element_count - element_count;
     fprintf(datfile, "# measurements to do:       %u\n", elements_to_go);
     fprintf(datfile, "# space for measurements:   %u\n", total_element_count);

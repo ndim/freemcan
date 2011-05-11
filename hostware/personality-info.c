@@ -39,7 +39,7 @@
 
 /** \todo Why don't we do the endianness conversion here? */
 personality_info_t *personality_info_new(const uint16_t _sizeof_table,
-                                         const uint16_t _sizeof_value,
+                                         const uint8_t bits_per_value,
                                          const uint8_t units_per_second,
                                          const uint8_t param_data_size_timer_count,
                                          const uint8_t param_data_size_skip_samples,
@@ -53,7 +53,7 @@ personality_info_t *personality_info_new(const uint16_t _sizeof_table,
 
   result->refs         = 1;
   result->sizeof_table = letoh16(_sizeof_table);
-  result->sizeof_value = letoh16(_sizeof_value);
+  result->bits_per_value = bits_per_value;
   result->units_per_second = units_per_second;
   result->param_data_size_timer_count = param_data_size_timer_count;
   result->param_data_size_skip_samples = param_data_size_skip_samples;

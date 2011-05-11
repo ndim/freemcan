@@ -272,7 +272,8 @@ void export_time_series_vtable(FILE *datfile,
     case PACKET_VALUE_TABLE_ABORTED:
     case PACKET_VALUE_TABLE_INTERMEDIATE:
       /* possibly ignore the possibly incomplete value */
-      if ((i+1<element_count) || (value_table_packet->total_duration == value_table_packet->duration)) {
+      if ((i+1<element_count) ||
+          (value_table_packet->total_duration == value_table_packet->duration)) {
         if (v < min_value) {
           min_value = v;
         }

@@ -107,7 +107,7 @@
  *  <tr><td>1</td> <td>command</td> <td>#frame_cmd_t</td> <td>frame command</td></tr>
  *  <tr><td>1</td> <td>length</td> <td>uint8_t</td> <td>length of command parameters (0 or more)</td></tr>
  *  <tr><td><em>length</em></td> <td>params</td> <td>uint8_t []</td> <td>command parameters (or or more bytes)</td></tr>
- *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
+ *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over all bytes AFTER the magic value</td></tr>
  * </table>
  *
  * Some #frame_cmd_t commands require 0 parameter bytes, others
@@ -125,7 +125,7 @@
  *  <tr><td>2</td> <td>payload_size</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
  *  <tr><td>1</td> <td>frame_type</td> <td>#frame_type_t</td> <td>frame type</td></tr>
  *  <tr><td><em>payload_size</em></td> <td>payload</td> <td>uint8_t []</td> <td>payload data</td></tr>
- *  <tr><td>1</td> <td>checksum</td><td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
+ *  <tr><td>1</td> <td>checksum</td><td>uint8_t</td> <td>checksum over all bytes AFTERthe  magic value</td></tr>
  * </table>
  *
  * \todo Document checksum algorithm.
@@ -156,8 +156,10 @@
  *   - "FMpk"
  *   - "FMpk"
  *   - "FMpx"
+ *   - "FMpX"
+ *   - "FMpY"
  */
-#define FRAME_MAGIC_STR "FMpX"
+#define FRAME_MAGIC_STR "FMpY"
 
 
 /** Data frame types (data frame to host)

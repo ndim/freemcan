@@ -221,7 +221,6 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
     return;
   }
 
-  checksum_t *cs = checksum_new();
   uint8_t cmd8 = cmd;
   uint8_t len8 = 0;
   struct iovec out[4] = {
@@ -229,7 +228,8 @@ void device_send_command(device_t *self, const frame_cmd_t cmd)
     { &cmd8, 1 },
     { &len8, 1 }
   };
-  for (int i=0; i<3; i++) {
+  checksum_t *cs = checksum_new();
+  for (int i=1; i<3; i++) {
     checksum_update_iovec(cs, &out[i]);
   }
   uint8_t checksum = checksum_get(cs);
@@ -253,7 +253,6 @@ void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
     return;
   }
 
-  checksum_t *cs = checksum_new();
   uint8_t cmd8 = cmd;
   uint8_t len8 = param_size;
   struct iovec out[5] = {
@@ -262,7 +261,8 @@ void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
     { &len8, 1 },
     { params, param_size }
   };
-  for (int i=0; i<4; i++) {
+  checksum_t *cs = checksum_new();
+  for (int i=1; i<4; i++) {
     checksum_update_iovec(cs, &out[i]);
   }
   uint8_t checksum = checksum_get(cs);

@@ -542,11 +542,11 @@ void main_event_loop(void)
       switch (fstate) {
       case STF_MAGIC:
         if (byte == FRAME_MAGIC_STR[idx++]) {
-          uart_recv_checksum_update(byte);
           if (idx < 4) {
             next_fstate = STF_MAGIC;
           } else {
             next_fstate = STF_COMMAND;
+            uart_recv_checksum_reset();
           }
         } else {
           /* syncing, not an error */
@@ -623,7 +623,6 @@ void main_event_loop(void)
     restart:
       next_fstate = STF_MAGIC;
       idx = 0;
-      uart_recv_checksum_reset();
 
     skip_errors:
       fstate = next_fstate;

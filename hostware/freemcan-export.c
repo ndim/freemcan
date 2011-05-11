@@ -81,17 +81,21 @@ const char *time_rfc_3339(const time_t time)
 typedef struct {
   double counts;
   double duration;
-  /**< normalized count rate expectation [counts per minute]*/
+  /** Normalized count rate expectation [counts per minute] */
   double avg_cpm;
-  /**< error band (confidence interval) to a certain confidence level for the normalized count rate*/
+  /** Error band (confidence interval) to a certain confidence level
+   * for the normalized count rate. */
   double avg_cpm_error;
-  /**< error band (confidence interval) to a certain confidence level for the bare counts */
+  /** Error band (confidence interval) to a certain confidence level
+   * for the bare counts. */
   double counts_error;
-  /** estimated standard deviation/variance of the total count sample (statistical counting problem only) */
+  /** Estimated standard deviation/variance of the total count sample
+   * (statistical counting problem only). */
   double deviation;
-  /**< specifies the error band (confidence interval) in +- k-multiples of the standard deviation */
+  /** Specifies the error band (confidence interval) in +- k-multiples
+   * of the standard deviation */
   double k;
-  /** confidence on which the error band was calculated */
+  /** Confidence on which the error band was calculated */
   double confidence;
 } statistics_t;
 

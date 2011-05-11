@@ -39,7 +39,13 @@
 #include "personality-info.h"
 
 
-/** \todo Why don't we do the endianness conversion here? */
+/** Create new value table object in host conventions.
+ *
+ * Note that all multi-byte parameters which need endianness
+ * conversion have a underscore prefix ("_duration") to make it
+ * obvious that we should not use their values without doing
+ * endianness conversion.
+ */
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,
                                              const time_t receive_time,

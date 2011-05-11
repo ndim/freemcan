@@ -146,8 +146,6 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
     if (self->packet_handler_value_table) {
       const packet_value_table_header_t *header =
         (const packet_value_table_header_t *)&(frame->payload[0]);
-      /* We need to do endianness conversion on all multi-byte values
-       * in header, i.e. on header->duration. */
       const size_t vtab_size = frame->size - sizeof(*header) - header->param_buf_length;
       assert(vtab_size > 0);
       const size_t element_count = vtab_size/header->element_size;

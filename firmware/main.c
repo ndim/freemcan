@@ -100,8 +100,7 @@
 #include "timer1-get-duration.h"
 #include "main.h"
 #include "data-table.h"
-#include "timer2-debounce-switch.h"
-
+#include "switch.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -124,7 +123,6 @@ const char PSTR_READY[]     PROGMEM = "READY";
 
 /** Define static string in a single place */
 const char PSTR_RESET[]     PROGMEM = "RESET";
-
 
 /** Define AVR device fuses.
  *
@@ -230,7 +228,7 @@ void params_copy_from_eeprom_to_sram(void)
 
 void general_personality_start_measurement_sram(void)
 {
-  timer2_stop();
+  switch_lock();
   personality_start_measurement_sram();
 }
 
@@ -273,8 +271,8 @@ firmware_state_t firmware_handle_measurement_finished(const firmware_state_t pst
   case STP_MEASURING:
     /* end measurement */
     cli();
-    send_table(PACKET_VALUE_TABLE_DONE);
     on_measurement_finished();
+    send_table(PACKET_VALUE_TABLE_DONE);
     return STP_DONE;
     break;
   default:
@@ -412,8 +410,8 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
     case FRAME_CMD_ABORT:
       send_state_P(PSTR_DONE);
       cli();
-      send_table(PACKET_VALUE_TABLE_ABORTED);
       on_measurement_finished();
+      send_table(PACKET_VALUE_TABLE_ABORTED);
       send_state_P(PSTR_DONE);
       return STP_DONE;
       break;
@@ -527,8 +525,8 @@ void main_event_loop(void)
       continue;
     }
 
-    /* check whether (debounced) key is being pressed */
-    if (!switch_is_inactive) {
+    /* check whether a key event occured */
+    if (switch_trigger_measurement()) {
       pstate = firmware_handle_switch_pressed(pstate);
       continue;
     }

@@ -50,15 +50,12 @@
 #include "main.h"
 #include "table-element.h"
 #include "data-table.h"
-
+#include "beep.h"
 
 #ifndef F_CPU
 # error Need F_CPU defined for util/delay.h
 #endif
 #include <util/delay.h>
-
-
-#define DELAY_BEEP 200
 
 
 /** The table
@@ -142,53 +139,25 @@ void personality_io_init(void)
   __attribute__ ((section(".init5")));
 void personality_io_init(void)
 {
-  /** PD7 is Pollin Board speaker */
-  /* configure pin 21 as an output                               */
-  DDRD |= (_BV(DDD7));
-  /* set pin 21 to ground                                        */
-  PORTD &= ~_BV(PD7);
-
-  /** PD6 is Pollin Board LED2 */
   /* configure pin 20 as an output                               */
-  DDRD |= (_BV(DDD6));
-  /* set pin 20 to ground                                        */
-  PORTD &= ~_BV(PD6);
+  DDRD |= (_BV(DDD4));
+  PORTD &= ~_BV(PD4);
 }
 
 
 /** External INT0, i.e. count a GM event */
 ISR(INT0_vect)
 {
-  /** toggle output pin with LED */
-  PIND |= _BV(PD6);
-
-  PORTD |= _BV(PD7);
-  _delay_us(DELAY_BEEP);
-  PORTD &=~ _BV(PD7);
-  _delay_us(DELAY_BEEP);
-  PORTD |= _BV(PD7);
-  _delay_us(DELAY_BEEP);
-  PORTD &=~ _BV(PD7);
-  _delay_us(DELAY_BEEP);
-  PORTD |= _BV(PD7);
-  _delay_us(DELAY_BEEP);
-  PORTD &=~ _BV(PD7);
-
-  /* without delay (200ns BEEP_DELAY): 59.53  +/- 2.36 CPMs */
-  /* _delay_ms(1); 54.94  +/- 2.27 CPMs */
-  /* _delay_ms(2); 62.25  +/- 2.42 CPMs (average is within 1 sigma) */
-
-  _delay_ms(2);
-
+  /* activate loudspeaker */
+  _beep();
+  /* toggle output pin with LED */
+  PIND |= _BV(PD4);
 
   if (table_cur < table_end) {
     table_element_inc(table_cur);
   }
-
-
-  /* debounce any pending ints
-     - preller während schaltflanke
-     - mehrfachpulse durch alte zählrohre */
+  /* debounce any pending unwanted interrupts caused bouncing
+     during transition */
   EIFR |= _BV(INTF0);
 }
 
@@ -263,6 +232,7 @@ void trigger_src_conf(void)
 
 void on_measurement_finished(void)
 {
+  beep_kill_all();
   timer1_init_quick();
 }
 

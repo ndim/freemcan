@@ -1,7 +1,7 @@
-/** \file firmware/timer2-debounce-switch.h
- * \brief Debounce switch using timer2
+/** \file firmware/switch.h
+ * \brief Providing a hardware button switch to start a measurement
  *
- * \author Copyright (C) 2010 samplemaker
+ * \author Copyright (C) 2011 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,41 +19,17 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \addtogroup timer2_debounce_switch
+ * \addtogroup switch
  * @{
  */
 
 
-#ifndef TIMER2_DEBOUNCE_SWITCH
-#define TIMER2_DEBOUNCE_SWITCH
+#ifndef SWITCH_H
+#define SWITCH_H
+
+uint8_t switch_trigger_measurement(void);
+void switch_lock(void);
+
+#endif /* !SWITCH_H */
 
 
-#include <stdint.h>
-
-
-/** Flag showing whether the switch is activated or note.
- *
- * Interpret this as a boolean value:
- *   0x0000   - switch is active
- *   non-zero - switch is inactive
- *
- * We use this strange kind of logic for easier internal implementation.
- */
-extern uint16_t switch_is_inactive;
-
-
-void timer2_stop(void);
-
-
-#endif /* !TIMER2_DEBOUNCE_SWITCH */
-
-
-/** @} */
-
-
-/*
- * Local Variables:
- * c-basic-offset: 2
- * indent-tabs-mode: nil
- * End:
- */

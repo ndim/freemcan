@@ -1,5 +1,5 @@
 /** \file firmware/switch.c
- * \brief Providing a hardware button switch to start a measurement
+ * \brief Provide a hardware button switch to start a measurement
  *
  * \author Copyright (C) 2011 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

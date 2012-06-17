@@ -94,3 +94,8 @@ uint8_t switch_trigger_measurement(void){
 void switch_lock(void){
   the_switch_lock = SWITCH_LOCKED_OFF;
 }
+
+
+/**
+ * @}
+ */

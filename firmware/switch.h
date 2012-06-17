@@ -35,3 +35,6 @@ void switch_lock(void);
 #endif /* !SWITCH_H */
 
 
+/**
+ * @}
+ */

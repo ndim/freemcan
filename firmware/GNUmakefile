@@ -278,11 +278,11 @@ COMMON_OBJ += .objs/switch.o
 # Link time checks
 # LDFLAGS += -Wl,--verbose
 LDFLAGS += -Wl,--defsym=RAM_END=$(RAM_END)
-LDFLAGS += -Wl,--defsym=MIN_STACK_SIZE=$(MIN_STACK_SIZE)
+LDFLAGS += -Wl,--defsym=MAX_RUNTIME_STACK_SIZE=$(MAX_RUNTIME_STACK_SIZE)
 LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 
 # Check that (data+stack) fit into SRAM with a linker script ASSERT().
-# Requires RAM_END and MIN_STACK_SIZE to be --defsym'd.
+# Requires RAM_END and MAX_RUNTIME_STACK_SIZE to be --defsym'd.
 COMMON_X += check-data-stack-in-SRAM.x
 
 
@@ -402,11 +402,11 @@ RAM_END = 0x00801100
 # Size of memory area we reserve for malloc(3)
 MALLOC_HEAP_SIZE = 64
 
-# The minimum required stack size we want to have space for (i.e. the
-# maximum stack size that can appear at runtime). We just about assume
-# this value, but have a consistency check lower down in the form of
-# the check-min-stack-size-%.check target.
-MIN_STACK_SIZE = 256
+# The maximum expected stack size expected at runtime is the stack
+# size we want to be sure to have space for. We just estimate this
+# value, but we have a consistency check lower down in the form of the
+# check-min-stack-size-%.check target.
+MAX_RUNTIME_STACK_SIZE = 256
 
 # Check that the minimum stack size we want accomodated in a firmware
 # (used for other checks) is actually less than the number of push
@@ -421,8 +421,8 @@ check-min-stack-size-%.check: firmware-%.lss
 	ALL_CALL_INSTRUCTION_COUNT="$$(expr "$$CALL_INSTRUCTION_COUNT" + "$$RCALL_INSTRUCTION_COUNT")"; \
 	PUSH_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\spush\sr[0-9]+" $< | wc -l)"; \
 	TOTAL_COUNT="$$(expr "$$ALL_CALL_INSTRUCTION_COUNT" + "$$PUSH_INSTRUCTION_COUNT")"; \
-	echo "CHECK($*): PUSH_COUNT+2*CALL_COUNT=$$PUSH_INSTRUCTION_COUNT+2*$$ALL_CALL_INSTRUCTION_COUNT=$$TOTAL_COUNT <= MIN_STACK_SIZE=$(MIN_STACK_SIZE)"> $@; \
-	test "$$TOTAL_COUNT" -le "$(MIN_STACK_SIZE)" || { cat $@; exit 1; }
+	echo "CHECK($*): PUSH_COUNT+2*CALL_COUNT=$$PUSH_INSTRUCTION_COUNT+2*$$ALL_CALL_INSTRUCTION_COUNT=$$TOTAL_COUNT <= MAX_RUNTIME_STACK_SIZE=$(MAX_RUNTIME_STACK_SIZE)"> $@; \
+	test "$$TOTAL_COUNT" -le "$(MAX_RUNTIME_STACK_SIZE)" || { cat $@; exit 1; }
 
 check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
 	@cat $^ > $@

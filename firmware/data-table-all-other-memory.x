@@ -1,6 +1,29 @@
+/* Memory layout before this runs:
+ *
+ *     __heap_start:    mallocable heap, growing upwards
+ *
+ *     __heap_end:
+ *
+ *     RAM_END:         stack, growing downwards
+ *
+ * Memory layout after this runs:
+ *
+ *     data_table:      fixed size data table
+ *
+ *     data_table_end:
+ *     __heap_start:    mallocable heap, growing upwards
+ *
+ *     __heap_end:
+ *
+ *     RAM_END:         stack, growing downwards
+ *
+ * In both cases, neither malloc nor the stack pointer should go past
+ * __heap_end, otherwise you need to verify they never do that at the
+ * same time.
+ */
 SECTIONS {
   data_table = __heap_start ;
-  data_table_end = ( RAM_END - MIN_STACK_SIZE - MALLOC_HEAP_SIZE ) ;
+  data_table_end = ( RAM_END - MAX_RUNTIME_STACK_SIZE - MALLOC_HEAP_SIZE ) ;
   data_table_size = data_table_end - data_table ;
   data_table_size2 = data_table_size / 2 ;
   data_table_size3 = data_table_size / 3 ;
@@ -9,5 +32,5 @@ SECTIONS {
   __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
 }
 INSERT AFTER .noinit ;
-ASSERT ( ( __heap_end + MIN_STACK_SIZE ) <= RAM_END, "(data+stack+table) size is too large for SRAM") ;
+ASSERT ( ( __heap_end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+stack+table) size is too large for SRAM") ;
 ASSERT ( data_table_size >= 1024, "data table size is smaller than 1K" ) ;

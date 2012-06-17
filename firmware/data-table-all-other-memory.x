@@ -25,9 +25,11 @@ SECTIONS {
   data_table = __heap_start ;
   data_table_end = ( RAM_END - MAX_RUNTIME_STACK_SIZE - MALLOC_HEAP_SIZE ) ;
   data_table_size = data_table_end - data_table ;
-  data_table_size2 = data_table_size / 2 ;
-  data_table_size3 = data_table_size / 3 ;
-  data_table_size4 = data_table_size / 4 ;
+  /* Unused definitions for table size in different units
+   * data_table_size_by_2 = data_table_size / 2 ;
+   * data_table_size_by_3 = data_table_size / 3 ;
+   * data_table_size_by_4 = data_table_size / 4 ;
+   */
   __heap_start = data_table_end ;
   __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
 }

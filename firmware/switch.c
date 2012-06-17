@@ -24,17 +24,20 @@
  * \defgroup switch
  * \ingroup firmware_personality_groups
  *
+ * The idea here is to make switch use a one-off thing: Once the user
+ * has pressed the button, eventually switch_lock() is called and the
+ * switch then permanently disabled (in switch OFF state) afterwards.
  *
+ * This avoids the need to debounce the switch, as it is only used
+ * once and we can use the first bounce for that. The next use of the
+ * switch will only happen after a reboot, and thus a long time away,
+ * and debouncing stops being an issue.
  *
  * @{
  */
 
 #include <avr/io.h>
 
-#define SWITCH_LOCKED     0x01
-#define SWITCH_UNPRESSED  0x00
-
-uint8_t switch_state = SWITCH_UNPRESSED;
 
 /** Initialize peripherals necessary for "start measurement hardware button"
  *
@@ -50,6 +53,21 @@ void switch_init(void)
   PORTB |= _BV(PB2);
 }
 
+
+/** Type def for whether the switch is locked in OFF state */
+typedef enum {
+  SWITCH_UNLOCKED,
+  SWITCH_LOCKED_OFF
+} switch_lock_t;
+
+
+/** Whether the switch is locked in OFF state.
+ *
+ * Stored as a single uint8_t value by avr-gcc.
+ */
+static switch_lock_t the_switch_lock = SWITCH_UNLOCKED;
+
+
 /** Acquire "start of measurement command by hardware button"
  *
  *  Function returns always 0 if the switch was locked by
@@ -57,13 +75,14 @@ void switch_init(void)
  *  status.
  */
 uint8_t switch_trigger_measurement(void){
-  if (switch_state == SWITCH_LOCKED){
-      return (0);
-  }
-  else {
-      return (bit_is_clear(PINB, PB2));
+  switch (the_switch_lock) {
+  case SWITCH_UNLOCKED:
+    return (bit_is_clear(PINB, PB2));
+  default:
+    return 0;
   }
 }
+
 
 /** Lock switch
  *
@@ -71,5 +90,5 @@ uint8_t switch_trigger_measurement(void){
  *  ever again except by power on reset or WDT reset
  */
 void switch_lock(void){
-  switch_state = SWITCH_LOCKED;
+  the_switch_lock = SWITCH_LOCKED_OFF;
 }

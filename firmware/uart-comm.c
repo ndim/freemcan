@@ -36,6 +36,7 @@
 
 #include "uart-defs.h"
 #include "checksum.h"
+#include "init-functions.h"
 
 
 /* We want to avoid switching to double speed mode as long as
@@ -92,10 +93,7 @@ static checksum_accu_t cs_accu_recv;
 /** USART0 initialisation to 8 databits no parity
  *
  */
-void uart_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void uart_init(void)
+INIT_FUNCTION(init5, uart_init)
 {
   /* set baud rate */
 

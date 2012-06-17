@@ -35,6 +35,7 @@
  */
 
 #include "switch.h"
+#include "init-functions.h"
 
 #include <avr/io.h>
 
@@ -42,10 +43,7 @@
 /** Initialize peripherals necessary for "start measurement hardware button"
  *
  */
-void switch_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void switch_init(void)
+INIT_FUNCTION(init5, switch_init)
 {
   DDRB &= ~_BV(DDB2);
   /* enable pull up in order to prevent activating a measurement

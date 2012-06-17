@@ -47,6 +47,7 @@
 #include "data-table.h"
 
 #include "timer1-measurement.h"
+#include "init-functions.h"
 
 
 /** Number of elements in the histogram table */
@@ -88,10 +89,7 @@ PERSONALITY("adc-int-mca",
  *
  * Configure peak hold capacitor reset pin.
  */
-void personality_io_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void personality_io_init(void)
+INIT_FUNCTION(init5, personality_io_init)
 {
     /* configure pin 20 as an output                               */
     DDRD |= (_BV(DDD6));

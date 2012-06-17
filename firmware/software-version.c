@@ -34,15 +34,14 @@
 
 #include "packet-comm.h"
 #include "git-version.h"
+#include "init-functions.h"
 
 
-void software_version_send(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void software_version_send(void)
+INIT_FUNCTION(init8, software_version_send)
 {
   send_text_P(PSTR("freemcan " GIT_VERSION));
 }
+
 
 /** @} */
 

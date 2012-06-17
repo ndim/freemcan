@@ -29,6 +29,7 @@
 
 
 #include "data-table.h"
+#include "init-functions.h"
 #include "timer1-constants.h"
 #include "timer1-measurement.h"
 
@@ -41,10 +42,7 @@
 
 
 /** Set up our IO pins */
-void timer1_simple_io_init(void)
-  __attribute__((naked))
-  __attribute__((section(".init5")));
-void timer1_simple_io_init(void)
+INIT_FUNCTION(init5, timer1_simple_io_init)
 {
   /* Configure "measurement in progress LED"                      */
   /* configure ATmega644 pin 19 as an output */

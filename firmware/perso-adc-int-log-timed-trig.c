@@ -50,6 +50,7 @@
 #include "timer1-adc-trigger.h"
 #include "timer1-constants.h"
 #include "main.h"
+#include "init-functions.h"
 
 
 /* forward declaration */
@@ -111,10 +112,7 @@ volatile table_element_t *volatile table_cur = table;
  *
  * \bug (copied from geiger-time-series.c)
  */
-void data_table_print_status(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void data_table_print_status(void)
+INIT_FUNCTION(init8, data_table_print_status)
 {
 #ifdef VERBOSE_STARTUP_MESSAGES
   uprintf("<data_table_print_status>");

@@ -265,6 +265,7 @@ CLEANFILES += invented-histogram.bin
 
 # Define the common object files.
 # The object files specific to firmware personalities will not be listed here.
+COMMON_OBJ += .objs/init-functions.o
 COMMON_OBJ += .objs/main.o
 COMMON_OBJ += .objs/checksum.o
 COMMON_OBJ += .objs/uart-comm.o

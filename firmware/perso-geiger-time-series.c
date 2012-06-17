@@ -51,6 +51,7 @@
 #include "table-element.h"
 #include "data-table.h"
 #include "beep.h"
+#include "init-functions.h"
 
 #ifndef F_CPU
 # error Need F_CPU defined for util/delay.h
@@ -110,10 +111,7 @@ volatile table_element_t *volatile table_cur = table;
 
 
 /** Print some status messages for debugging */
-void data_table_print_status(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init8")));
-void data_table_print_status(void)
+INIT_FUNCTION(init8, data_table_print_status)
 {
 #ifdef VERBOSE_STARTUP_MESSAGES
   uprintf("<data_table_print_status>");
@@ -134,10 +132,7 @@ void data_table_print_status(void)
  *
  * Set up output pins to Pollin Eval Board speaker and LED2.
  */
-void personality_io_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void personality_io_init(void)
+INIT_FUNCTION(init5, personality_io_init)
 {
   /* configure pin 20 as an output                               */
   DDRD |= (_BV(DDD4));

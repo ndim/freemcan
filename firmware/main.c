@@ -101,6 +101,7 @@
 #include "main.h"
 #include "data-table.h"
 #include "switch.h"
+#include "init-functions.h"
 
 /* Only try compiling for supported MCU types */
 #if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__)
@@ -138,10 +139,7 @@ FUSES = {
 
 
 /** Configure unused pins */
-void main_io_init_unused_pins(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void main_io_init_unused_pins(void)
+INIT_FUNCTION(init5, main_io_init_unused_pins)
 {
   /** \todo configure unused pins */
 }

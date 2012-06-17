@@ -32,13 +32,11 @@
 
 #include "global.h"
 #include "beep.h"
+#include "init-functions.h"
 
 
 /** Configure used pins */
-void beep_io_init_used_pins(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void beep_io_init_used_pins(void)
+INIT_FUNCTION(init5, beep_io_init_used_pins)
 {
   /* configure pin 21 as an output                               */
   DDRD |= _BV(DDD7);
@@ -49,10 +47,7 @@ void beep_io_init_used_pins(void)
 
 /** Set up timer2 for wave generator and timer0 for gating signal
  */
-void beep_init_and_start(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init7")));
-void beep_init_and_start(void)
+INIT_FUNCTION(init7, beep_init_and_start)
 {
   /** configure square wave generator (timer2)
    */

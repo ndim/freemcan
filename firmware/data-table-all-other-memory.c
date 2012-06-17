@@ -31,6 +31,9 @@
  */
 
 
+#include "init-functions.h"
+
+
 /* import the symbols in data type inspecific way */
 extern volatile char data_table[];
 extern volatile char data_table_end[];
@@ -38,10 +41,7 @@ extern volatile char data_table[];
 
 
 /** Setup, needs to be called once on startup */
-void data_table_init(void)
-  __attribute__ ((naked))
-  __attribute__ ((section(".init5")));
-void data_table_init(void)
+INIT_FUNCTION(init5, data_table_init)
 {
   /** As the table is outside of the memory area with the normal data,
    * its content will NOT be cleared by the default avr-libc startup

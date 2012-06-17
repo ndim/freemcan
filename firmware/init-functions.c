@@ -1,7 +1,7 @@
-/** \file firmware/wdt-softreset.c
- * \brief Reset the AVR processor via the watchdog timer
+/** \file firmware/init-functions.c
+ * \brief Init functions run at system startup before main()
  *
- * \author Copyright (C) 2010 samplemaker
+ * \author Copyright (C) 2011 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,36 +19,32 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup wdt_softreset AVR Reset via watchdog timer
+ * \defgroup init_functions Initialization Functions (before main())
  * \ingroup firmware_generic
  *
- * Reset the AVR processor via the watchdog timer.
+ * The idea here is to provide a mechanism for generic initialization
+ * code to be run at startup before main() actually runs.
+ *
+ * On Atmega processors, we can just place the code into the startup
+ * code via the .initN sections.
+ *
+ * On other architectures, this may work by placing pointers to the
+ * functions into a special section and then iterating over those
+ * function pointers (as the Linux kernel does, see
+ * http://www.embedded-bits.co.uk/2008/init-call-mechanism/ ).
  *
  * @{
  */
 
 
-#include "wdt-softreset.h"
 #include "init-functions.h"
 
 
-/** Disable watchdog on device reset.
- *
- * Newer AVRs do not disable the watchdog on reset, so we need to
- * disable it manually early in the startup sequence. "Newer" AVRs
- * include the 164P/324P/644P we are using.
- *
- * See http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_softreset
- */
-INIT_FUNCTION(init3, wdt_softreset_init)
-{
-  MCUSR = 0;
-  wdt_disable();
-  return;
-}
+/* No implementation code needed for AVR */
 
 
 /** @} */
+
 
 /*
  * Local Variables:

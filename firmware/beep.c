@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup beep loudspeaker function
+ * \defgroup beep Loudspeaker beep function
  * \ingroup firmware_generic
  *
  * Providing a "beep" loudspeaker function

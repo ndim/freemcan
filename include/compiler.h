@@ -41,16 +41,28 @@
 #define PACKED __attribute__ ((packed))
 
 
-/** Rename Unused Parameter */
+/** Rename Unused Parameter.
+ *
+ * A renamed parameter is not used accidentally.
+ */
 #define _UP(x) unused_p__ ## x
 
-/** Mark Unused Parameter */
+/** Mark Unused Parameter and rename it.
+ *
+ * A renamed parameter is not used accidentally.
+ */
 #define UP(x) _UP(x) __attribute__((unused))
 
-/** Rename Unused Variable */
+/** Rename Unused Variable.
+ *
+ * A renamed variable is not used accidentally.
+ */
 #define _UV(x) unused_v__ ## x
 
-/** Mark Unused Variable */
+/** Mark Unused Variable and rename it.
+ *
+ * A renamed variable is not used accidentally.
+ */
 #define UV(x) _UV(x) __attribute__((unused))
 
 

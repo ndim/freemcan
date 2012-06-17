@@ -1,5 +1,5 @@
 /** \file firmware/switch.h
- * \brief Providing a hardware button switch to start a measurement
+ * \brief Provide a hardware button switch to start a measurement
  *
  * \author Copyright (C) 2011 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -27,9 +27,20 @@
 #ifndef SWITCH_H
 #define SWITCH_H
 
+#include <stdint.h>
+
 uint8_t switch_trigger_measurement(void);
 void switch_lock(void);
 
 #endif /* !SWITCH_H */
 
 
+/** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

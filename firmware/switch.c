@@ -1,10 +1,8 @@
 /** \file firmware/switch.c
- * \brief Providing a hardware button switch to start a measurement
+ * \brief Provide a hardware button switch to start a measurement
  *
  * \author Copyright (C) 2011 samplemaker
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
- * \author Copyright (C) 1998, 1999, 2000, 2007, 2008, 2009 Free Software Foundation, Inc.
- *         (for the assembly code in ts_init() to clear data_table)
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -21,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup switch
+ * \defgroup switch Switch button to start a measurement
  * \ingroup firmware_personality_groups
  *
  * The idea here is to make switch use a one-off thing: Once the user
@@ -35,6 +33,8 @@
  *
  * @{
  */
+
+#include "switch.h"
 
 #include <avr/io.h>
 
@@ -92,3 +92,14 @@ uint8_t switch_trigger_measurement(void){
 void switch_lock(void){
   the_switch_lock = SWITCH_LOCKED_OFF;
 }
+
+
+/** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */

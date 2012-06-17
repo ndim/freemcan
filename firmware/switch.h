@@ -27,6 +27,8 @@
 #ifndef SWITCH_H
 #define SWITCH_H
 
+#include <stdint.h>
+
 uint8_t switch_trigger_measurement(void);
 void switch_lock(void);
 

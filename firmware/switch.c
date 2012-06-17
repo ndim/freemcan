@@ -36,6 +36,8 @@
  * @{
  */
 
+#include "switch.h"
+
 #include <avr/io.h>
 
 

@@ -64,14 +64,17 @@
   const uint8_t personality_name_length = sizeof(NAME)-1;           \
   const uint8_t personality_param_size = (PARAM_SIZE_TIMER1_COUNT+PARAM_SIZE_SKIP_SAMPLES)
 
-extern const char personality_name[] PROGMEM;
+/** PROGMEM!!! */
+extern const char personality_name[];
+/** Not PROGMEM */
 extern const uint8_t personality_name_length;
 
 extern const uint8_t personality_param_size;
 extern uint8_t personality_param_sram[];
 extern uint8_t personality_param_eeprom[] EEMEM;
 
-extern const packet_personality_info_t personality_info PROGMEM;
+/** PROGMEM!!! */
+extern const packet_personality_info_t personality_info;
 
 
 /** The data table as an opaque array of bytes

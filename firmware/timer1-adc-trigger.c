@@ -180,7 +180,7 @@ uint16_t get_duration(void)
 inline static
 void adc_init(void)
 {
-  uint16_t result;
+  uint16_t UV(result);
 
   ADMUX =
     /* select voltage reference: 0: external AREF Pin 32 as reference */
@@ -211,7 +211,7 @@ void adc_init(void)
   loop_until_bit_is_clear(ADCSRA, ADSC);
 
   /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
+  _UV(result) = ADCW;
 
   /* Enable AD conversion complete interrupt if I-Flag in sreg is set
    * (-> ADC interrupt enable) */

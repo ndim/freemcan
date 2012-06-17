@@ -33,7 +33,7 @@
 #include "frame-comm.h"
 
 
-char magic_header[4] PROGMEM = FRAME_MAGIC_STR;
+const char magic_header[4] PROGMEM = FRAME_MAGIC_STR;
 
 
 /** Start a data frame */

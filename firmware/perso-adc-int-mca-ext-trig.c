@@ -193,7 +193,7 @@ void adc_int_trigger_src_conf(void)
 inline static
 void adc_int_init(void)
 {
-  uint16_t result;
+  uint16_t UV(result);
 
   /* channel number: PIN 40 ADC0 -> ADMUX=0 */
   ADMUX = 0;
@@ -225,7 +225,7 @@ void adc_int_init(void)
    */
 
   /* clear returned AD value, other next conversion value is not ovrtaken */
-  result = ADCW;
+  _UV(result) = ADCW;
 
   /* Enable AD conversion complete interrupt if I-Flag in sreg is set
    * (-> ADC interrupt enable) */

@@ -19,7 +19,7 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
- * \defgroup switch
+ * \defgroup switch Switch button to start a measurement
  * \ingroup firmware_personality_groups
  *
  * The idea here is to make switch use a one-off thing: Once the user
@@ -94,6 +94,12 @@ void switch_lock(void){
 }
 
 
-/**
- * @}
+/** @} */
+
+
+/*
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
  */

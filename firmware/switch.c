@@ -20,7 +20,7 @@
  *  Boston, MA 02110-1301 USA
  *
  * \defgroup switch Switch button to start a measurement
- * \ingroup firmware_personality_groups
+ * \ingroup firmware_generic
  *
  * The idea here is to make switch use a one-off thing: Once the user
  * has pressed the button, eventually switch_lock() is called and the

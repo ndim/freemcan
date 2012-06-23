@@ -30,9 +30,11 @@
 # The programmer type avrdude is to use for programming the AVR MCU.
 # Run "avrdude -c help" for a list of supported programmers.
 # AVRDUDE_PROGRAMMER = ponyser
+# AVRDUDE_PROGRAMMER = avrispmkII
 
 # The device/port avrdude is to use for programming the AVR MCU.
 # AVRDUDE_PORT = /dev/ttyS0
+# AVRDUDE_PORT = usb:<iSerial>
 
 # Abort compilation on warnings
 # CFLAGS += -Werror

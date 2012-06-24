@@ -34,6 +34,7 @@
 
 # The device/port avrdude is to use for programming the AVR MCU.
 # AVRDUDE_PORT = /dev/ttyS0
+# AVRDUDE_PORT = /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_DeadBeef-if00-port0
 # AVRDUDE_PORT = usb:<iSerial>
 
 # Abort compilation on warnings

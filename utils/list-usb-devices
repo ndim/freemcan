@@ -1,0 +1,187 @@
+#!/usr/bin/python
+#
+# List USB devices interesting for FreeMCAn users:
+#   * Atmel programmers
+#   * FTDI USB-to-RS232 adapters
+#
+# Also prints udev rules for the devices found.
+
+
+import os
+import re
+import sys
+
+
+def rstrip(s):
+    """Remove right space and other stupid chars from string"""
+    return s.rstrip().rstrip("\x00")
+
+
+class USBDevice(object):
+
+    def __init__(self, idVendor, idProduct,
+                 iManufacturer, iProduct, iSerialNumber, has_tty=False):
+        self.idVendor      = idVendor
+        self.idProduct     = idProduct
+        self.iManufacturer = iManufacturer
+        self.iProduct      = iProduct
+        self.iSerialNumber = iSerialNumber
+        self.has_tty       = has_tty
+
+    def __cmp__(self, other):
+        if isinstance(other, USBDevice):
+            ret = cmp(self.idVendor, other.idVendor)
+            if ret != 0: return ret
+            ret = cmp(self.idProduct, other.idProduct)
+            if ret != 0: return ret
+            ret = cmp(self.idSerialNumber, other.iSerialNumber)
+            if ret != 0: return ret
+            return super(USBDevice, self).__cmp__(other)
+        else:
+            return super(USBDevice, self).__cmp__(other)
+
+    def __str__(self):
+        return "USBDevice(idVendor=%s, idProduct=%s, iManufacturer=%s, iProduct=%s, iSerialNumber=%s)" % (self.idVendor, self.idProduct, repr(self.iManufacturer), repr(self.iProduct), repr(self.iSerialNumber))
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class PyUSBDevice(USBDevice):
+
+    def __init__(self, dev):
+        import usb.util
+        super(PyUSBDevice,self).__init__(
+            "%04x" % dev.idVendor,
+            "%04x" % dev.idProduct,
+            *[rstrip(usb.util.get_string(dev, 1024, getattr(dev, descr)))
+              for descr in ['iManufacturer', 'iProduct', 'iSerialNumber']])
+
+
+class LinuxUSBDevice(USBDevice):
+
+    def __init__(self, sysdev):
+        def sd_cat(name):
+            return rstrip(open(os.path.join(sysdev, name), 'r').read())
+        def sd_str(name):
+            try:
+                return rstrip(open(os.path.join(sysdev, name), 'r').read())
+            except IOError:
+                return None
+        super(LinuxUSBDevice, self).__init__(
+            sd_cat('idVendor'),
+            sd_cat('idProduct'),
+            sd_str('manufacturer'),
+            sd_str('product'),
+            sd_str('serial'))
+
+
+def set_has_tty(obj):
+    obj.has_tty = True
+    return obj
+
+
+def pyusb_get_usbdev_list():
+    import usb.core
+    atmel_list = usb.core.find(idVendor=0x03eb, find_all=True)
+    ftdi_list  = usb.core.find(idVendor=0x0403, find_all=True)
+    return ([ PyUSBDevice(dev)
+              for dev in atmel_list ] +
+            [ set_has_tty(PyUSBDevice(dev))
+              for dev in ftdi_list ])
+
+
+def linux_device(path, result):
+    result.append(LinuxUSBDevice(path))
+    fname = os.path.join(path, 'busnum')
+    if os.path.exists(fname):
+        busnum = rstrip(open(fname, 'r').read())
+        r = re.compile('^%s-\d+(\.\d+)*$' % busnum)
+        [ linux_device(os.path.join(path,d), result)
+          for d in os.listdir(path)
+          if r.match(d)]
+
+
+def linux_get_usbdev_list():
+    sd = '/sys/bus/usb/devices'
+    sysdev_list = [ os.path.join(sd,dn)
+                    for dn in os.listdir(sd)
+                    if dn.startswith('usb') ]
+    result = []
+    [ linux_device(sysdev, result)
+      for sysdev in sysdev_list ]
+    atmel_list = [ dev
+                   for dev in result
+                   if dev.idVendor == '03eb' ]
+    ftdi_list  = [ dev
+                   for dev in result
+                   if dev.idVendor == '0403' ]
+    return (atmel_list +
+            [ set_has_tty(dev)
+              for dev in ftdi_list ]
+            )
+
+
+def get_usbdev_list():
+    if os.path.isdir('/sys/bus/usb/devices'):
+        return linux_get_usbdev_list()
+    else:
+        return pyusb_get_usbdev_list()
+
+
+def write_udev_match(out, dev, actions=None):
+    if actions == None:
+        actions = [('GROUP', 'plugdev'),
+                   ('MODE',  '0664')]
+    def write_actions():
+        if actions:
+            first = True
+            for k,v in actions:
+                if first: first = False
+                else:     out.write(', ')
+                out.write('%s="%s"' % (k,v))
+
+    out.write('# %s %s (%s:%s %s)\n' % (
+            dev.iManufacturer, dev.iProduct,
+            dev.idVendor, dev.idProduct,
+            dev.iSerialNumber))
+
+    for k,v in [('SUBSYSTEM', 'usb'),
+                ('idVendor', dev.idVendor),
+                ('idProduct', dev.idProduct),
+                ('iSerialNumber', dev.iSerialNumber)]:
+        out.write('%s=="%s", ' % (k,v))
+    write_actions()
+    out.write('\n')
+
+    if dev.has_tty:
+        for k,v in [('SUBSYSTEM', 'tty'),
+                    ('SUBSYSTEMS', 'usb'),
+                    ('idVendor', dev.idVendor),
+                    ('idProduct', dev.idProduct),
+                    ('iSerialNumber', dev.iSerialNumber)]:
+            out.write('%s=="%s", ' % (k,v))
+        write_actions()
+        out.write('\n')
+
+
+def main():
+    print "List of interesting USB devices"
+    print
+    usbdev_list = get_usbdev_list()
+    if usbdev_list:
+        usbdev_list.sort()
+        for dev in usbdev_list:
+            print "  ", dev
+        print
+        print "Rules for Linux udev:"
+        print
+        for dev in usbdev_list:
+            write_udev_match(sys.stdout, dev)
+    else:
+        print "FATAL: Could not get a list of USB devices"
+        sys.exit(13)
+
+
+if __name__ == '__main__':
+    main()

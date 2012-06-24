@@ -371,7 +371,7 @@ firmware-%.fuses: firmware-%.elf
 compare-fuses-%: read-fuses-% firmware-%.fuses
 	@echo "New fuse values to be written to device:"; \
 	for f in lfuse hfuse efuse; do \
-		echo "    $$f=$$(cat "$*.$$f.txt")"; \
+		echo "    $$f=$$(cat "firmware-$*.$$f.txt")"; \
 	done
 
 program-fuses-%: firmware-%.fuses

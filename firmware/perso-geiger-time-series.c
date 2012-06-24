@@ -134,7 +134,7 @@ INIT_FUNCTION(init8, data_table_print_status)
  */
 INIT_FUNCTION(init5, personality_io_init)
 {
-  /* configure pin 20 as an output                               */
+  /* configure pin 18 as an output                               */
   DDRD |= (_BV(DDD4));
   PORTD &= ~_BV(PD4);
 }

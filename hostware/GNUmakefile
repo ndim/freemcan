@@ -20,6 +20,16 @@ LDLIBS += -lm
 
 include ../common.mk
 
+
+# Define local settings by defining them in settings.mk. For an example of
+# settings to define in settings.mk, see the settings.mk.sample
+# file.
+#
+# If you have not defined the required things in your local
+# settings.mk, the build will abort with an appropriate error message.
+-include settings.mk
+
+
 bin_PROGRAMS += freemcan-tui
 CLEANFILES   += freemcan-tui
 
@@ -34,6 +44,15 @@ CLEANFILES   += test-log
 
 .PHONY: all
 all: $(bin_PROGRAMS)
+
+.PHONY: run
+run: freemcan-tui
+	@if test "x$(SERIAL_PORT)" = "x"; then \
+		echo "Fatal: SERIAL_PORT not defined in file <settings.mk>"; \
+		echo "       Change that, or run freemcan-tui manually."; \
+		exit 2; \
+	fi
+	./freemcan-tui $(SERIAL_PORT)
 
 # Legacy target
 .PHONY: ALL

@@ -1,0 +1,5 @@
+# -*- makefile -*-
+
+# RS232 serial port the FreeMCAn hardware microcontroll is connected to
+# SERIAL_PORT = /dev/ttyS0
+# SERIAL_PORT = /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_DeadBeef-if00-port0

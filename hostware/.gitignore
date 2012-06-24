@@ -5,4 +5,5 @@
 /*.strace
 /freemcan-tui
 /freemcan-tui.log
+/settings.mk
 /test-log

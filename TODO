@@ -47,3 +47,6 @@ firmware: Generate build-time configuration information summaries on
           and then extract all ".configinfo.*" sections at build time
           to make them into config info reports (and avoid linking
           these sections into the actual firmware images).
+
+hostware: When reading params from EEProm, set local measurement timer
+	  settings accordingly.

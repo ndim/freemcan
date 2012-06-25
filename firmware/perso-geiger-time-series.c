@@ -136,6 +136,7 @@ INIT_FUNCTION(init5, personality_io_init)
 {
   /* configure pin 18 as an output                               */
   DDRD |= (_BV(DDD4));
+  /* Clear LED on PD4. Will be toggled when a GM event is detected. */
   PORTD &= ~_BV(PD4);
 }
 

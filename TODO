@@ -50,3 +50,6 @@ firmware: Generate build-time configuration information summaries on
 
 hostware: When reading params from EEProm, set local measurement timer
 	  settings accordingly.
+
+hostware: Print both firmware and hostware build revisions into
+	  packet dump files.

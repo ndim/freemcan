@@ -301,8 +301,15 @@ void export_time_series_vtable(FILE *datfile,
     fprintf(datfile, "# time for last meas'mt:    %u\n",
             value_table_packet->duration);
     const double time_to_go = elements_to_go * value_table_packet->total_duration;
-    fprintf(datfile, "# time to go:               %.1f seconds = %.2f minutes = %.4f hours\n",
-            time_to_go, time_to_go/60.0f, time_to_go/3600.0f);
+    fprintf(datfile, "# time to go:               "
+            "%.1f seconds = "
+            "%.2f minutes = "
+            "%.4f hours = "
+            "%.2f days\n",
+            time_to_go,
+            time_to_go/60.0f,
+            time_to_go/3600.0f,
+            time_to_go/86400.0f);
   }
 
   statistics_t s;

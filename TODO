@@ -53,3 +53,5 @@ hostware: When reading params from EEProm, set local measurement timer
 
 hostware: Print both firmware and hostware build revisions into
 	  packet dump files.
+
+hostware: Mark incomplete last line in exported time series files.

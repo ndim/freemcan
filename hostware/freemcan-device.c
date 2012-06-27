@@ -105,7 +105,8 @@ int device_get_fd(device_t *self)
 static
 int open_char_device(const char *device_name)
 {
-  fmlog("%s: opening character device %s", __PRETTY_FUNCTION__, device_name);
+  fmlog("%s: opening character device:", __PRETTY_FUNCTION__);
+  fmlog("    %s", device_name);
   int fd = serial_open(device_name);
   if (fd < 0) {
     return -1;

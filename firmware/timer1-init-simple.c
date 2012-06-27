@@ -47,6 +47,9 @@ INIT_FUNCTION(init5, timer1_simple_io_init)
   /* Configure "measurement in progress LED"                      */
   /* configure ATmega644 pin 19 as an output */
   DDRD |= (_BV(DDD5));
+  /* Light up LED on PD5. Will be periodically toggled with different
+   * blinking patterns during and after measurement. */
+  PORTD |= _BV(PD5);
 }
 
 

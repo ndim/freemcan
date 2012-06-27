@@ -552,8 +552,10 @@ void tui_do_io(void)
         break;
       case ' ':
         /** \todo Make this depend on the configured personality? */
-        fmlog("Hostware status: duration=%u clock cycles, skip_samples=%u, periodic_update_interval=%lu",
-              duration_list[duration_index], skip_samples, periodic_update_interval);
+        fmlog("Hostware status:");
+        fmlog("  duration=%u clock cycles", duration_list[duration_index]);
+        fmlog("  skip_samples=%u", skip_samples);
+        fmlog("  periodic_update_interval=%lu", periodic_update_interval);
         break;
       case FRAME_CMD_ABORT:
       case FRAME_CMD_RESET:

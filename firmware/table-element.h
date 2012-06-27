@@ -28,8 +28,8 @@
 #define TABLE_ELEMENT_H
 
 
-#ifndef ELEMENT_SIZE_IN_BYTES
-# error Error: You MUST define ELEMENT_SIZE_IN_BYTES before #include "table-element.h"!
+#ifndef BITS_PER_VALUE
+# error Error: You MUST define BITS_PER_VALUE before #include "table-element.h"!
 #endif
 
 
@@ -43,21 +43,21 @@ typedef uint8_t freemcan_uint24_t[3];
 
 /** Histogram element type */
 typedef
-#if (ELEMENT_SIZE_IN_BYTES == 1)
+#if (BITS_PER_VALUE == 8)
   uint8_t
-#elif (ELEMENT_SIZE_IN_BYTES == 2)
+#elif (BITS_PER_VALUE == 16)
   uint16_t
-#elif (ELEMENT_SIZE_IN_BYTES == 3)
+#elif (BITS_PER_VALUE == 24)
   freemcan_uint24_t
-#elif (ELEMENT_SIZE_IN_BYTES == 4)
+#elif (BITS_PER_VALUE == 32)
   uint32_t
 #else
-# error Unsupported ELEMENT_SIZE_IN_BYTES
+# error Unsupported BITS_PER_VALUE
 #endif
   table_element_t;
 
 
-#if (ELEMENT_SIZE_IN_BYTES == 3)
+#if (BITS_PER_VALUE == 24)
 /** Increment 24bit unsigned integer */
 inline static
 void table_element_zero(volatile freemcan_uint24_t *dest)

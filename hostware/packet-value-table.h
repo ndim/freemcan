@@ -48,7 +48,7 @@ typedef struct {
   size_t element_count;
 
   /** Size of each received value table element in bytes */
-  size_t orig_element_size;
+  size_t orig_bits_per_value;
 
   /** Duration of measurement which lead to the value table data, or
    * time spent recording the last item in the time series. */
@@ -96,7 +96,7 @@ typedef struct {
 packet_value_table_t *packet_value_table_new(const packet_value_table_reason_t reason,
                                              const packet_value_table_type_t type,
                                              const time_t receive_time,
-                                             const uint8_t element_size,
+                                             const uint8_t bits_per_value,
                                              const size_t element_count,
                                              const uint16_t _duration,
                                              const uint8_t param_buf_length,

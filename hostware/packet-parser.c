@@ -120,7 +120,7 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
       const size_t personality_name_size = frame->size - sizeof(*ppi);
       assert(personality_name_size > 0);
       personality_info_t *pi = personality_info_new(ppi->sizeof_table,
-                                                    ppi->sizeof_value,
+                                                    ppi->bits_per_value,
                                                     ppi->units_per_second,
                                                     ppi->param_data_size_timer_count,
                                                     ppi->param_data_size_skip_samples,
@@ -149,12 +149,12 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
       const size_t value_table_size =
         frame->size - sizeof(*header) - header->param_buf_length;
       assert(value_table_size > 0);
-      const size_t element_count = value_table_size/header->element_size;
+      const size_t element_count = 8*value_table_size/header->bits_per_value;
       packet_value_table_t *vtab =
         packet_value_table_new(header->reason,
                                header->type,
                                time(NULL),
-                               header->element_size,
+                               header->bits_per_value,
                                element_count,
                                header->duration,
                                header->param_buf_length,

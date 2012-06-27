@@ -34,7 +34,7 @@
 typedef struct {
   int refs;
   size_t sizeof_table;
-  size_t sizeof_value;
+  size_t bits_per_value;
   unsigned int units_per_second;
   size_t param_data_size_timer_count;
   size_t param_data_size_skip_samples;
@@ -45,7 +45,7 @@ typedef struct {
 /** Create (allocate and initialize) a new personality_info_t instance.
  */
 personality_info_t *personality_info_new(const uint16_t _sizeof_table,
-                                         const uint16_t _sizeof_value,
+                                         const uint8_t bits_per_value,
                                          const uint8_t units_per_second,
                                          const uint8_t param_data_size_timer_count,
                                          const uint8_t param_data_size_skip_samples,

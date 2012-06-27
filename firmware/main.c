@@ -174,7 +174,7 @@ void send_table(const packet_value_table_reason_t reason)
   const uint16_t duration = get_duration();
 
   packet_value_table_header_t header = {
-    data_table_info.element_size,
+    data_table_info.bits_per_value,
     reason,
     data_table_info.type,
     duration,

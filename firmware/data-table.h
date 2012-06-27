@@ -45,7 +45,7 @@
  *                         or 10 (for 0.1sec timer period).
  * \param MAX_BYTES_PER_TABLE Maximum size of data table in bytes
  *                            (in bytes to make use of compile time constants)
- * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bytes
+ * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bits
  */
 #define PERSONALITY(NAME,                                           \
                     PARAM_SIZE_TIMER1_COUNT,                        \
@@ -94,7 +94,7 @@ typedef struct {
   packet_value_table_type_t type;
 
   /** The size of a single table element */
-  uint8_t element_size;
+  uint8_t bits_per_value;
 } data_table_info_t;
 
 

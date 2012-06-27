@@ -320,30 +320,35 @@ tui_log_handler(void *data __attribute__ (( unused )),
 static
 void tui_fmlog_help(void)
 {
-  fmlog("Key         Action");
-  fmlog("q, Q, x, X  quit program (other keys: C-c, esc)");
-  fmlog("h, H, ?     show this help message");
-  fmlog("1           toggle hexdump of received layer 1 data (byte stream)");
-  fmlog("2           toggle hexdump of received layer 2 data (frames)");
-  fmlog("9           toggle dump of user input (typed characters)");
+  fmlog("Keys and Actions");
+  fmlog("  General");
+  fmlog("    q, Q, x, X  quit program (other keys: C-c, esc)");
+  fmlog("    h, H, ?     show this help message");
+  fmlog("  Debugging");
+  fmlog("    1           toggle hexdump of received layer 1 data (byte stream)");
+  fmlog("    2           toggle hexdump of received layer 2 data (frames)");
+  fmlog("    9           toggle dump of user input (typed characters)");
+  fmlog("  Local settings");
   if (personality_info) {
-    fmlog("+/-         increase/decrease measurement duration (%.3f seconds)",
+    fmlog("    +/-         increase/decrease measurement duration (%.3f seconds)",
           duration_list[duration_index]*(1.0f/((float)personality_info->units_per_second)));
   } else {
-    fmlog("+/-         increase/decrease measurement duration (%u clock periods)",
+    fmlog("    +/-         increase/decrease measurement duration (%u clock periods)",
           duration_list[duration_index]);
   }
-  fmlog("./,         increase/decrease number of samples to skip (%u)", skip_samples);
-  fmlog("<space>     print current hostware parameters that would be sent with 'e' or 'm'");
-  fmlog("a           send command \"(a)bort\"");
-  fmlog("e           write measurement parameters to (e)eprom");
-  fmlog("E           read measurement parameters from (e)eprom");
-  fmlog("f           request personality in(f)ormation");
-  fmlog("i           send command \"(i)ntermediate result\"");
-  fmlog("m           send command \"start (m)easurement\" with adequate parameters");
-  fmlog("p           toggle (p)eriodical requests of intermediate results");
-  fmlog("r           send command \"(r)eset\"");
-  fmlog("w           send command \"intermediate result\" and (w)rite data to file");
+  fmlog("    ./,         increase/decrease number of samples to skip (%u)", skip_samples);
+  fmlog("    <space>     print current hostware parameters that would be sent");
+  fmlog("                with 'e' or 'm'");
+  fmlog("    p           toggle (p)eriodical requests of intermediate results");
+  fmlog("  Send commands/requests:");
+  fmlog("    a           send command \"(a)bort\"");
+  fmlog("    e           write measurement parameters to (e)eprom");
+  fmlog("    E           read measurement parameters from (e)eprom");
+  fmlog("    f           request personality in(f)ormation");
+  fmlog("    i           send command \"(i)ntermediate result\"");
+  fmlog("    m           send command \"start (m)easurement\" with adequate parameters");
+  fmlog("    r           send command \"(r)eset\"");
+  fmlog("    w           send command \"intermediate result\" and (w)rite data to file");
 }
 
 

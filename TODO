@@ -55,3 +55,9 @@ hostware: Print both firmware and hostware build revisions into
 	  packet dump files.
 
 hostware: Mark incomplete last line in exported time series files.
+
+hostware: Why can't we query/set EEPROM during measurement?  Querying
+          EEPROM could set hostware status to what the FW is running
+          on, and setting EEPROM could write a calculated starting
+          time into EEPROM if the measurement was started by pressing
+          a button instead of by RS232 command.

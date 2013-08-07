@@ -22,7 +22,7 @@
  * same time.
  */
 SECTIONS {
-  data_table = __heap_start ;
+  data_table = __noinit_end ;
   data_table_end = ( RAM_END - MAX_RUNTIME_STACK_SIZE - MALLOC_HEAP_SIZE ) ;
   data_table_size = data_table_end - data_table ;
   /* Unused definitions for table size in different units
@@ -31,7 +31,9 @@ SECTIONS {
    * data_table_size_by_4 = data_table_size / 4 ;
    */
   __heap_start = data_table_end ;
+  _end = data_table_end ;
   __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
+
 }
 INSERT AFTER .noinit ;
 ASSERT ( ( __heap_end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+stack+table) size is too large for SRAM") ;

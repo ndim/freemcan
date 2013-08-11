@@ -279,7 +279,7 @@ void frame_parser_handle_bytes(frame_parser_t *self,
 {
   const char *cbuf = (const char *)buf;
   if (enable_layer1_dump) {
-    fmlog("<Received 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog("<Received 0x%04zx=%zd bytes of layer 1 data", size, size);
     fmlog_data("<<", buf, size);
   }
   for (size_t i=0; i<size; i++) {

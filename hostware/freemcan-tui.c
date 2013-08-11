@@ -445,7 +445,7 @@ void tui_send_parametrized_command(const bool do_measure)
                (personality_info->param_data_size_skip_samples == 0)) {
       tui_device_send_command_16(cmd, ts, last_sent_duration);
     } else {
-      fmlog("Invalid personality_info: timer_count:%u skip_samples:%u",
+      fmlog("Invalid personality_info: timer_count:%zu skip_samples:%zu",
             personality_info->param_data_size_timer_count,
             personality_info->param_data_size_skip_samples);
     }
@@ -470,7 +470,7 @@ void tui_do_io(void)
     assert(read_bytes == bytes_to_read);
     buf[bytes_to_read] = '\0';
     if (enable_user_input_dump) {
-      fmlog("<Received %d bytes from fd %d", read_bytes, STDIN_FILENO);
+      fmlog("<Received %zd bytes from fd %d", read_bytes, STDIN_FILENO);
       fmlog_data("<<", buf, read_bytes);
     }
     for (ssize_t i=0; i<read_bytes; i++) {
@@ -660,11 +660,11 @@ static void packet_handler_personality_info(personality_info_t *pi,
 {
   fmlog("<PERSONALITY INFO: personality_name:\"%s\" units_per_second=%u",
         pi->personality_name, pi->units_per_second);
-  fmlog("<                  sizeof_table:%u bits_per_value:%u",
+  fmlog("<                  sizeof_table:%zu bits_per_value:%zu",
         pi->sizeof_table, pi->bits_per_value);
-  fmlog("<                  sz(timer_count):%u sz(skip_samples):%u",
+  fmlog("<                  sz(timer_count):%zu sz(skip_samples):%zu",
         pi->param_data_size_timer_count, pi->param_data_size_skip_samples);
-  fmlog("<                  %u elements of %u bits each",
+  fmlog("<                  %zu elements of %zu bits each",
 
         8*pi->sizeof_table / pi->bits_per_value, pi->bits_per_value);
   if (personality_info) {

@@ -151,7 +151,7 @@ void fmlog_data(const char *prefix, const void *data, const size_t size)
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;
-    idx += sprintf(&(buf[idx]), "%04x ", y);
+    idx += sprintf(&(buf[idx]), "%04zx ", y);
     for (size_t x=0; x<16; x++) {
       const size_t i = x+y;
       if (i<size) {
@@ -180,7 +180,7 @@ void fmlog_data32(const char *prefix, const void *data, const size_t size)
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;
-    idx += sprintf(&(buf[idx]), "%04x ", y);
+    idx += sprintf(&(buf[idx]), "%04zx ", y);
     for (size_t x=0; x<16; x+=4) {
       const size_t i = x+y;
       if (i<size) {
@@ -201,7 +201,7 @@ void fmlog_data16(const char *prefix, const void *data, const size_t size)
   for (size_t y=0; y<size; y+=16) {
     char buf[80];
     ssize_t idx = 0;
-    idx += sprintf(&(buf[idx]), "%04x ", y);
+    idx += sprintf(&(buf[idx]), "%04zx ", y);
     for (size_t x=0; x<16; x+=2) {
       const size_t i = x+y;
       if (i<size) {
@@ -222,7 +222,7 @@ void fmlog_data24(const char *prefix, const void *data, const size_t size)
   for (size_t y=0; y<size; y+=24) {
     char buf[80];
     ssize_t idx = 0;
-    idx += sprintf(&(buf[idx]), "%04x ", y);
+    idx += sprintf(&(buf[idx]), "%04zx ", y);
     for (size_t x=0; x<24; x+=3) {
       const size_t i = x+y;
       if (i<size) {
@@ -270,7 +270,7 @@ void fmlog_value_table(const char *prefix, const uint32_t *elements, const size_
 
   for (size_t y=0; y<count; y+=perline) {
     char line[80] = "";
-    ssize_t idx = sprintf(&(line[0]), "%4u:", y);
+    ssize_t idx = sprintf(&(line[0]), "%4zu:", y);
     const int xmax = (y+perline<=count) ? (perline) : (count%perline);
     for (int x=0; x<xmax; x++) {
       if ((x&7) == 0) {

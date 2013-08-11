@@ -197,7 +197,7 @@ ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
       memcpy(&buf[ofs], iov[i].iov_base, iov[i].iov_len);
       ofs += iov[i].iov_len;
     }
-    fmlog(">Sending 0x%04x=%d bytes of layer 1 data", size, size);
+    fmlog(">Sending 0x%04zx=%zd bytes of layer 1 data", size, size);
     fmlog_data(">>", buf, size);
     free(buf);
   }
@@ -292,7 +292,7 @@ void device_do_io(device_t *self)
       /* Logging this by default becomes tedious quickly with larger
        * amounts of data, so we comment this out for now.
        */
-      fmlog("<Received %d bytes from device at fd %d", read_bytes, fd);
+      fmlog("<Received %zd bytes from device at fd %d", read_bytes, fd);
       fmlog_data("<<", buf, read_bytes);
     }
     frame_parser_handle_bytes(self->frame_parser,

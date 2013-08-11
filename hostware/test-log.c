@@ -37,7 +37,7 @@ static void test_fmlog_hist(void)
   assert(testarray);
   testarray[0] = 99;
   for (unsigned int i=0; i<(sizeof(numbers)/sizeof(numbers[0])); i++) {
-    fmlog("tess_fmlog_hist: %u elements", numbers[i]);
+    fmlog("tess_fmlog_hist: %zu elements", numbers[i]);
     fmlog_value_table("PREFIX ", testarray, numbers[i]);
   }
   fmlog("tess_fmlog_hist: Done.");

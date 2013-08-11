@@ -140,7 +140,7 @@ void export_common_vtable(FILE *datfile,
     fprintf(datfile, "# receive_time:             %lu (%s)\n",
             receive_time, time_rfc_3339(receive_time));
 
-    fprintf(datfile, "# orig_element_size:        %d bit\n",
+    fprintf(datfile, "# orig_element_size:        %zd bit\n",
             value_table_packet->orig_bits_per_value);
   }
 }
@@ -158,7 +158,7 @@ void export_histogram_vtable(FILE *datfile, const packet_value_table_t *value_ta
         max_value = v;
       }
       }
-    fprintf(datfile, "# element_count:            %d\n",
+    fprintf(datfile, "# element_count:            %zd\n",
             element_count);
     fprintf(datfile, "# time elapsed since start: %d\n",
             value_table_packet->duration);
@@ -166,7 +166,7 @@ void export_histogram_vtable(FILE *datfile, const packet_value_table_t *value_ta
             value_table_packet->total_duration);
     fprintf(datfile, "channel\tcount\n");
     for (size_t i=0; i<element_count; i++) {
-      fprintf(datfile, "%d\t%u\n", i, value_table_packet->elements[i]);
+      fprintf(datfile, "%zd\t%u\n", i, value_table_packet->elements[i]);
     }
   }
 }
@@ -289,12 +289,12 @@ void export_time_series_vtable(FILE *datfile,
     fprintf(datfile, "# minimum value:            %u\n", min_value);
     fprintf(datfile, "# maximum value:            %u\n", max_value);
 
-    fprintf(datfile, "# measurements done:        %u\n", element_count);
+    fprintf(datfile, "# measurements done:        %zu\n", element_count);
     const size_t total_element_count =
       (8 * personality_info->sizeof_table / personality_info->bits_per_value);
     const size_t elements_to_go = total_element_count - element_count;
-    fprintf(datfile, "# measurements to do:       %u\n", elements_to_go);
-    fprintf(datfile, "# space for measurements:   %u\n", total_element_count);
+    fprintf(datfile, "# measurements to do:       %zu\n", elements_to_go);
+    fprintf(datfile, "# space for measurements:   %zu\n", total_element_count);
 
     fprintf(datfile, "# time per measurement:     %u sec\n",
             value_table_packet->total_duration);
@@ -337,7 +337,7 @@ void export_time_series_vtable(FILE *datfile,
     for (size_t i=0; i<element_count; i++) {
       const time_t ts = start_time + i * tdur;
       const char *st = time_rfc_3339(ts);
-      fprintf(datfile, "%u\t%u\t%ld\t%s\n", i, value_table_packet->elements[i], ts, st);
+      fprintf(datfile, "%zu\t%u\t%ld\t%s\n", i, value_table_packet->elements[i], ts, st);
     }
   }
 }
@@ -364,7 +364,7 @@ void export_samples_vtable(FILE *datfile,
     fprintf(datfile, "# maximum value:            %u\n", max_value);
     for (size_t i=0; i<element_count; i++) {
       /** \todo Write timestamps */
-      fprintf(datfile, "%u\t%u\n", i, value_table_packet->elements[i]);
+      fprintf(datfile, "%zu\t%u\n", i, value_table_packet->elements[i]);
     }
   }
 }

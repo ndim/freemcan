@@ -1,5 +1,8 @@
 /* Memory layout before this runs:
  *
+ *     __noinit_end:    end of uninitialized data
+ *
+ *     _end:            end of whatever...
  *     __heap_start:    mallocable heap, growing upwards
  *
  *     __heap_end:
@@ -8,9 +11,11 @@
  *
  * Memory layout after this runs:
  *
+ *     __noinit_end:    end of unitialized data
  *     data_table:      fixed size data table
  *
  *     data_table_end:
+ *     _end:            end of whatever
  *     __heap_start:    mallocable heap, growing upwards
  *
  *     __heap_end:
@@ -30,8 +35,8 @@ SECTIONS {
    * data_table_size_by_3 = data_table_size / 3 ;
    * data_table_size_by_4 = data_table_size / 4 ;
    */
-  __heap_start = data_table_end ;
   _end = data_table_end ;
+  __heap_start = _end ;
   __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
 
 }

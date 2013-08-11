@@ -93,7 +93,8 @@ bool checksum_match(checksum_t *self, const uint8_t value)
 void checksum_write(checksum_t *self, const int fd)
 {
   const uint8_t checksum = (self->checksum_accu & 0xff);
-  write(fd, &checksum, sizeof(checksum));
+  const ssize_t sz = sizeof(checksum);
+  assert(sz == write(fd, &checksum, sz));
 }
 
 

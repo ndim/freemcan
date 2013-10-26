@@ -116,8 +116,13 @@ void table_element_inc(volatile freemcan_uint24_t *element)
                "std %a[elem]+2, __tmp_reg__\n\t"           /* 2 cycles */
 
                : /* output operands */
-                 /* let compiler decide which registers to clobber */
-                 [accu] "=&r" (accu)
+                 /* Let compiler decide which registers to
+                  * clobber. However, the adiw instruction only
+                  * works on r24:r25, r26:r27, r28:r29, r30:r31, so
+                  * &w is the appropriate letter for the clobber
+                  * accu.
+                  */
+                 [accu] "=&w" (accu)
 
                : /* input operands */
                  [elem] "b" (element)

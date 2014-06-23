@@ -148,7 +148,8 @@ void packet_parser_handle_frame(packet_parser_t *self, const frame_t *frame)
         (const packet_value_table_header_t *)&(frame->payload[0]);
       const size_t value_table_size =
         frame->size - sizeof(*header) - header->param_buf_length;
-      assert(value_table_size > 0);
+      /* Yes, a value_table_size of 0 is valid and must be properly
+       * handled further up. */
       const size_t element_count = 8*value_table_size/header->bits_per_value;
       packet_value_table_t *vtab =
         packet_value_table_new(header->reason,

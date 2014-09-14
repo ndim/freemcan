@@ -1,6 +1,5 @@
 /dox/
 /Doxyfile
-/README.html
 git-version.h
 data.*.dat
 hist.*.dat

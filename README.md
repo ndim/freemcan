@@ -1,94 +1,85 @@
-freemcan
-========
-
-.. contents::
+# freemcan
 
 
+## What is freemcan?
 
-What is freemcan?
------------------
 
 (FIXME) freemcan is stuff.
 
 
-Why the name?
-~~~~~~~~~~~~~
+### Why the name?
+
 
   * We wanted it to be Free Software.
+
   * MCA is the acronym for Multi Channel Analyzer which is the common
     term for the device.
+
   * "freemca" produced a few hits on Google. "freemcan" did not.
     Brand name collision wise, an unused word appeared to be the
     better choice.
 
 
 
-The Plan
-~~~~~~~~
+### The Plan
+
 
 (FIXME) No plan.
 
 
 
 
-Building
---------
+## Building
+
 
   $ make
 
 Installation is not supported at this time.
 
 
-Software Requirements
-~~~~~~~~~~~~~~~~~~~~~
+### Software Requirements
 
-  * GNU make_
-  * avr-gcc_ based AVR toolchain
-  * avr-binutils_ >= 2.19 (we use INSERT AFTER in linker scripts)
+
+  * [GNU make](http://www.gnu.org/software/make/)
+
+  * [avr-gcc](http://gcc.gnu.org/) based AVR toolchain
+
+  * [avr-binutils](http://sourceware.org/binutils/) >= 2.19 (we use INSERT AFTER in linker scripts)
+
   * POSIX/GNU/Linux/Unix host system
-  * gcc_ compiler for host system
 
-For building the internal code documentation (mostly of interest to
-hackers), you additionally need
+  * [gcc](http://gcc.gnu.org/) compiler for host system
 
-  * doxygen_
-  * graphviz_
+    For building the internal code documentation (mostly of interest
+    to hackers), you additionally need
 
-For creating the source lines of code (SLOC) summary, you additionally
-need
+  * [doxygen](http://www.stack.nl/~dimitri/doxygen/index.html)
 
-  * sloccount_
+  * [graphviz](http://www.graphviz.org/)
 
-.. _avr-gcc:   http://gcc.gnu.org/
-.. _avr-binutils: http://sourceware.org/binutils/
-.. _doxygen:   http://www.stack.nl/~dimitri/doxygen/index.html
-.. _gcc:       http://gcc.gnu.org/
-.. _graphviz:  http://www.graphviz.org/
-.. _make:      http://www.gnu.org/software/make/
-.. _sloccount: http://www.dwheeler.com/sloccount
+  * [sloccount](http://www.dwheeler.com/sloccount)
+
+    Optionally, for creating the source lines of code (SLOC) summary.
 
 
 
-Usage
------
+## Usage
+
 
 TBA.
 
 
 
-The License
------------
+## The License
 
 LGPLv2.1+
 
 
 
-Hacking
--------
+## Hacking
 
 
-Subdirectory Contents
-~~~~~~~~~~~~~~~~~~~~~
+### Subdirectory Contents
 
 
    firmware/
@@ -112,8 +103,7 @@ Subdirectory Contents
 
 
 
-Ideas
------
+## Ideas
 
   * cbi/sbi do not modify SREG. That makes it easy to write an ISR
     without saving any registers, like e.g.::

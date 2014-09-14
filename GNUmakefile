@@ -5,7 +5,6 @@ DOXYGEN   ?= doxygen
 GIT       ?= git
 GZIP      ?= gzip
 NEATO     ?= neato
-RST2HTML  ?= rst2html
 SED       ?= sed
 SLOCCOUNT ?= sloccount
 XZ        ?= xz
@@ -31,7 +30,7 @@ all clean:
 	done
 
 .PHONY: all-here
-all-here: README.html
+all-here:
 
 # Legacy target
 .PHONY: ALL
@@ -40,13 +39,6 @@ ALL: all
 # Legacy target
 .PHONY: ALL-here
 ALL-here: all-here
-
-CLEANFILES += README.html
-# Build README.html if rst2html is present. If not, ignore the error.
-README.html: README.rst
-	if $(RST2HTML) $< > $@.new; then \
-		mv -f $@.new $@; \
-	else rm -f "$@.new"; fi
 
 .PHONY: clean-here
 clean-here:

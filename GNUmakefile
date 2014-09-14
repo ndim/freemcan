@@ -15,7 +15,12 @@ GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else ec
 
 CLEANFILES =
 
-SUBDIRS = . firmware hostware emulator
+SUBDIRS = . firmware hostware
+
+ifneq ($(shell for f in {,/usr}/lib{,64}/erlang/lib/erl_interface-*/lib/libei*; do if test -f "$$f"; then echo xyz; fi; done),)
+SUBDIRS_emulator = emulator
+endif
+SUBDIRS += $(SUBDIRS_emulator)
 
 .PHONY: all clean
 all clean:

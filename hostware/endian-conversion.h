@@ -32,9 +32,9 @@
  * \{
  */
 
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__ARMEL__)
 # define ENDIANNESS_IS_LE
-#elif defined(__ppc__)
+#elif defined(__ppc__) || defined(__ARMEB__)
 # define ENDIANNESS_IS_BE
 #else
 # error Unsupported architecture.  Add your architecture to endian-conversion.h.

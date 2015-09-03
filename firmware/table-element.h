@@ -58,7 +58,7 @@ typedef
 
 
 #if (BITS_PER_VALUE == 24)
-/** Increment 24bit unsigned integer */
+/** Set 24bit unsigned integer to zero */
 inline static
 void table_element_zero(volatile freemcan_uint24_t *dest)
 {
@@ -75,6 +75,7 @@ void table_element_zero(volatile freemcan_uint24_t *dest)
 }
 
 
+/** Copy 24bit unsigned integer */
 inline static
 void table_element_copy(volatile freemcan_uint24_t *dest,
                         volatile freemcan_uint24_t *source)
@@ -96,6 +97,7 @@ void table_element_copy(volatile freemcan_uint24_t *dest,
 }
 
 
+/** Increment 24bit unsigned integer */
 inline static
 void table_element_inc(volatile freemcan_uint24_t *element)
 {

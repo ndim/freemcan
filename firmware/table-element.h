@@ -205,7 +205,7 @@ void table_element_inc(volatile table_element_t *element)
   (*element)++;
 }
 
-/** Compare table element to a value for equality.
+/** Compare 8bit, 16bit, or 32bit unsigned integer to a value for equality.
  *
  * \param element Pointer to the table element
  * \param value   Value to compare table element with.

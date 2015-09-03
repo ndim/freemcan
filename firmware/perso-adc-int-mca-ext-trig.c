@@ -130,10 +130,13 @@ ISR(ADC_vect)
   /* set pin to GND and release peak hold capacitor   */
   PORTD &=~ _BV(PD6);
 
-  /* If a hardware event on int0 pin occurs an interrupt flag in EIFR is set.
-   * Since int0 is only configured but not enabled ISR(INT0_vect){} is
-   * not executed and therefore this flag is not reset automatically.
-   * To reset this flag the bit at position INTF0 must be set.
+  /* When a hardware event on int0 pin occurs, an interrupt flag in
+   * EIFR is set.
+   *
+   * Since int0 is only configured but not enabled, ISR(INT0_vect){}
+   * is not executed and therefore this flag is not reset
+   * automatically.  To reset this flag the bit at position INTF0 must
+   * be set.
    */
   EIFR |= _BV(INTF0);
 }

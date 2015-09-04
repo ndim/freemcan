@@ -111,7 +111,7 @@ ISR(ADC_vect)
   PORTD |= _BV(PD6);
 
   /* Read analog value */
-  uint16_t result = ADCW;
+  const uint16_t result = ADCW;
 
   /* We are confident that the range of values the ADC gives us
    * is within the specced 10bit range of 0..1023. */

@@ -99,7 +99,7 @@ ISR(ADC_vect)
   /* downsampling of analog data via skip_samples */
   if (skip_samples == 0) {
     /* Read analog value */
-    uint16_t result = ADCW;
+    const uint16_t result = ADCW;
     /* cut off 2, 1 or 0 LSB */
     const uint16_t index = result >> (10-ADC_RESOLUTION);
     /* For 24bit values, the source code looks a little more complicated

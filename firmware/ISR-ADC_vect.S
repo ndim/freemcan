@@ -128,6 +128,7 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	out	__SREG__, sreg_save					/* 1 */
 
 	/* Reset the interrupt flag: EIFR |= BIT(INTF0) */
+	/* FIXME: Shouldn't we use _SFR_MEM_ADDR instead? */
 	sbi	_SFR_IO_ADDR(EIFR), INTF0				/* 2 */
 
 	reti								/* 5 */

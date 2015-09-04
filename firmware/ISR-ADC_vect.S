@@ -52,8 +52,15 @@
 /* Rename to ADC_vect if you want to actually link this
  * version into the firmware.
  *
- * Also, DO re-introdurce the sreg_save definition and register reservation
- * to global.h before linking this ISR into the firmware image.
+ * Also, DO re-introduce the sreg_save definition and register reservation
+ * to global.h before linking this ISR into the firmware image, and make sure
+ * ALL .c and .S files include global.h:
+ *
+ *   #ifdef __ASSEMBLER__
+ *   # define sreg_save r7
+ *   #else
+ *   register uint8_t sreg_save asm("r7");
+ *   #endif
  */
 #define sreg_save r13
 

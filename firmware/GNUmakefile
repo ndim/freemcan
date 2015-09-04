@@ -118,6 +118,9 @@ CFLAGS += -fshort-enums
 # Generate error on multiple definition of variable without "extern"
 CFLAGS += -fno-common
 
+# Save temporary files (useful e.g. for debugging inline asm problems)
+CFLAGS += -save-temps
+
 # Put extra commentary into the generated assembly code
 # CFLAGS += -fverbose-asm
 

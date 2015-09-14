@@ -1,4 +1,4 @@
-/** \file ISR-ADC_vect.S
+/** \file firmware/ISR-ADC_vect.S
  * \brief Assembly language implementation for ISR(ADC_vect)
  *
  * \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>

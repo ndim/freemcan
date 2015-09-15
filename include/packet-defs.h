@@ -42,7 +42,7 @@
  *  <tr><td><em>see text</em></td> <td>data_table</td> <td>uintX_t []</td> <td>value table data</td></tr>
  * </table>
  *
- * \section packet_emb_to_host From firmware to hostware: Personality Information packet
+ * \section packet_emb_to_host_fwi From firmware to hostware: Personality Information packet
  *
  * The personality information packet just contains a single instance
  * of the #packet_personality_info_t data structure.

@@ -238,8 +238,8 @@ static int listen_select_set_in(fd_set *in_fdset, int max_in)
 static void listen_select_do_io(fd_set *in_fdset)
 {
     if (FD_ISSET(listen_sock, in_fdset)) {
-        const int connfd = accept(listen_sock, NULL, NULL);
-        if (connfd < 0) {
+        const int conn_fd = accept(listen_sock, NULL, NULL);
+        if (conn_fd < 0) {
             if (errno == EINTR) {
                 return;
             }  else {
@@ -247,7 +247,7 @@ static void listen_select_do_io(fd_set *in_fdset)
                 abort();
             }
         }
-        conn_init(connfd);
+        conn_init(conn_fd);
     }
 }
 

@@ -42,7 +42,7 @@ void uart_send_checksum(void);
 
 void uart_recv_checksum_reset(void);
 void uart_recv_checksum_update(const char ch);
-char uart_recv_checksum_matches(const uint8_t data);
+char uart_recv_checksum_matches(const uint16_t data);
 
 /** @} */
 

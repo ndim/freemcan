@@ -78,40 +78,47 @@ void checksum_unref(checksum_t *self)
 
 void checksum_reset(checksum_t *self)
 {
-  self->checksum_accu = 0x3e59;
+  self->checksum_accu = 0xffff;
 }
 
 
-bool checksum_match(checksum_t *self, const uint8_t value)
+bool checksum_match(checksum_t *self, const uint16_t data)
 {
-  const uint8_t checksum = (self->checksum_accu & 0xff);
-  const bool retval = (checksum == value);
-  return retval;
+  return (self->checksum_accu == data);
 }
 
 
 void checksum_write(checksum_t *self, const int fd)
 {
-  const uint8_t checksum = (self->checksum_accu & 0xff);
-  const ssize_t sz = sizeof(checksum);
-  assert(sz == write(fd, &checksum, sz));
+  const ssize_t sz = sizeof(self->checksum_accu);
+  assert(sz == write(fd, &self->checksum_accu, sz));
 }
 
 
-uint8_t checksum_get(checksum_t *self)
+uint16_t checksum_get(checksum_t *self)
 {
-  const uint8_t checksum = (self->checksum_accu & 0xff);
-  return checksum;
+  return self->checksum_accu;
+}
+
+
+/**
+ *
+ * Adapted from avr-libc util/crc16.h
+ */
+static
+uint16_t crc_ccitt_update(const uint16_t crc, const uint8_t data)
+{
+  const uint8_t data1 = data  ^ (crc & 0xff);
+  const uint8_t data2 = data1 ^ (data1 << 4);
+  return ((((uint16_t)data2 << 8) | ((crc >> 8) & 0xff))
+          ^ (uint8_t)(data2 >> 4)
+          ^ ((uint16_t)data2 << 3));
 }
 
 
 void checksum_update(checksum_t *self, const uint8_t value)
 {
-  const uint8_t  n = (uint8_t)value;
-  const uint16_t x = 8*n+2*n+n;
-  const uint16_t r = (self->checksum_accu << 3) | (self->checksum_accu >> 13);
-  const uint16_t v = r ^ x;
-  self->checksum_accu = v;
+  self->checksum_accu = crc_ccitt_update(self->checksum_accu, value);
 }
 
 

@@ -70,8 +70,8 @@ typedef enum {
   STATE_FRAME_TYPE,
   /** waiting for payload bytes (together with offset) */
   STATE_PAYLOAD,
-  /** waiting for checksum byte (1 byte only, no offset required) */
-  STATE_CHECKSUM
+  /** waiting for checksum bytes (together with offset) */
+  STATE_CHECKSUM,
 } state_t;
 
 
@@ -93,7 +93,7 @@ struct _frame_parser_t {
   uint8_t frame_type;
 
   /** The frame checksum for frame in progress */
-  uint8_t frame_checksum;
+  uint16_t frame_checksum16;
 
   /** The parsed frame in progress */
   frame_t  *frame_wip; /* work in progress */
@@ -154,7 +154,11 @@ void frame_parser_unref(frame_parser_t *self)
 bool enable_layer2_dump = false;
 
 
-/** Step the parser FSM */
+/** Step the parser FSM
+ *
+ * \todo Report reception of old magic byte sequences instead of just
+ *       silently ignoring them.
+ */
 static
 void step_fsm(frame_parser_t *self, const char ch)
 {
@@ -223,42 +227,53 @@ void step_fsm(frame_parser_t *self, const char ch)
       self->state = STATE_PAYLOAD;
       return;
     } else if (self->offset == self->frame_size) {
+      self->offset = 0;
       self->state = STATE_CHECKSUM;
       return;
     }
     break;
   case STATE_CHECKSUM:
-    self->frame_checksum = u;
-    if (checksum_match(self->checksum_input, self->frame_checksum)) {
-      if (self->packet_parser) {
-        /* nul-terminate the payload buffer for convenience */
-        self->frame_wip->payload[self->offset] = '\0';
-        self->frame_wip->type = self->frame_type;
-        self->frame_wip->size = self->frame_size;
-        if (enable_layer2_dump) {
-          const frame_type_t type = self->frame_wip->type;
-          const uint16_t size     = self->frame_wip->size;
-          if ((32<=type) && (type<127)) {
-            fmlog("<Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
-                  type, type, type, size, size);
-          } else {
-            fmlog("<Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
-                  type, type, size, size);
+    if (self->offset == 0) {
+      self->frame_checksum16 = u;
+      self->offset = 1;
+      self->state = STATE_CHECKSUM;
+      return;
+    } else if (self->offset == 1) {
+      self->frame_checksum16 |= (u << 8);
+      if (checksum_match(self->checksum_input, self->frame_checksum16)) {
+        if (self->packet_parser) {
+          /* nul-terminate the payload buffer for convenience */
+          self->frame_wip->payload[self->frame_size] = '\0';
+          self->frame_wip->type = self->frame_type;
+          self->frame_wip->size = self->frame_size;
+          if (enable_layer2_dump) {
+            const frame_type_t type = self->frame_wip->type;
+            const uint16_t size     = self->frame_wip->size;
+            if ((32<=type) && (type<127)) {
+              fmlog("<Received type '%c'=0x%02x=%d frame with payload of size 0x%04x=%d",
+                    type, type, type, size, size);
+            } else {
+              fmlog("<Received type 0x%02x=%d frame with payload of size 0x%04x=%d",
+                    type, type, size, size);
+            }
+            fmlog_data("<<", self->frame_wip->payload, size);
           }
-          fmlog_data("<<", self->frame_wip->payload, size);
+          update_last_received_size(self->frame_wip->size);
+          packet_parser_handle_frame(self->packet_parser, self->frame_wip);
         }
-        update_last_received_size(self->frame_wip->size);
-        packet_parser_handle_frame(self->packet_parser, self->frame_wip);
+        frame_unref(self->frame_wip);
+        self->offset = 0;
+        self->state = STATE_MAGIC;
+        return;
+      } else {
+        self->checksum_errors++;
+        self->offset = 0;
+        self->state = STATE_MAGIC;
+        return;
       }
-      frame_unref(self->frame_wip);
-      self->offset = 0;
-      self->state = STATE_MAGIC;
-      return;
     } else {
-      self->checksum_errors++;
-      self->offset = 0;
-      self->state = STATE_MAGIC;
-      return;
+      fmlog("Illegal self->offset=%zd in state STATE_CHECKSUM", self->offset);
+      abort();
     }
     break;
   /* No "default:" case on purpose: Let compiler complain about

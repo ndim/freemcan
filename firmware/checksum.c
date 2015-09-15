@@ -42,11 +42,7 @@
 
 checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t data)
 {
-  const uint8_t  n = data;
-  const uint16_t x = 8*n+2*n+n;
-  const uint16_t r = (accu << 3) | (accu >> 13);
-  const uint16_t v = r ^ x;
-  return v;
+  return _crc_ccitt_update(accu, data);
 }
 
 

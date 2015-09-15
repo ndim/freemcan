@@ -99,6 +99,18 @@
  *
  * \section frame_protocol Frame Communication Protocol (Layer 2)
  *
+ * The hostware sends simple commands to the device firmware, and the
+ * device firmware responds to the host by sending long data tables.
+ *
+ * Additionally, the firmware can send status updates and other
+ * messages at any time it is not already sending another message.
+ *
+ * For both directions, the frames start with the same magic bytes,
+ * and the checksum in the last two bytes is the CCITT 16bit FCS from
+ * PPP, as it can be calculated quite quickly and without loops on AVR
+ * (polynomial x^16 + x^12 + x^5 + 1 aka 0x8408, initial value
+ * 0xffff).
+ *
  * \subsection frame_host_to_emb Frames sent from hostware to firmware
  *
  * <table class="table header-top">
@@ -107,7 +119,7 @@
  *  <tr><td>1</td> <td>command</td> <td>#frame_cmd_t</td> <td>frame command</td></tr>
  *  <tr><td>1</td> <td>length</td> <td>uint8_t</td> <td>length of command parameters (0 or more)</td></tr>
  *  <tr><td><em>length</em></td> <td>params</td> <td>uint8_t []</td> <td>command parameters (or or more bytes)</td></tr>
- *  <tr><td>1</td> <td>checksum</td> <td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
+ *  <tr><td>2</td> <td>checksum</td> <td>uint16_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
  *
  * Some #frame_cmd_t commands require 0 parameter bytes, others
@@ -125,10 +137,8 @@
  *  <tr><td>2</td> <td>payload_size</td> <td>uint16_t</td> <td>size of payload data in bytes</td></tr>
  *  <tr><td>1</td> <td>frame_type</td> <td>#frame_type_t</td> <td>frame type</td></tr>
  *  <tr><td><em>payload_size</em></td> <td>payload</td> <td>uint8_t []</td> <td>payload data</td></tr>
- *  <tr><td>1</td> <td>checksum</td><td>uint8_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
+ *  <tr><td>2</td> <td>checksum</td><td>uint16_t</td> <td>checksum over all bytes beginning with magic value</td></tr>
  * </table>
- *
- * \todo Document checksum algorithm.
  *
  */
 
@@ -156,8 +166,10 @@
  *   - "FMpk"
  *   - "FMpk"
  *   - "FMpx"
+ *   - "FMpX"
+ *
  */
-#define FRAME_MAGIC_STR "FMpX"
+#define FRAME_MAGIC_STR "FMPX"
 
 
 /** Data frame types (data frame to host)

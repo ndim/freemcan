@@ -120,8 +120,10 @@ INIT_FUNCTION(init5, uart_init)
 /** Send checksum */
 void uart_send_checksum(void)
 {
-  const uint8_t v = cs_accu_send & 0xff;
-  uart_putc((const char)v);
+  const uint8_t d0 = ((cs_accu_send >> 0) & 0xff);
+  const uint8_t d1 = ((cs_accu_send >> 8) & 0xff);
+  uart_putc((const char)d0);
+  uart_putc((const char)d1);
 }
 
 
@@ -175,13 +177,11 @@ char uart_getc()
 }
 
 
-
-
 /** Check whether received byte c and matches the checksum
  *
  * \return boolean value in char
  */
-char uart_recv_checksum_matches(const uint8_t data)
+char uart_recv_checksum_matches(const uint16_t data)
 {
   return checksum_matches(cs_accu_recv, data);
 }

@@ -131,6 +131,8 @@ int open_unix_socket(const char *socket_name)
   addr.sun_family = AF_UNIX;
   assert(strlen(socket_name) < sizeof(addr.sun_path));
   strcpy(addr.sun_path, socket_name);
+  addr.sun_path[sizeof(addr.sun_path)-1] = '\0';
+
   const int connect_ret = connect(sock, (const struct sockaddr *)&addr, sizeof(addr));
   if (connect_ret < 0) {
     fmlog_error("connect(2)");

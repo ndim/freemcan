@@ -93,7 +93,7 @@ static void do_copy_data(const int in_fd, const int out_fd,
 /** Size of data to be read from a file descriptor without blocking */
 static int read_size(const int in_fd)
 {
-    int bytes_to_read;
+    int bytes_to_read = -1;
     int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
     if (r < 0) {
         DEBUGS("cannot determine number of characters to read from stdin");

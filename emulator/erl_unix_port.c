@@ -214,6 +214,9 @@ static void listen_init(const char *unix_name)
     addr.sun_family = AF_UNIX;
     assert(strlen(unix_name) < sizeof(addr.sun_path));
     strcpy(addr.sun_path, unix_name);
+
+    (void) unlink(addr.sun_path); /* ignore error */
+
     const int bind_ret =
         bind(listen_sock, (const struct sockaddr *)&addr, sizeof(addr));
     if (bind_ret < 0) {

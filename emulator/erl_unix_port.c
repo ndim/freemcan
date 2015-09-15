@@ -51,10 +51,17 @@
 #define WRITE_FILENO 4
 
 
-/** Print debug message on stderr (FD 2) */
-#define DEBUG(...)                              \
-    do {                                        \
-        fprintf(stderr, "EUP: " __VA_ARGS__);   \
+/** Print fixed string debug message on stderr (FD 2) */
+#define DEBUGS(FMT)                                                 \
+    do {                                                            \
+        fprintf(stderr, "EUP: " FMT "\r\n");                        \
+    } while (0)
+
+
+/** Print formatted string as debug message on stderr (FD 2) */
+#define DEBUGF(FMT, ...)                                             \
+    do {                                                            \
+        fprintf(stderr, "EUP: " FMT "\r\n" , __VA_ARGS__);          \
     } while (0)
 
 
@@ -71,12 +78,12 @@ int max(const int a, const int b)
 static void do_copy_data(const int in_fd, const int out_fd,
                          const int data_size)
 {
-    DEBUG("Copying %d bytes from fd %d to fd %d\n", data_size, in_fd, out_fd);
+    DEBUGF("Copying %d bytes from fd %d to fd %d", data_size, in_fd, out_fd);
     char buf[data_size];
     const ssize_t read_chars = read(in_fd, buf, sizeof(buf));
     assert(data_size == read_chars);
     if (out_fd < 0) {
-        DEBUG("Dropping the data\n");
+        DEBUGS("Dropping the data");
     } else {
         write(out_fd, buf, sizeof(buf));
     }
@@ -89,7 +96,7 @@ static int read_size(const int in_fd)
     int bytes_to_read;
     int r = ioctl(in_fd, FIONREAD, &bytes_to_read);
     if (r < 0) {
-        DEBUG("cannot determine number of characters to read from stdin");
+        DEBUGS("cannot determine number of characters to read from stdin");
         abort();
     }
     return bytes_to_read;
@@ -124,13 +131,14 @@ static int port_select_set_in(fd_set *in_fdset, int max_in)
 static void port_select_do_io(fd_set *in_fdset)
 {
     if (FD_ISSET(READ_FILENO, in_fdset)) {
-        DEBUG("Data from READ_FILENO\n");
+        DEBUGF("Data from READ_FILENO=%d", READ_FILENO);
         const int bytes_to_read = read_size(READ_FILENO);
+        DEBUGF("Data from READ_FILENO=%d: %d bytes", READ_FILENO, bytes_to_read);
         if (bytes_to_read > 0) {
             do_copy_data(READ_FILENO, connfd, bytes_to_read);
         } else {
-            /* connection to Erlang close, abort this */
-            DEBUG("No data?\n");
+            /* connection to Erlang closed, abort this */
+            DEBUGS("No bytes to read from BEAM?!");
             abort();
         }
     }
@@ -145,7 +153,7 @@ static void port_select_do_io(fd_set *in_fdset)
 /** Init connection socket logic with file descriptor */
 static void conn_init(const int fd)
 {
-    DEBUG("Connected: fd=%d\n", fd);
+    DEBUGF("Connected: fd=%d", fd);
     assert(connfd == -1);
     connfd = fd;
 }
@@ -179,11 +187,11 @@ static void conn_select_do_io(fd_set *in_fdset)
     if (FD_ISSET(connfd, in_fdset)) {
         const int bytes_to_read = read_size(connfd);
         if (bytes_to_read > 0) {
-            DEBUG("Data from connfd\n");
+            DEBUGS("Data from connfd");
             do_copy_data(connfd, WRITE_FILENO, bytes_to_read);
         } else {
             /* connection closed */
-            DEBUG("Closed connection from connfd\n");
+            DEBUGS("Closed connection from connfd");
             conn_fini();
         }
     }
@@ -267,17 +275,18 @@ static void main_loop(const char *unix_name)
         max_fd = conn_select_set_in(&in_fdset, max_fd);
         max_fd = listen_select_set_in(&in_fdset, max_fd);
         assert(max_fd >= 1);
-        DEBUG("Waiting for... uhm... stuff to happen.\n");
+        DEBUGS("waiting for stuff to happen");
         int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
         if (n<0) { /* error */
             if (errno != EINTR) {
-                perror("select");
+                perror("select(2)");
                 abort();
             }
         } else if (0 == n) { /* timeout */
-            DEBUG("select timeout\n");
+            DEBUGS("select(2) timeout");
             abort();
         } else { /* n>0 */
+            DEBUGF("select(2) returned %d", n);
             port_select_do_io(&in_fdset);
             conn_select_do_io(&in_fdset);
             listen_select_do_io(&in_fdset);
@@ -288,9 +297,9 @@ static void main_loop(const char *unix_name)
 
 int main(int argc, char *argv[])
 {
-    DEBUG("%s\n", __FILE__);
+    DEBUGF("%s", __FILE__);
     for (int i=0; i<argc; i++) {
-        DEBUG("argv[%d] = %s\n", i, argv[i]);
+        DEBUGF("argv[%d] = %s", i, argv[i]);
     }
     assert(argc == 2);
     assert(argv[1] != NULL);

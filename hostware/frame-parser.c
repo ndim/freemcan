@@ -179,7 +179,7 @@ void step_fsm(frame_parser_t *self, const char ch)
         return;
       } else {
         self->offset = 0;
-        self->state = STATE_SIZE;
+        self->state = STATE_FRAME_TYPE;
         return;
       }
     } else { /* start looking for beginning of magic again */
@@ -188,6 +188,12 @@ void step_fsm(frame_parser_t *self, const char ch)
       return;
     }
     break;
+  case STATE_FRAME_TYPE:
+    checksum_update(self->checksum_input, u);
+    self->frame_type = u;
+    self->offset = 0;
+    self->state = STATE_SIZE;
+    return;
   case STATE_SIZE:
     checksum_update(self->checksum_input, u);
     switch (self->offset) {
@@ -198,27 +204,23 @@ void step_fsm(frame_parser_t *self, const char ch)
       return;
     case 1:
       self->frame_size = (self->frame_size & 0x00ff) | (((uint16_t)u)<<8);
+
+      /* Total size composed from:
+       *  - size fixed parts of frame_t data structure
+       *  - dynamic payload size
+       *  - terminating convenience nul byte
+       */
+      self->frame_wip = frame_new(self->frame_size+1);
+      assert(self->frame_wip);
+
       self->offset = 0;
-      self->state = STATE_FRAME_TYPE;
+      self->state = STATE_PAYLOAD;
       return;
       /* We have the value of (offset) firmly under control from
        * within this very function, so we do not need to catch any
        * other cases. */
     }
     break;
-  case STATE_FRAME_TYPE:
-    checksum_update(self->checksum_input, u);
-    self->frame_type = u;
-    self->offset = 0;
-    /* Total size composed from:
-     *  - size fixed parts of frame_t data structure
-     *  - dynamic payload size
-     *  - terminating convenience nul byte
-     */
-    self->frame_wip = frame_new(self->frame_size+1);
-    assert(self->frame_wip);
-    self->state = STATE_PAYLOAD;
-    return;
   case STATE_PAYLOAD:
     checksum_update(self->checksum_input, u);
     self->frame_wip->payload[self->offset] = u;

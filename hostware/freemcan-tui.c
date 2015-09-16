@@ -726,8 +726,10 @@ void tui_fmlog_command_line_help(const char *const argv0)
   fmlog("       %s <option>", prog);
   fmlog("Connect to and communicate with a FreeMCAn device connected to <SERIAL_PORT>.\n");
   fmlog("Options:");
-  fmlog("   -h --help     Print help message and and exit");
-  fmlog("   -V --version  Print version message and exit\n");
+  fmlog("   -h --help          Print help message and and exit");
+  fmlog("   -V --version       Print version message and exit");
+  fmlog("   -1 --dump-layer-1  Enable layer 1 dumps");
+  fmlog("   -2 --dump-layer-2  Enable layer 2 dumps\n");
   tui_fmlog_help();
 }
 
@@ -739,31 +741,47 @@ void tui_fmlog_command_line_help(const char *const argv0)
 const char *main_init(int argc, char *argv[])
 {
   assert(argv[0]);
-  if (argc != 2) {
-    fmlog_error("Fatal: Wrong command line parameter count.");
+
+  if (argc < 2) {
+    fmlog_error("Fatal: Not enough command line parameters.");
     tui_fmlog_command_line_help(argv[0]);
     abort();
   }
-  assert(argc == 2);
-  assert(argv[1]);
 
-  if ((0 == strcmp("-h", argv[1])) || (0 == strcmp("--help", argv[1]))) {
-    tui_fmlog_command_line_help(argv[0]);
-    exit(EXIT_SUCCESS);
-  } else if ((0 == strcmp("-V", argv[1])) || (0 == strcmp("--version", argv[1]))) {
-    fmlog("freemcan-tui " GIT_VERSION);
-    exit(EXIT_SUCCESS);
+  for (int i=1; i< argc; ++i) {
+    const char *arg = argv[i];
+    fmlog("cmdline arg: %s", arg);
+    assert(arg);
+
+    if ((0 == strcmp("-h", arg)) || (0 == strcmp("--help", arg))) {
+      tui_fmlog_command_line_help(argv[0]);
+      exit(EXIT_SUCCESS);
+    } else if ((0 == strcmp("-V", arg)) || (0 == strcmp("--version", arg))) {
+      fmlog("freemcan-tui " GIT_VERSION);
+      exit(EXIT_SUCCESS);
+    } else if ((0 == strcmp("-1", arg)) || (0 == strcmp("--dump-layer-1", arg))) {
+      enable_layer1_dump = true;
+    } else if ((0 == strcmp("-2", arg)) || (0 == strcmp("--dump-layer-2", arg))) {
+      enable_layer2_dump = true;
+    } else if (arg[0] == '-') {
+      fmlog("Unknown command line argument: %s", arg);
+      abort();
+    } else if (i+1 == argc) {
+      assert(isatty(STDIN_FILENO));
+      assert(isatty(STDOUT_FILENO));
+      if (0 != atexit(atexit_func)) {
+        fmlog_error("atexit() failed");
+        abort();
+      }
+      return arg;
+    } else {
+      fmlog("Too many command line arguments beginning with %s", arg);
+      abort();
+    }
   }
 
-  assert(isatty(STDIN_FILENO));
-  assert(isatty(STDOUT_FILENO));
-
-  if (0 != atexit(atexit_func)) {
-    fmlog_error("atexit() failed");
-    abort();
-  }
-
-  return argv[1];
+  fmlog("Illegal state in command line");
+  abort();
 }
 
 

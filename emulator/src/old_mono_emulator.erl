@@ -1,4 +1,4 @@
-%%% \file emulator/freemcan_emulator.erl
+%%% \file emulator/fmemu_util.erl
 %%% \brief Emulate freemcan hardware as it talks via the serial interface
 %%%
 %%% \author Copyright (C) 2010 Hans Ulrich Niedermann <hun@n-dimensional.de>
@@ -18,41 +18,23 @@
 %%% Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 %%% Boston, MA 02110-1301 USA
 
--module(freemcan_emulator).
+-module(fmemu_util).
 
 -export([start/0, start/1]).
 
--export([loop/1]).
-
--export([checksum/1]).
+-export([frame_loop/1]).
+-export([byte_loop/1]).
+-export([loop/2]).
 
 -define(DEFAULT_TIMEOUT, 5000).
-
--record(state, {port, state=boot, timeout=100}).
-
-
-checksum(Bin) when is_binary(Bin) ->
-    State = lists:foldl(fun(D0, CRC) ->
-				Lo8 = (CRC bsr 0)         band 16#00ff,
-				Hi8 = (CRC bsr 8)         band 16#00ff,
-				D1 = (D0 bxor Lo8)        band 16#00ff,
-				D2 = (D1 bxor (D1 bsl 4)) band 16#00ff,
-				A = ((D2 bsl 8) bor Hi8)  band 16#ffff,
-				B = (D2 bsr 4)            band 16#00ff,
-				C = (D2 bsl 3)            band 16#ffff,
-				A bxor B bxor C
-			end,
-			16#ffff,
-			binary_to_list(Bin)),
-    State band 16#ffff.
 
 
 frame(text, Text) ->
     bin_frame($T, Text);
-frame(status, StatusMsg) ->
-    bin_frame($S, StatusMsg);
+frame(state, StateMsg) ->
+    bin_frame($S, StateMsg);
 frame(histogram, Payload) ->
-    bin_frame($H, Payload).
+    bin_frame($V, Payload).
 
 
 bin_frame(Type, Payload) when is_integer(Type)  ->
@@ -63,12 +45,25 @@ bin_frame(Type, Payload) when is_integer(Type)  ->
     list_to_binary([FrameData, <<Checksum:16/little-integer>>]).
 
 
-status_packet(StatusMessage) ->
-    frame(status, StatusMessage).
+state_packet(State) when is_atom(State) ->
+    frame(state, string:to_upper(atom_to_list(State)));
+state_packet(State) when is_list(State) ->
+    frame(state, State).
 
 
 text_packet(StatusMessage) ->
-    frame(status, StatusMessage).
+    frame(text, StatusMessage).
+
+
+parse_frame(<<"FMPX", Cmd, Len, Parms:Len/binary, FCS:16>>) ->
+    case (FCS =:= checksum(<<"FMPX", Cmd, Len, Parms/binary>>)) of
+	true when Len > 0 ->
+	    {cmd, Cmd, Len, Parms};
+	true ->
+	    {cmd, Cmd};
+	false ->
+	    {error, chksum}
+    end.
 
 
 histogram_packet(done, Seconds) when is_integer(Seconds) ->
@@ -101,16 +96,16 @@ decode_cmd(Binary) ->
 
 
 fsm(boot, {timeout, _}) ->
-    {ready, status_packet("READY"), none};
+    {ready, state_packet("READY"), none};
 
 fsm(ready, {measure, Seconds}) ->
-    {{measuring, 0, Seconds}, status_packet("Measuring"), 1000};
+    {{measuring, 0, Seconds}, state_packet("Measuring"), 1000};
 fsm(ready, reset) ->
     {reset, none, 100};
 fsm(ready, abort) ->
-    {ready, status_packet("READY"), none};
+    {ready, state_packet("READY"), none};
 fsm(ready, intermediate) ->
-    {ready, status_packet("READY"), none};
+    {ready, state_packet("READY"), none};
 
 fsm({measuring, SecondsDone, _SecondsTotal}, abort) ->
     {reset, histogram_packet(aborted, SecondsDone), 10};
@@ -123,7 +118,7 @@ fsm({measuring, SecondsDone, SecondsTotal}, {timeout, Period}) ->
     {{measuring, SecondsDone+1, SecondsTotal}, text_packet("STILL MEASURING"), Period};
 
 fsm(reset, {timeout, _}) ->
-    {boot, status_packet("Resetting"), 100}.
+    {boot, state_packet("Resetting"), 100}.
 
 
 send_reply(_Port, none) ->
@@ -146,37 +141,90 @@ send_reply_int(_, _) ->
     ok.
 
 
-loop(LoopState = #state{port=Port, state=CurState, timeout=TimeOut}) ->
-    RealTimeOut = case TimeOut of
-		      none -> 100000;
-		      N when is_integer(N) -> N
-		  end,
-    io:format("Current state:    ~p~n", [CurState]),
+personality_info() ->
+    Data = <<3072:16/little-integer, % table size in bytes
+	     24, % table element size in bits
+	     1, % units per second
+	     0, % param size timer1 count
+	     0  % param size skip samples
+	   >>,
+    Name = <<"emulator">>,
+    [Data, Name].
+
+
+frame_loop(CmdPort) ->
+    send_reply(CmdPort, state_packet("booting")),
+    frame_loop(CmdPort, ready).
+
+frame_loop(CmdPort, State) ->
+    {NextState, Reply} = receive
+			     {cmd, $f} ->
+				 {State, bin_frame($P, personality_info())};
+			     {cmd, $s} ->
+				 {State, state_packet(State)}
+			 end,
+    io:format("Sending reply:     ~P~n", [Reply,30]),
+    send_reply(CmdPort, Reply),
+    io:format("Next state:        ~p~n", [NextState]),
+    frame_loop(CmdPort, NextState).
+
+
+byte_loop(FrameLoop) ->
+    byte_loop(FrameLoop, {stf_magic, 0}, <<>>).
+
+byte_loop(FrameLoop, State = {StateName, StateParm}, Acc) ->
+    {NextState, NextAcc} = receive
+			       {byte, $F} when State == {stf_magic, 0} ->
+				   {{stf_magic, 1}, <<Acc/binary, "F">>};
+			       {byte, $M} when State == {stf_magic, 1} ->
+				   {{stf_magic, 2}, <<Acc/binary, "M">>};
+			       {byte, $P} when State == {stf_magic, 2} ->
+				   {{stf_magic, 3}, <<Acc/binary, "P">>};
+			       {byte, $X} when State == {stf_magic, 3} ->
+				   {{stf_cmd, none}, <<Acc/binary, "X">>};
+			       {byte, Cmd} when State == {stf_cmd, none} ->
+				   {{stf_len, none}, <<Acc/binary, Cmd>>};
+			       {byte, Len} when State == {stf_len, none} ->
+				   {{stf_params, Len}, <<Acc/binary, Len>>};
+			       {byte, ParmByte} when State == {stf_params, 0} ->
+				   {{stf_checksum, 1}, <<Acc/binary, ParmByte>>};
+			       {byte, ParmByte} when StateName == stf_params,
+						     StateParm > 0 ->
+				   {{stf_params, StateParm-1}, <<Acc/binary, ParmByte>>};
+			       {byte, FCSByte} when State == {stf_checksum, 0} ->
+				   {{stf_checksum, 1}, <<Acc/binary, FCSByte>>};
+			       {byte, FCSByte} when State == {stf_checksum, 1} ->
+				   BinFrame = <<Acc/binary, FCSByte>>,
+				   Frame = parse_frame(BinFrame),
+				   case Frame of
+				       {cmd, _Cmd, _Len, _Parms} = C ->
+					   io:format("Frame: ~p ~p~n", [Frame, C]),
+					   FrameLoop ! C;
+				       {cmd, _Cmd} = C ->
+					   io:format("Frame: ~p ~p~n", [Frame, C]),
+					   FrameLoop ! C
+				   end,
+				   {{stf_magic, 0}, <<>>};
+			       {byte, Byte} ->
+				   io:format("Ignoring byte: ~p~n", [<<Byte>>]),
+				   {{stf_magic, 0}, <<>>}
+			   end,
+    byte_loop(FrameLoop, NextState, NextAcc).
+
+
+loop(FIFOPort, ByteLoop) ->
     receive
-	{Port, {data, Cmd}} ->
-	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
-	    io:format("Received command: ~p~n", [Cmd]),
-	    {NextState, Reply, NextTimeOut} = fsm(CurState, decode_cmd(Cmd)),
-	    io:format("Sending reply:    ~P~n", [Reply,30]),
-	    send_reply(Port, Reply),
-	    io:format("Next state:       ~p~n", [NextState]),
-	    loop(LoopState#state{state=NextState, timeout=NextTimeOut});
+	{Port, {data, Data}} ->
+	    io:format("Port info:         ~p~n", [erlang:port_info(Port)]),
+	    io:format("Received cmd data: ~p~n", [Data]),
+	    [ ByteLoop ! {byte, Byte} || <<Byte>> <= Data ],
+	    loop(FIFOPort, ByteLoop);
 	Unhandled ->
-	    io:format("Port info:        ~p~n", [erlang:port_info(Port)]),
+	    io:format("Port info:        ~p~n", [erlang:port_info(FIFOPort)]),
 	    io:format("Unhandled:        ~p~n", [Unhandled]),
 	    {error, {unhandled, Unhandled}}
-    after RealTimeOut ->
-	    case TimeOut of
-		none -> loop(LoopState);
-		TimeOut ->
-		    io:format("Timeout:          ~p~n", [TimeOut]),
-		    {NextState, Reply, NextTimeOut} = fsm(CurState, {timeout, TimeOut}),
-		    io:format("Sending message:  ~P~n", [Reply,30]),
-		    send_reply(Port, Reply),
-		    io:format("Next state:       ~p~n", [NextState]),
-		    loop(LoopState#state{state=NextState, timeout=NextTimeOut})
-	    end
     end.
+
 
 init(FIFO) ->
     io:format("FIFO=~s~n", [FIFO]),
@@ -202,12 +250,15 @@ init(FIFO) ->
 		      {args, Args}
 		     ]),
     io:format("Port: ~p~n", [Port]),
-    #state{port=Port}.
+    Port.
+
 
 intermain(FIFO) ->
-    InitState = init(FIFO),
+    FIFOPort = init(FIFO),
     % spawn(?MODULE, loop, [InitState]),
-    loop(InitState).
+    FrameLoop = spawn(?MODULE, frame_loop, [FIFOPort]),
+    ByteLoop = spawn(?MODULE, byte_loop, [FrameLoop]),
+    loop(FIFOPort, ByteLoop).
 
 start() ->
     start([]).

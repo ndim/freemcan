@@ -665,10 +665,11 @@ static void packet_handler_personality_info(personality_info_t *pi,
   fmlog("<                  sz(timer_count):%zu sz(skip_samples):%zu",
         pi->param_data_size_timer_count, pi->param_data_size_skip_samples);
   fmlog("<                  %zu elements of %zu bits each",
-
         8*pi->sizeof_table / pi->bits_per_value, pi->bits_per_value);
+
   if (personality_info) {
     personality_info_unref(personality_info);
+    personality_info = NULL;
   }
   personality_info_ref(pi);
   personality_info = pi;
@@ -763,6 +764,16 @@ const char *main_init(int argc, char *argv[])
   }
 
   return argv[1];
+}
+
+
+static void cleanup() __attribute__ ((destructor));
+static void cleanup()
+{
+  if (personality_info) {
+    personality_info_unref(personality_info);
+    personality_info = NULL;
+  }
 }
 
 

@@ -133,7 +133,7 @@ void tui_device_send_simple_command(const frame_cmd_t cmd)
 /** Parameter layout with a single uint16_t param and time_t token */
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
-  uint16_t _a;
+  uint16_t _param_a;
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
@@ -143,8 +143,8 @@ typedef struct {
 /** Parameter layout with two uint16_t params and time_t token */
 typedef struct {
   /* to be read by firmware, needs endianness conversion */
-  uint16_t _a;
-  uint16_t _b;
+  uint16_t _param_a;
+  uint16_t _param_b;
 
   /* sent back as-is, not interpreted by firmware in any way */
   time_t start_time;
@@ -152,12 +152,12 @@ typedef struct {
 
 
 void tui_device_send_command_16(const frame_cmd_t cmd,
-                                const time_t ts,
-                                const uint16_t a)
+                                const time_t timestamp,
+                                const uint16_t param_a)
 {
   measure_params_16_t params = {
-    htole16(a),
-    ts
+    htole16(param_a),
+    timestamp
   };
   device_send_command_with_params(device, cmd,
                                   &params, sizeof(params));
@@ -166,14 +166,14 @@ void tui_device_send_command_16(const frame_cmd_t cmd,
 
 
 void tui_device_send_command_16_16(const frame_cmd_t cmd,
-                                   const time_t ts,
-                                   const uint16_t a,
-                                   const uint16_t b)
+                                   const time_t timestamp,
+                                   const uint16_t param_a,
+                                   const uint16_t param_b)
 {
   measure_params_16_16_t params = {
-    htole16(a),
-    htole16(b),
-    ts
+    htole16(param_a),
+    htole16(param_b),
+    timestamp
   };
   device_send_command_with_params(device, cmd,
                                   &params, sizeof(params));

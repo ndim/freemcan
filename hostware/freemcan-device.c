@@ -214,73 +214,94 @@ ssize_t my_writev(int fd, const struct iovec *iov, int iovcnt)
 }
 
 
-void device_send_command(device_t *self, const frame_cmd_t cmd)
+void device_send_commandv(device_t *self, const frame_cmd_t cmd,
+                          const struct iovec *iov, const int iovcnt)
 {
   const int fd = self->fd;
+
+  /* Debug output */
   if (fd > 0) {
-    fmlog(">Sending '%c' command to device", cmd);
+    if (iov && iovcnt) {
+      fmlog(">Sending '%c' command with iov to device", cmd);
+      for (int i=0; i<iovcnt; i++) {
+        fmlog_data("> * ", iov[i].iov_base, iov[i].iov_len);
+      }
+    } else {
+      fmlog(">Sending '%c' command (without params) to device", cmd);
+    }
   } else {
-    fmlog("Not sending '%c' command to closed device", cmd);
+    if (iov && iovcnt) {
+      fmlog("|Not sending '%c' command with iov to closed device", cmd);
+      for (int i=0; i<iovcnt; i++) {
+        fmlog_data("| * ", iov[i].iov_base, iov[i].iov_len);
+      }
+    } else {
+      fmlog("|Not sending '%c' command (without params) to closed device", cmd);
+    }
     return;
   }
 
   checksum_t *cs = checksum_new();
-  uint8_t cmd8 = cmd;
+
+  /* Top of #out stack. Value is the number of elements on the #out
+   * stack plus one. */
+  int iovmax = 0;
+
+  /* The place to compose the four mandatory frame parts plus optional
+   * params */
+  struct iovec out[4+iovcnt];
+
+  /* First part of frame: magic string (mandatory) */
+  out[iovmax].iov_base = (void *) FRAME_MAGIC_STR;
+  out[iovmax].iov_len  = 4;
+  iovmax++;
+
+  /* Second part of frame: command (mandatory) */
+  const uint8_t cmd8 = cmd;
+  out[iovmax].iov_base = (void *) &cmd8;
+  out[iovmax].iov_len  = 1;
+  iovmax++;
+
+  /* Third part of frame: length of parameters in bytes (mandatory)
+   * The exact value of #len8 depends on the given params and thus
+   * will be calculated a few lines down. */
   uint8_t len8 = 0;
-  struct iovec out[5] = {
-    { FRAME_MAGIC_STR, 4 },
-    { &cmd8, 1 },
-    { &len8, 1 }
-  };
-  for (int i=0; i<3; i++) {
-    checksum_update_iovec(cs, &out[i]);
-  }
-  const uint16_t checksum = checksum_get(cs);
-  checksum_unref(cs);
-  const uint8_t d0 = (checksum >> 0) & 0xff;
-  const uint8_t d1 = (checksum >> 8) & 0xff;
-  out[3].iov_base = (void *)&d0;
-  out[3].iov_len = 1;
-  out[4].iov_base = (void *)&d1;
-  out[4].iov_len = 1;
-  my_writev(fd, out, 5);
-}
+  out[iovmax].iov_base = (void *) &len8;
+  out[iovmax].iov_len  = 1;
+  iovmax++;
 
-
-void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
-                                     void *params, const size_t param_size)
-{
-  const int fd = self->fd;
-  if (fd > 0) {
-    fmlog(">Sending '%c' command to device with params", cmd);
-    fmlog_data(">>", params, param_size);
+  /* Fourth part of frame: All command parameter values (optional) */
+  if ((iov != NULL) && (iovcnt > 0)) {
+    /* Copy given parameters over into output iovec array out[] */
+    for (int n=0; n<iovcnt; n++) {
+      out[iovmax] = iov[n];
+      len8 += iov[n].iov_len;
+      iovmax++;
+    }
+  } else if ((iov != NULL) && (iovcnt <= 0)) {
+    abort(); /* We are being called with invalid parameters */
+  } else if ((iov == NULL) && (iovcnt > 0)) {
+    abort(); /* We are being called with invalid parameters */
   } else {
-    fmlog("|Not sending '%c' command to closed device", cmd);
-    fmlog_data(">|", params, param_size);
-    return;
+    /* No extra parameters given. Do not send any. */
   }
 
-  checksum_t *cs = checksum_new();
-  uint8_t cmd8 = cmd;
-  uint8_t len8 = param_size;
-  struct iovec out[6] = {
-    { FRAME_MAGIC_STR, 4 },
-    { &cmd8, 1 },
-    { &len8, 1 },
-    { params, param_size }
-  };
-  for (int i=0; i<4; i++) {
+  /* Calculate checksum over all frame octets until now,
+   * i.e. except the FCS itself. */
+  for (int i=0; i<iovmax; i++) {
     checksum_update_iovec(cs, &out[i]);
   }
-  const uint16_t checksum = checksum_get(cs);
+  const uint16_t fcs = checksum_get(cs);
   checksum_unref(cs);
-  const uint8_t d0 = (checksum >> 0) & 0xff;
-  const uint8_t d1 = (checksum >> 8) & 0xff;
-  out[4].iov_base = (void *)&d0;
-  out[4].iov_len = 1;
-  out[5].iov_base = (void *)&d1;
-  out[5].iov_len = 1;
-  my_writev(fd, out, 6);
+
+  /* Last part of frame: Frame Check Sequence (FCS) aka checksum */
+  const uint16_t _fcs = htole16(fcs);
+  out[iovmax].iov_base = (void *) &_fcs;
+  out[iovmax].iov_len  = sizeof(_fcs);
+  iovmax++;
+
+  /* Write frame */
+  my_writev(fd, out, iovmax);
 }
 
 

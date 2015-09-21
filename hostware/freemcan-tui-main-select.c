@@ -125,42 +125,23 @@ extern int waiting_for;
 
 void tui_device_send_simple_command(const frame_cmd_t cmd)
 {
-  device_send_command(device, cmd);
+  device_send_commandv(device, cmd, NULL, 0);
   waiting_for++;
 }
-
-
-/** Parameter layout with a single uint16_t param and time_t token */
-typedef struct {
-  /* to be read by firmware, needs endianness conversion */
-  uint16_t _param_a;
-
-  /* sent back as-is, not interpreted by firmware in any way */
-  time_t start_time;
-} PACKED measure_params_16_t;
-
-
-/** Parameter layout with two uint16_t params and time_t token */
-typedef struct {
-  /* to be read by firmware, needs endianness conversion */
-  uint16_t _param_a;
-  uint16_t _param_b;
-
-  /* sent back as-is, not interpreted by firmware in any way */
-  time_t start_time;
-} PACKED measure_params_16_16_t;
 
 
 void tui_device_send_command_16(const frame_cmd_t cmd,
                                 const time_t timestamp,
                                 const uint16_t param_a)
 {
-  measure_params_16_t params = {
-    htole16(param_a),
-    timestamp
+  uint16_t _param_a = htole16(param_a);
+  time_t _timestamp = timestamp;
+  struct iovec iov[2] = {
+      { &_param_a, sizeof(_param_a) },
+      { &_timestamp, sizeof(_timestamp) },
   };
-  device_send_command_with_params(device, cmd,
-                                  &params, sizeof(params));
+  device_send_commandv(device, cmd,
+                       iov, sizeof(iov)/sizeof(iov[0]));
   waiting_for++;
 }
 
@@ -170,13 +151,16 @@ void tui_device_send_command_16_16(const frame_cmd_t cmd,
                                    const uint16_t param_a,
                                    const uint16_t param_b)
 {
-  measure_params_16_16_t params = {
-    htole16(param_a),
-    htole16(param_b),
-    timestamp
+  uint16_t _param_a = htole16(param_a);
+  uint16_t _param_b = htole16(param_b);
+  time_t _timestamp = timestamp;
+  struct iovec iov[3] = {
+      { &_param_a, sizeof(_param_a) },
+      { &_param_b, sizeof(_param_b) },
+      { &_timestamp, sizeof(_timestamp) },
   };
-  device_send_command_with_params(device, cmd,
-                                  &params, sizeof(params));
+  device_send_commandv(device, cmd,
+                       iov, sizeof(iov)/sizeof(iov[0]));
   waiting_for++;
 }
 

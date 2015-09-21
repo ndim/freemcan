@@ -66,6 +66,14 @@
 #define UV(x) _UV(x) __attribute__((unused))
 
 
+/** Size of struct member
+ *
+ * Cf. http://stackoverflow.com/a/2129531/182675
+ */
+#define sizeof_member(structname, membername) \
+  sizeof(((structname *)NULL)->membername)
+
+
 /** Compile time assertion, to be used within a function */
 #define COMPILE_TIME_ASSERT(CONDITION) \
   switch (0) {            \

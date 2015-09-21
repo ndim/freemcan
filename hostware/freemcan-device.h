@@ -26,6 +26,10 @@
 #ifndef FREEMCAN_DEVICE_H
 #define FREEMCAN_DEVICE_H
 
+
+#include <sys/uio.h>
+
+
 #include "frame-defs.h"
 
 
@@ -70,25 +74,19 @@ int device_get_fd(device_t *self)
   __attribute__(( nonnull(1) ));
 
 
-/** Write a simple command (without parameters) to the device.
+/** Write a command (with params given like writev(2)) to the device.
  *
  * \param self The device object
  * \param cmd The #frame_cmd_t to send.
+ * \param iov The array of struct iovecs to send
+ * \param iovcnt The number of elements in #iov.
+ *
+ * When ((iov==NULL) && (iovcnt==0)), then this function will not
+ * write any parameters.
  */
-void device_send_command(device_t *self, const frame_cmd_t cmd)
+void device_send_commandv(device_t *self, const frame_cmd_t cmd,
+                          const struct iovec *iov, const int iovcnt)
   __attribute__(( nonnull(1) ));
-
-
-/** Write a command (with uint16_t parameter) to the device.
- *
- * \param self The device object
- * \param cmd The #frame_cmd_t to send.
- * \param params Pointer to the memory area containing the parameters.
- * \param param_size Size of the memory area containing the parameters.
- */
-void device_send_command_with_params(device_t *self, const frame_cmd_t cmd,
-                                     void *params, const size_t param_size)
-  __attribute__(( nonnull(1,3) ));
 
 
 /** Do the actual IO

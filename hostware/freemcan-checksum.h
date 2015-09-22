@@ -61,12 +61,12 @@ void checksum_write(checksum_t *self, const int fd)
   __attribute__(( nonnull(1) ));
 
 /** Get checksum */
-uint8_t checksum_get(checksum_t *self)
+uint16_t checksum_get(checksum_t *self)
   __attribute__(( warn_unused_result ))
   __attribute__(( nonnull(1) ));
 
 /** Match value against internal checksum state */
-bool checksum_match(checksum_t *self, const uint8_t value)
+bool checksum_match(checksum_t *self, const uint16_t value)
   __attribute__(( warn_unused_result ))
   __attribute__(( nonnull(1) ));
 

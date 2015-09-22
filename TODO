@@ -21,9 +21,6 @@ firmware: Put EEPROM parameter block to a different place for each
 
 firmware: Device Signature
 
-protocol: Migrate to CRC16 checksum using <util/crc16.h> on AVR,
-          and TBD on the host.
-
 hostware: Examine whether the checksum code can be made more simple
           by working with pure functions of the prototype
 

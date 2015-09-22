@@ -1,0 +1,17 @@
+{application, fmemu,
+ [
+  {description, "FreeMCAN emulator"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { fmemu_app, [fmemu_unix_port,
+		      fmemu_byte_fsm,
+		      fmemu_frame_fsm,
+		      fmemu_app,
+		      fmemu_util,
+		      fmemu_sup]}},
+  {env, []}
+ ]}.

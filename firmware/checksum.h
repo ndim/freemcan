@@ -29,6 +29,7 @@
 
 
 #include <stdint.h>
+#include <util/crc16.h>
 
 
 typedef uint16_t checksum_accu_t;
@@ -38,24 +39,19 @@ typedef uint16_t checksum_accu_t;
 inline static
 checksum_accu_t checksum_reset(void)
 {
-  return 0x3e59;
+  return 0xffff;
 }
 
 
 checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t c);
 
 
-/** Check whether data byte matches checksum */
+/** Check whether data bytes match checksum */
 inline static
-uint8_t checksum_matches(const checksum_accu_t accu, const int8_t databyte)
+uint8_t checksum_matches(const checksum_accu_t accu,
+                         const uint16_t d)
 {
-  const uint8_t v = accu & 0xff;
-  /* We store the difference in an 8bit variable, because if we just
-   * do a "return (databyte == v);" the compiler will generate a 16bit
-   * comparison for no good reason at all. The 8bit var d tricks the
-   * compiler in doing an 8bit comparison. */
-  const uint8_t d = v-databyte;
-  return (0 == d);
+  return (accu == d);
 }
 
 

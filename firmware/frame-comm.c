@@ -46,13 +46,13 @@ void frame_start(const frame_type_t frame_type,
   /* Send frame header magic value */
   uart_putb_P(&magic_header, sizeof(magic_header));
 
-  /* send payload size */
-  const uint16_t size = payload_size;
-  uart_putb(&size, sizeof(size));
-
   /* send frame type */
   const uint8_t type = frame_type;
   uart_putc((const char)type);
+
+  /* send payload size */
+  const uint16_t size = payload_size;
+  uart_putb(&size, sizeof(size));
 }
 
 

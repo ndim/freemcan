@@ -471,17 +471,19 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
  *   command [ label="STF_COMMAND" ];
  *   length [ label="STF_LENGTH" ];
  *   param [ label="STF_PARAM" ];
- *   checksum [ label="STF_CHECKSUM" ];
+ *   checksum0 [ label="STF_CHECKSUM0" ];
+ *   checksum1 [ label="STF_CHECKSUM1" ];
  *   magic:nw -> magic:nw [ label="mismatch\ni:=0" ];
  *   magic -> magic [ label="match magic[i++] && i<magic_size\n-/-" ];
  *   magic -> command [ label="match magic[i++] && i>=magic_size\n-/-" ];
  *   command -> length;
  *   length -> param [ label="length>0\ni:=0" ];
- *   length -> checksum [ label="length==0\n-/-" ];
+ *   length -> checksum0 [ label="length==0\n-/-" ];
  *   param -> param [ label="i<length\ni++" ];
- *   param -> checksum [ label="i>=length\n-/-" ];
- *   checksum -> magic [ label="chksum match\nhandle_frame, i:=0" ];
- *   checksum -> magic [ label="chksum fail\ni:=0" ];
+ *   param -> checksum0 [ label="i>=length\n-/-" ];
+ *   checksum0 -> checksum1;
+ *   checksum1 -> magic [ label="chksum match\nhandle_frame, i:=0" ];
+ *   checksum1 -> magic [ label="chksum fail\ni:=0" ];
  * }
  * \enddot
  */
@@ -497,7 +499,8 @@ void main_event_loop(void)
     STF_COMMAND,
     STF_LENGTH,
     STF_PARAM,
-    STF_CHECKSUM,
+    STF_CHECKSUM0,
+    STF_CHECKSUM1,
   } frame_state_t;
   frame_state_t fstate = STF_MAGIC;
 
@@ -534,6 +537,7 @@ void main_event_loop(void)
     if (bit_is_set(UCSR0A, RXC0)) {
       const char ch = uart_getc();
       const uint8_t byte = (uint8_t)ch;
+      uint16_t word = 0; /* we compose the checksum here */
 
       frame_state_t next_fstate = fstate;
 
@@ -569,7 +573,7 @@ void main_event_loop(void)
           pparam_sram.length = len;
         }
         if (len == 0) {
-          next_fstate = STF_CHECKSUM;
+          next_fstate = STF_CHECKSUM0;
         } else if ((len >= personality_param_size) &&
                    (len < MAX_PARAM_LENGTH)) {
           idx = 0;
@@ -597,11 +601,16 @@ void main_event_loop(void)
         if (idx < len) {
           next_fstate = STF_PARAM;
         } else {
-          next_fstate = STF_CHECKSUM;
+          next_fstate = STF_CHECKSUM0;
         }
         break;
-      case STF_CHECKSUM:
-        if (uart_recv_checksum_matches(byte)) {
+      case STF_CHECKSUM0:
+        word = byte;
+        next_fstate = STF_CHECKSUM1;
+        break;
+      case STF_CHECKSUM1:
+        word |= (byte << 8);
+        if (uart_recv_checksum_matches(word)) {
           /* checksum successful */
           pstate = firmware_handle_command(pstate, cmd);
           goto restart;

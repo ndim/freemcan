@@ -542,8 +542,10 @@ void main_event_loop(void)
 
     /* check whether a byte has arrived via UART */
     if (bit_is_set(UCSR0A, RXC0)) {
-      const char ch = uart_getc();
-      const uint8_t byte = (uint8_t)ch;
+      /* The loop condition from uart_getc() checking UCSR0A for RCX0
+       * has just been checked here, so we directly read UDR0 instead
+       * of calling uart_getc(). */
+      const uint8_t byte = (uint8_t) UDR0;
 
       frame_state_t next_fstate = fstate;
 

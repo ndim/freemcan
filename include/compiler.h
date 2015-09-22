@@ -105,6 +105,13 @@
   BASE ## _ ## PARAM
 
 
+#if defined(AVR) || defined(__AVR__)
+# define NAKED_FUNCTION_ATTR __attribute__ ((naked))
+#else
+# define NAKED_FUNCTION_ATTR
+#endif
+
+
 /** Compile time assertion, to be used outside a function
  *
  * The generated function is generated "naked", so that it does not
@@ -114,7 +121,7 @@
  */
 #define BARE_COMPILE_TIME_ASSERT(CONDITION)               \
   void MAKE_BARE_COMPILE_TIME_ASSERT_NAME(void)           \
-       __attribute__ ((naked));                           \
+       NAKED_FUNCTION_ATTR;                               \
   void MAKE_BARE_COMPILE_TIME_ASSERT_NAME(void)           \
   {                                                       \
     COMPILE_TIME_ASSERT(CONDITION);                       \

@@ -134,7 +134,7 @@ void fmlog_error(const char *format, ...)
 
 
 /** Return a printable character */
-static char printable(const char ch)
+static char to_printable_char(const char ch)
 {
   if ((32 <= ch) && (ch < 127)) {
     return ch;
@@ -164,7 +164,7 @@ void fmlog_data(const char *prefix, const void *data, const size_t size)
     for (size_t x=0; x<16; x++) {
       const size_t i = x+y;
       if (i<size) {
-        idx += sprintf(&buf[idx], "%c", printable(b[i]));
+        idx += sprintf(&buf[idx], "%c", to_printable_char(b[i]));
       } else {
         idx += sprintf(&buf[idx], " ");
       }

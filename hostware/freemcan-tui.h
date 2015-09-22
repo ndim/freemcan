@@ -50,13 +50,13 @@ extern packet_parser_t *tui_packet_parser;
 void tui_device_send_simple_command(const frame_cmd_t cmd);
 
 void tui_device_send_command_16(const frame_cmd_t cmd,
-                                const time_t ts,
-                                const uint16_t a);
+                                const time_t timestamp,
+                                const uint16_t param_a);
 
 void tui_device_send_command_16_16(const frame_cmd_t cmd,
-                                   const time_t ts,
-                                   const uint16_t a,
-                                   const uint16_t b);
+                                   const time_t timestamp,
+                                   const uint16_t param_a,
+                                   const uint16_t param_b);
 
 
 void tui_startup_messages(void);

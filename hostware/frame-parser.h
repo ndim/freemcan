@@ -26,12 +26,14 @@
 #ifndef FREEMCAN_FRAME_PARSER_H
 #define FREEMCAN_FRAME_PARSER_H
 
+
 #include <stdbool.h>
 #include <stdlib.h>
 
 
 /** frame parser (opaque data type) */
 struct _frame_parser_t;
+
 
 /** frame parser (opaque data type) */
 typedef struct _frame_parser_t frame_parser_t;

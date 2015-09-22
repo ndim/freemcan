@@ -49,7 +49,7 @@
  * So double speed works at 115200 with F_CPU = 16MHz on my system
  * but not single speed. -ndim
  *
- * (-> 2.1% error) may work but in general an error < 1% 
+ * (-> 2.1% error) may work but in general an error < 1%
  * is suggested -samplemaker
  */
 

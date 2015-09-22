@@ -37,7 +37,7 @@
 #include "uart-comm.h"
 #include "frame-comm.h"
 #include "frame-defs.h"
-
+#include "packet-comm.h"
 
 /** The buffer we format our message into. */
 static char buf[256];
@@ -58,7 +58,11 @@ void uprintf(const char *format, ...)
   va_list vl;
   va_start(vl, format);
   int strsize = vsnprintf(buf, sizeof(buf), format, vl);
-  frame_send(FRAME_TYPE_TEXT, buf, strsize);
+  if (strsize >= 0) {
+    frame_send(FRAME_TYPE_TEXT, buf, strsize);
+  } else {
+    send_text_P(PSTR("vsnprintf() returned negative value"));
+  }
   va_end(vl);
 }
 

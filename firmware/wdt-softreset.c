@@ -44,7 +44,6 @@ INIT_FUNCTION(init3, wdt_softreset_init)
 {
   MCUSR = 0;
   wdt_disable();
-  return;
 }
 
 

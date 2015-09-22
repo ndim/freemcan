@@ -177,13 +177,13 @@ char uart_getc()
 }
 
 
-/** Check whether received byte c and matches the checksum
+/** Whether received byte sequence has ended with a valid checksum.
  *
- * \return boolean value in char
+ * \return boolean value within a char
  */
-char uart_recv_checksum_matches(const uint16_t data)
+char uart_recv_checksum_matches(void)
 {
-  return checksum_matches(cs_accu_recv, data);
+  return checksum_matches(cs_accu_recv);
 }
 
 

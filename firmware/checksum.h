@@ -43,12 +43,11 @@ checksum_accu_t checksum_reset(void)
 }
 
 
-/** Check whether data bytes match checksum */
+/** Whether data byte sequence so far has ended with valid checksum */
 inline static
-uint8_t checksum_matches(const checksum_accu_t accu,
-                         const uint16_t d)
+char checksum_matches(const checksum_accu_t accu)
 {
-  return (accu == d);
+  return (0 == accu);
 }
 
 

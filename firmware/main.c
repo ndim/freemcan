@@ -472,12 +472,14 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
  * digraph firmware_frame_fsm {
  *   node [shape=ellipse, fontname=Helvetica, fontsize=10];
  *   edge [fontname=Helvetica, fontsize=10];
+ *
  *   magic [ label="STF_MAGIC" ];
  *   command [ label="STF_COMMAND" ];
  *   length [ label="STF_LENGTH" ];
  *   param [ label="STF_PARAM" ];
  *   checksum0 [ label="STF_CHECKSUM0" ];
  *   checksum1 [ label="STF_CHECKSUM1" ];
+ *
  *   magic:nw -> magic:nw [ label="mismatch\ni:=0" ];
  *   magic -> magic [ label="match magic[i++] && i<magic_size\n-/-" ];
  *   magic -> command [ label="match magic[i++] && i>=magic_size\n-/-" ];
@@ -669,7 +671,7 @@ int main(void)
   /** We try not to explicitly call initialization functions at the
    * start of main().  The idea is to implement the initialization
    * functions as ((naked)) and put them in the ".initN" sections so
-   * they are called automatically before main() is run.
+   * they are run automatically before main() is run.
    *
    * This keeps all foo.c related initialization code inside foo.c,
    * and it also saves us a few bytes in the firmware image which

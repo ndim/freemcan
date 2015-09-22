@@ -35,7 +35,7 @@
  *      .bss section in the ELF file, and in the SRAM on the device.
  *      The whole SRAM portion corresponding to the .bss section is
  *      initialized to zero bytes in the startup code, so we do not
- *      need to initialized those variables anywhere.
+ *      need to initialize those variables to zero anywhere.
  *
  *   b) Initialized non-register variables.  Those are placed in the
  *      .data section in the ELF file, and in the SRAM on the device.
@@ -45,11 +45,10 @@
  *
  *   c) Initialized constants in the .text section.  Those are placed
  *      into the program flash on the device, and due to the AVR's
- *      Harvard architecture, need special instructions to
- *      read. Unused so far.
+ *      Harvard architecture, need special instructions to read.
  *
  *   d) Register variables.  We only use them in the uninitialized
- *      variety so far for the assembly language version
+ *      variety so far for the assembly language version of
  *      ISR(ADC_vect), if you choose to compile and link that.
  *
  *   e) EEPROM variables.  We are not using those anywhere yet.
@@ -129,8 +128,9 @@ const char PSTR_RESET[]     PROGMEM = "RESET";
  *
  * CAUTION: These values are highly device dependent.
  *
- * We avoid C99 initializers to make sure that we do initialize each
- * and every fuse value in the structure. */
+ * We avoid C99 initializers so that the compiler makes sure that we
+ * do initialize each and every fuse value in the structure.
+ */
 FUSES = {
   /* 0xd7 = low */ (FUSE_SUT1 & FUSE_CKSEL3),
   /* 0x99 = high */ (FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
@@ -189,6 +189,11 @@ void send_table(const packet_value_table_reason_t reason)
 }
 
 
+/** Send personality info packet to controller via serial port (layer 3).
+ *
+ * This gives the controller the opportunity to find out the kind of
+ * device we are and how to interpret our data table packets.
+ */
 void send_personality_info(void)
 {
   frame_start(FRAME_TYPE_PERSONALITY_INFO,
@@ -386,10 +391,10 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
        * If you decide to bracket the send_table() call with a
        * cli()/sei() pair, be aware that you need to solve the issue
        * of resetting the hardware properly. For example, with the
-       * adc-int-mca personality, resetting the peak hold capacitor on
-       * resume if an event has been detected by the analog circuit
-       * while we had interrupts disabled and thus ISR(ADC_vect) could
-       * not reset the peak hold capacitor.
+       * adc-int-mca personality, you would need to reset the peak
+       * hold capacitor on resume if an event has been detected by the
+       * analog circuit while we had interrupts disabled and thus
+       * ISR(ADC_vect) could not reset the peak hold capacitor.
        */
       send_table(PACKET_VALUE_TABLE_INTERMEDIATE);
       send_state_P(PSTR_MEASURING);

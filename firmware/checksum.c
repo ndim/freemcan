@@ -31,21 +31,6 @@
 #include "checksum.h"
 
 
-/** Update checksum
- *
- * \todo Use a good checksum algorithm with good values.
- *
- * We are calling this function twice - so not inlining the code saves
- * us some bytes that need to be programmed into the uC. For some
- * reason, gcc inlines the code anyway.
- */
-
-checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t data)
-{
-  return _crc_ccitt_update(accu, data);
-}
-
-
 /** @} */
 
 

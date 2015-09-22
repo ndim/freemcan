@@ -43,15 +43,20 @@ checksum_accu_t checksum_reset(void)
 }
 
 
-checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t c);
-
-
 /** Check whether data bytes match checksum */
 inline static
 uint8_t checksum_matches(const checksum_accu_t accu,
                          const uint16_t d)
 {
   return (accu == d);
+}
+
+
+/** Update checksum */
+inline static
+checksum_accu_t checksum_update(const checksum_accu_t accu, const uint8_t data)
+{
+  return _crc_ccitt_update(accu, data);
 }
 
 

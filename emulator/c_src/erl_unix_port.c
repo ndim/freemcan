@@ -278,7 +278,11 @@ static void main_loop(const char *unix_name)
         max_fd = conn_select_set_in(&in_fdset, max_fd);
         max_fd = listen_select_set_in(&in_fdset, max_fd);
         assert(max_fd >= 1);
-        DEBUGS("waiting for stuff to happen");
+        if (connfd < 0) {
+            DEBUGS("Waiting for control msg or connect");
+        } else {
+            DEBUGS("Waiting for control msg or data");
+        }
         int n = select(max_fd+1, &in_fdset, NULL, NULL, NULL);
         if (n<0) { /* error */
             if (errno != EINTR) {

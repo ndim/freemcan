@@ -14,9 +14,6 @@
 # Build firmware with printf support
 # BUILD_FREEMCAN_PRINTF = yes
 
-# Build firmware with histogram emulation support
-# BUILD_FREEMCAN_INVENTED_HISTOGRAM = yes
-
 # CPU clock frequency
 # 1 MHz - chip default
 # F_CPU = 1000000UL

@@ -253,22 +253,6 @@ COMMON_OBJ += .objs/uart-printf.o
 CPPFLAGS += -DHAVE_UPRINTF_IMPLEMENTATION
 endif
 
-# BUG: Needs proper hooking up with new unified-firmware build system
-ifeq ($(BUILD_FREEMCAN_INVENTED_HISTOGRAM),yes)
-COMMON_OBJ += .objs/invented-histogram.o
-CPPFLAGS += -DINVENTED_HISTOGRAM
-endif
-
-CLEANFILES += invented-histogram.bin
-.objs/invented-histogram.bin: ../emulator/histogram_emulator.erl
-	$(MAKE) -C ../emulator histogram_emulator.beam
-	$(ERL) -noshell -pa ../emulator -s histogram_emulator to_file 256 "$@" -s init stop
-
-.objs/invented-histogram.o: .objs/invented-histogram.bin
-	$(OBJCOPY) -B avr -I binary -O elf32-avr --readonly-text \
-		--rename-section .data=.text,contents,alloc,load,readonly,code \
-		"$<" "$@"
-
 
 ########################################################################
 # Link firmware images with different personalities
@@ -297,6 +281,24 @@ LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 # Requires RAM_END and MAX_RUNTIME_STACK_SIZE to be --defsym'd.
 COMMON_X += check-data-stack-in-SRAM.x
 
+
+# ======================================================================
+# Firmware personality: MCA using simulated histogram
+ifeq ($(HAVE_ERL),yes)
+PERSONALITIES += sim-mca
+firmware-sim-mca.elf : $(COMMON_OBJ) $(COMMON_X)
+firmware-sim-mca.elf : .objs/bin_invented-histogram.o
+firmware-sim-mca.elf : .objs/perso-sim-mca.o
+	$(LINK.c) $^ $(LDLIBS) --output $@
+
+CLEANFILES += invented-histogram.bin
+.objs/invented-histogram.bin: ../emulator/src/histogram_emulator.erl
+	$(MAKE) -C ../emulator ebin/histogram_emulator.beam
+	$(ERL) -noshell -pa ../emulator/ebin -s histogram_emulator to_file 256 "$@" -s init stop
+
+CLEANFILES += .objs/bin_invented-histogram.o
+.objs/bin_invented-histogram.o : .objs/invented-histogram.bin
+endif
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC

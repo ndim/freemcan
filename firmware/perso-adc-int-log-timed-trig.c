@@ -189,7 +189,7 @@ void timer1_halt(void)
 }
 
 
-/** Reconfigure Timer to show the user that the measurement has been finished
+/** Reconfigure timer to show the user that the measurement has been finished
  *
  *
  */
@@ -219,6 +219,7 @@ void on_measurement_finished(void)
 
 
 /** @} */
+
 
 /*
  * Local Variables:

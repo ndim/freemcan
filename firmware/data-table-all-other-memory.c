@@ -34,7 +34,7 @@
 #include "init-functions.h"
 
 
-/* import the symbols in data type inspecific way */
+/* import the data table symbols in data type inspecific way */
 extern volatile char data_table[];
 extern volatile char data_table_end[];
 extern volatile char data_table[];

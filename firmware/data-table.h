@@ -64,17 +64,39 @@
   const uint8_t personality_name_length = sizeof(NAME)-1;           \
   const uint8_t personality_param_size = (PARAM_SIZE_TIMER1_COUNT+PARAM_SIZE_SKIP_SAMPLES)
 
-/** PROGMEM!!! */
+/** Personality information for sending to the host
+ *
+ * Defined by the #PERSONALITY macro and located in PROGMEM, these are
+ * all compile time and link time constants.
+ */
+extern const packet_personality_info_t personality_info;
+
+/** Name string identifying the firmware personality
+ *
+ * Defined by the #PERSONALITY macro and located in PROGMEM, this is a
+ * compile time constant.
+ *
+ * The length of this string can be found in #personality_name_length.
+ */
 extern const char personality_name[];
-/** Not PROGMEM */
+
+/** Length of the #personality_name string
+ *
+ * Defined by the #PERSONALITY macro, this is located in normal data
+ * memory and might thus be calculated at runtime.
+ */
 extern const uint8_t personality_name_length;
 
+/** Size in bytes of the parameters to the 'M' measurement command
+ *
+ * Defined by the #PERSONALITY macro, this is located in normal data
+ * memory and might thus be calculated at runtime.
+ */
 extern const uint8_t personality_param_size;
+
+
 extern uint8_t personality_param_sram[];
 extern uint8_t personality_param_eeprom[] EEMEM;
-
-/** PROGMEM!!! */
-extern const packet_personality_info_t personality_info;
 
 
 /** The data table as an opaque array of bytes

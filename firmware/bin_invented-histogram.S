@@ -22,6 +22,15 @@
  *  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  *  Boston, MA 02110-1301 USA
  *
+ *
+ * Using this assembly file for linking binary data into the
+ * executable has a few advantages over other methods:
+ *
+ *   * put the binary data into the proper linker section
+ *   * have proper symbol size for the binary data
+ *   * have the linker replace the data table size in code
+ *     with the actual value
+ *
  */
 
 	.section .rodata

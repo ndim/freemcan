@@ -50,6 +50,7 @@ INIT_FUNCTION(init3, wdt_softreset_init)
 
 /** @} */
 
+
 /*
  * Local Variables:
  * c-basic-offset: 2

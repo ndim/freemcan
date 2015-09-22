@@ -48,6 +48,7 @@ void wdt_soft_reset(void)
 
 /** @} */
 
+
 #endif /* WDT_SOFTRESET_H */
 
 

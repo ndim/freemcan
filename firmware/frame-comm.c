@@ -64,7 +64,7 @@ void frame_end(void)
 }
 
 
-/** Write a complete data frame */
+/** Write a complete data frame with payload from RAM */
 void frame_send(const frame_type_t frame_type,
                 const void *payload, const size_t payload_size)
 {
@@ -74,6 +74,7 @@ void frame_send(const frame_type_t frame_type,
 }
 
 
+/** Write a complete data frame with payload from PROGMEM */
 void frame_send_P(const frame_type_t frame_type,
                   PGM_VOID_P payload, const size_t payload_size)
 {

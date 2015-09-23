@@ -546,13 +546,13 @@ void main_event_loop(void)
        * has just been checked here, so we directly read UDR0 instead
        * of calling uart_getc(). */
       const uint8_t byte = (uint8_t) UDR0;
+      uart_recv_checksum_update(byte);
 
       frame_state_t next_fstate = fstate;
 
       switch (fstate) {
       case STF_MAGIC:
         if (byte == FRAME_MAGIC_STR[idx++]) {
-          uart_recv_checksum_update(byte);
           if (idx < 4) {
             next_fstate = STF_MAGIC;
           } else {
@@ -564,12 +564,10 @@ void main_event_loop(void)
         }
         break;
       case STF_COMMAND:
-        uart_recv_checksum_update(byte);
         cmd = byte;
         next_fstate = STF_LENGTH;
         break;
       case STF_LENGTH:
-        uart_recv_checksum_update(byte);
         len = byte;
         if (pstate == STP_READY) {
           /* We can only use the personality_param_sram buffer in the
@@ -595,7 +593,6 @@ void main_event_loop(void)
         }
         break;
       case STF_PARAM:
-        uart_recv_checksum_update(byte);
         if (pstate == STP_READY) {
           /* We can only use the personality_param_sram buffer in the
            * STP_READY state. By not writing to the buffer after

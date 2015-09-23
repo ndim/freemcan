@@ -31,20 +31,69 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "checksum.h"
+
 
 void uart_putc(const char c);
 void uart_putb(const void *buf, size_t len);
 void uart_putb_P(PGM_VOID_P buf, size_t len);
-char uart_getc(void);
 
-void uart_send_checksum_reset(void);
+
+/** Read a character from the UART */
+inline static
+char uart_getc(void)
+{
+    /* Poll til a character is inside the input buffer */
+    loop_until_bit_is_set( UCSR0A, RXC0 );
+
+    /* Get the character */
+    const char ch = UDR0;
+
+    return ch;
+}
+
+
+extern checksum_accu_t uart_cs_accu_send;
+
+
 void uart_send_checksum(void);
 
-void uart_recv_checksum_reset(void);
+
+extern checksum_accu_t uart_cs_accu_recv;
+
+
+/** Reset the receive checksum state */
+inline static
+void uart_send_checksum_reset(void)
+{
+  uart_cs_accu_send = checksum_reset();
+}
+
+
+/** Reset the receive checksum state */
+inline static
+void uart_recv_checksum_reset(void)
+{
+  uart_cs_accu_recv = checksum_reset();
+}
+
+
+/** Whether received byte sequence has ended with a valid checksum.
+ *
+ * \return boolean value within a char
+ */
+inline static
+char uart_recv_checksum_matches(void)
+{
+  return checksum_matches(uart_cs_accu_recv);
+}
+
+
 void uart_recv_checksum_update(const char ch);
-char uart_recv_checksum_matches(const uint16_t data);
+
 
 /** @} */
+
 
 #endif /* !UART_COMM_H */
 

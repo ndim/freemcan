@@ -86,8 +86,8 @@
 #define UBRRH_VALUE (UBRR_VALUE >> 8)
 
 
-static checksum_accu_t cs_accu_send;
-static checksum_accu_t cs_accu_recv;
+checksum_accu_t uart_cs_accu_send;
+checksum_accu_t uart_cs_accu_recv;
 
 
 /** USART0 initialisation to 8 databits no parity
@@ -112,24 +112,16 @@ INIT_FUNCTION(init5, uart_init)
    * the TXC0 bit (you would *clear* TXC0 bit by writing a 1). */
   UCSR0A = (USE_2X<<U2X0);
 
-  cs_accu_send = checksum_reset();
-  cs_accu_recv = checksum_reset();
+  uart_send_checksum_reset();
+  uart_recv_checksum_reset();
 }
 
 
 /** Send checksum */
 void uart_send_checksum(void)
 {
-  const uint8_t d0 = ((cs_accu_send >> 0) & 0xff);
-  const uint8_t d1 = ((cs_accu_send >> 8) & 0xff);
-  uart_putc((const char)d0);
-  uart_putc((const char)d1);
-}
-
-
-void uart_send_checksum_reset(void)
-{
-  cs_accu_send = checksum_reset();
+  uart_putc((const char)((uart_cs_accu_send >> 0) & 0xff));
+  uart_putc((const char)((uart_cs_accu_send >> 8) & 0xff));
 }
 
 
@@ -143,7 +135,7 @@ void uart_putc(const char c)
     UDR0 = c;
 
     /* update the checksum state with c */
-    cs_accu_send = checksum_update(cs_accu_send, c);
+    uart_cs_accu_send = checksum_update(uart_cs_accu_send, c);
 }
 
 
@@ -164,39 +156,10 @@ void uart_putb_P(PGM_VOID_P buf, size_t len)
 }
 
 
-/** Read a character from the UART */
-char uart_getc()
-{
-    /* Poll til a character is inside the input buffer */
-    loop_until_bit_is_set( UCSR0A, RXC0 );
-
-    /* Get the character */
-    const char ch = UDR0;
-
-    return ch;
-}
-
-
-/** Check whether received byte c and matches the checksum
- *
- * \return boolean value in char
- */
-char uart_recv_checksum_matches(const uint16_t data)
-{
-  return checksum_matches(cs_accu_recv, data);
-}
-
-
-void uart_recv_checksum_reset(void)
-{
-  cs_accu_recv = checksum_reset();
-}
-
-
 /* update the checksum state with ch */
 void uart_recv_checksum_update(const char ch)
 {
-  cs_accu_recv = checksum_update(cs_accu_recv, ch);
+  uart_cs_accu_recv = checksum_update(uart_cs_accu_recv, ch);
 }
 
 

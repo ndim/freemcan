@@ -542,9 +542,10 @@ void main_event_loop(void)
 
     /* check whether a byte has arrived via UART */
     if (bit_is_set(UCSR0A, RXC0)) {
-      const char ch = uart_getc();
-      const uint8_t byte = (uint8_t)ch;
-      uint16_t word = 0; /* we compose the checksum here */
+      /* The loop condition from uart_getc() checking UCSR0A for RCX0
+       * has just been checked here, so we directly read UDR0 instead
+       * of calling uart_getc(). */
+      const uint8_t byte = (uint8_t) UDR0;
 
       frame_state_t next_fstate = fstate;
 
@@ -612,12 +613,20 @@ void main_event_loop(void)
         }
         break;
       case STF_CHECKSUM0:
-        word = byte;
+        /* We do not need to explicitly store the checksum here. A
+         * checksum match will happen implicitly when the checksum
+         * accumulator turns 0 which the code in uart-comm.c will
+         * detect for us.
+         */
         next_fstate = STF_CHECKSUM1;
         break;
       case STF_CHECKSUM1:
-        word |= (byte << 8);
-        if (uart_recv_checksum_matches(word)) {
+        /* We do not need to explicitly store the checksum here. A
+         * checksum match will happen implicitly when the checksum
+         * accumulator turns 0 which the code in uart-comm.c will
+         * detect for us.
+         */
+        if (uart_recv_checksum_matches()) {
           /* checksum successful */
           pstate = firmware_handle_command(pstate, cmd);
           goto restart;

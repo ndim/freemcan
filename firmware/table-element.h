@@ -62,16 +62,16 @@ typedef
 inline static
 void table_element_zero(volatile freemcan_uint24_t *dest)
 {
-  asm("\n\t"
-      /* store 24 bit value zero */
-      "std %a[preg]+2, __zero_reg__\n\t"                    /* 2 cycles */
-      "std %a[preg]+1, __zero_reg__\n\t"                    /* 2 cycles */
-      "st  %a[preg], __zero_reg__\n\t"                      /* 2 cycles */
-      : /* output operands */
-      : /* input operands */
-        [preg] "b" (dest)
-        /* no clobber */
-      );
+  asm volatile("\n\t"
+               /* store 24 bit value zero */
+               "std	%a[preg]+2, __zero_reg__\n\t"     /* 2 cycles */
+               "std	%a[preg]+1, __zero_reg__\n\t"     /* 2 cycles */
+               "st	%a[preg],   __zero_reg__\n\t"     /* 2 cycles */
+               : /* output operands */
+               : /* input operands */
+                 [preg] "b" (dest)
+                 /* no clobber */
+               );
 }
 
 
@@ -80,20 +80,20 @@ inline static
 void table_element_copy(volatile freemcan_uint24_t *dest,
                         volatile freemcan_uint24_t *source)
 {
-  asm("\n\t"
-      /* load and store 24 bit value in units of 8 bits */
-      "ld  __tmp_reg__, %a[src]\n\t"              /* 2 cycles */
-      "st  %a[dst], __tmp_reg__\n\t"              /* 2 cycles */
-      "ldd __tmp_reg__, %a[src]+1\n\t"            /* 2 cycles */
-      "std %a[dst]+1, __tmp_reg__\n\t"            /* 2 cycles */
-      "ldd __tmp_reg__, %a[src]+2\n\t"            /* 2 cycles */
-      "std %a[dst]+2, __tmp_reg__\n\t"            /* 2 cycles */
-      : /* output operands */
-      : /* input operands */
-        [dst] "b" (dest),
-        [src] "b" (source)
-        /* no clobbers */
-      );
+  asm volatile("\n\t"
+               /* load and store 24 bit value in units of 8 bits */
+               "ld	__tmp_reg__, %a[src]\n\t"         /* 2 cycles */
+               "st	%a[dst],     __tmp_reg__\n\t"     /* 2 cycles */
+               "ldd	__tmp_reg__, %a[src]+1\n\t"       /* 2 cycles */
+               "std	%a[dst]+1,   __tmp_reg__\n\t"     /* 2 cycles */
+               "ldd	__tmp_reg__, %a[src]+2\n\t"       /* 2 cycles */
+               "std	%a[dst]+2,   __tmp_reg__\n\t"     /* 2 cycles */
+               : /* output operands */
+               : /* input operands */
+                 [dst] "b" (dest),
+                 [src] "b" (source)
+                 /* no clobbers */
+               );
 }
 
 
@@ -104,18 +104,18 @@ void table_element_inc(volatile freemcan_uint24_t *element)
   uint16_t accu;
   asm volatile("\n\t"
                /* load 24 bit value */
-               "ld  %A[accu],    %a[elem]\n\t"             /* 2 cycles */
-               "ldd %B[accu],    %a[elem]+1\n\t"           /* 2 cycles */
-               "ldd __tmp_reg__, %a[elem]+2\n\t"           /* 2 cycles */
+               "ld	%A[accu],    %a[elem]\n\t"        /* 2 cycles */
+               "ldd	%B[accu],    %a[elem]+1\n\t"      /* 2 cycles */
+               "ldd	__tmp_reg__, %a[elem]+2\n\t"      /* 2 cycles */
 
                /* increment 24 bit value */
-               "adiw %[accu], 1\n\t"                       /* 2 cycles for word */
-               "adc  __tmp_reg__, __zero_reg__\n\t"        /* 1 cycle */
+               "adiw	%[accu],     1\n\t"               /* 2 cycles */
+               "adc	__tmp_reg__, __zero_reg__\n\t"    /* 1 cycle  */
 
                /* store 24 bit value */
-               "st  %a[elem],   %A[accu]\n\t"              /* 2 cycles */
-               "std %a[elem]+1, %B[accu]\n\t"              /* 2 cycles */
-               "std %a[elem]+2, __tmp_reg__\n\t"           /* 2 cycles */
+               "st	%a[elem],    %A[accu]\n\t"        /* 2 cycles */
+               "std	%a[elem]+1,  %B[accu]\n\t"        /* 2 cycles */
+               "std	%a[elem]+2,  __tmp_reg__\n\t"     /* 2 cycles */
 
                : /* output operands */
                  /* Let compiler decide which registers to
@@ -139,6 +139,8 @@ void table_element_inc(volatile freemcan_uint24_t *element)
  * \param element Pointer to the table element to compare.
  * \param value   The value to compare the element against.
  *
+ * \return Boolean value for equality in an uint8_t
+ *
  * Note that #value has a different type from #*element here, as the
  * compiler would not know how to generate or pass such a
  * freemcan_uint24_t value.
@@ -153,29 +155,29 @@ uint8_t table_element_cmp_eq(volatile freemcan_uint24_t *element,
                              const uint32_t value)
 {
   uint8_t result_bool;
-  asm volatile(
-        "\n\t"
-	/* presume non-equal, i.e. false */
-        "	eor	%[result],    %[result]\n"
+  asm volatile("\n\t"
+               /* presume non-equal, i.e. false */
+               "ldi	%[result],    0\n\t"           /* 1 cycle  */
 
-        "	ldd	__tmp_reg__,  %a[elem]+2\n"
-        "	cp	__tmp_reg__,  %C[valu]\n"
+               "ldd	__tmp_reg__,  %a[elem]+2\n\t"  /* 2 cycles */
+               "cp	__tmp_reg__,  %C[valu]\n\t"    /* 1 cycle  */
 
-        "	ldd	__tmp_reg__,  %a[elem]+1\n"
-        "	cpc	__tmp_reg__,  %B[valu]\n"
+               "ldd	__tmp_reg__,  %a[elem]+1\n\t"  /* 2 cycles */
+               "cpc	__tmp_reg__,  %B[valu]\n\t"    /* 1 cycle  */
 
-        "	ld	__tmp_reg__,  %a[elem]\n"
-        "	cpc	__tmp_reg__,  %A[valu]\n"
+               "ld	__tmp_reg__,  %a[elem]\n\t"    /* 2 cycles */
+               "cpc	__tmp_reg__,  %A[valu]\n\t"    /* 1 cycle  */
 
-        "	brne	1f\n"
-        "	ldi	%[result],    1\n"
-        "1:\t\n"
+               "brne	L%=_end\n\t"                /* 1/2 cycles  */
+               "ldi	%[result],    1\n\t"           /* 1 cycle  */
+               "\n"
+               "L%=_end:\n"
 
-        : /* output operands */
-          [result] "=&r" (result_bool)
-        : /* input operands */
-          [elem] "b" (element),
-          [valu] "r" (value)
+               : /* output operands */
+                 [result] "=&r" (result_bool)
+               : /* input operands */
+                 [elem] "b" (element),
+                 [valu] "r" (value)
                );
   return result_bool;
 }
@@ -209,6 +211,7 @@ void table_element_inc(volatile table_element_t *element)
  *
  * \param element Pointer to the table element
  * \param value   Value to compare table element with.
+ * \return Boolean value for equality in an uint8_t
  *
  * Note that #value has the same type as #*element here.
  */

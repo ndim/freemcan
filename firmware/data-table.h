@@ -60,9 +60,10 @@
     PARAM_SIZE_TIMER1_COUNT,                                        \
     PARAM_SIZE_SKIP_SAMPLES                                         \
   };                                                                \
-  const char personality_name[] PROGMEM = NAME;                     \
-  const uint8_t personality_name_length = sizeof(NAME)-1;           \
-  const uint8_t personality_param_size = (PARAM_SIZE_TIMER1_COUNT+PARAM_SIZE_SKIP_SAMPLES)
+  const char    personality_name[] PROGMEM = (NAME);                \
+  const uint8_t personality_name_length    = sizeof(NAME)-1;        \
+  const uint8_t personality_param_size     =                        \
+    ((PARAM_SIZE_TIMER1_COUNT) + (PARAM_SIZE_SKIP_SAMPLES))
 
 /** Personality information for sending to the host
  *

@@ -156,7 +156,7 @@ void uart_putb_P(PGM_VOID_P buf, size_t len)
 }
 
 
-/* update the checksum state with ch */
+/** update the checksum state with byte ch */
 void uart_recv_checksum_update(const char ch)
 {
   uart_cs_accu_recv = checksum_update(uart_cs_accu_recv, ch);

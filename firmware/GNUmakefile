@@ -494,13 +494,12 @@ program program-eeprom:
 # Compile: create object files from C source files.
 .objs/%.o: %.c
 	@$(MKDIR_P) $(@D)
-	$(COMPILE.c) $< -o $@
-
+	$(COMPILE.c) -o $@ $<
 
 # Assemble: create object files from assembler source files.
 .objs/%.o: %.S
 	@$(MKDIR_P) $(@D)
-	$(CC) -c $(ASFLAGS) $(CPPFLAGS) $< -o $@
+	$(COMPILE.S) -o $@ $<
 
 
 ########################################################################
@@ -509,7 +508,7 @@ program program-eeprom:
 .deps/%.S.dep: %.S
 	@set -e; rm -f $@; \
 		$(MKDIR_P) $(@D); \
-		$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+		$(COMPILE.S) -MM $< > $@.$$$$; \
 		$(SED) 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 

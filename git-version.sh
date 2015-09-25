@@ -12,7 +12,7 @@ cd "$topdir"
 git_version="unknown-version"
 
 if test -d "${gitdir}" && test "x$(git rev-parse HEAD)" != "x"; then
-    if git_version="$(git describe)"; then
+    if git_version="$(git describe | ${SED-sed} 's/^freemcan-//')"; then
 	if git diff-files --quiet && git diff-index --cached --quiet HEAD; then
 	    :
 	else

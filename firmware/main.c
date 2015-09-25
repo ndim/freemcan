@@ -552,7 +552,7 @@ void main_event_loop(void)
 
       switch (fstate) {
       case STF_MAGIC:
-        if (byte == FRAME_MAGIC_STR[idx++]) {
+        if (byte == pgm_read_byte_near(&(magic_header[idx++]))) {
           if (idx < 4) {
             next_fstate = STF_MAGIC;
           } else {

@@ -42,6 +42,8 @@ void frame_start(const frame_type_t frame_type,
 
 void frame_end(void);
 
+extern const char magic_header[4] PROGMEM;
+
 /** @} */
 
 #endif /* !FRAME_COMM_H */

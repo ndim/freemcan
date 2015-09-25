@@ -518,6 +518,11 @@ void main_event_loop(void)
   /** Frame parser cached data for current frame */
   uint8_t len = 0;
 
+  /** The UART checksum initialization code in uart-comm.c runs
+   *  "uart_recv_checksum_reset()", i.e. we do not need to run it here
+   *  a second time for the initial state.
+   */
+
   /* Firmware FSM State */
   firmware_state_t pstate = STP_READY;
 

@@ -1,0 +1,29 @@
+language:
+  - C
+  - Erlang
+
+addons:
+  apt:
+    packages:
+      - avr-libc
+      - binutils-avr
+      - gcc-avr
+
+before_install:
+  - echo MCU = atmega644 >> firmware/settings.mk
+  - echo F_CPU = 18432000UL >> firmware/settings.mk
+  - echo AVRDUDE_PROGRAMMER = ponyser >> firmware/settings.mk
+  - echo AVRDUDE_PORT = /dev/ttyS0 >> firmware/settings.mk
+  - echo CFLAGS += -Werror >> firmware/settings.mk
+  - echo CFLAGS += -Werror >> hostware/local.mk
+  - echo SERIAL_PORT = /dev/ttyS1 >> hostware/settings.mk
+
+install:
+
+script:
+  # We need bash for the wildcards to work
+  - travis_retry make SHELL=/bin/bash
+  - test -f emulator/ebin/fmemu_app.beam
+  - test -x firmware/firmware-sim-mca.elf
+  - test -x firmware/firmware-geiger-ts.elf
+  - test -x hostware/freemcan-tui

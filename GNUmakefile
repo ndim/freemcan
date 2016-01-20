@@ -20,7 +20,7 @@ SUBDIRS += .
 SUBDIRS += firmware
 SUBDIRS += hostware
 
-ifneq ($(shell for f in {,/usr}/lib{,64}/erlang/lib/erl_interface-*/lib/libei*; do if test -f "$$f"; then echo xyz; fi; done),)
+ifneq ($(shell for f in {,/usr}/lib{,64}/erlang/lib/erl_interface-*/lib/libei.*; do if test -f "$$f"; then echo xyz; fi; done),)
 SUBDIRS += emulator
 endif
 

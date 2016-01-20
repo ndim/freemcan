@@ -4,7 +4,14 @@
 ## What is freemcan?
 
 
-(FIXME) freemcan is stuff.
+freemcan is software for using custom gamma spectrum analyzer and
+geiger counter hardware. It consists of both the firmware to run on
+the custom hardware and of hostware to run a Linux PC.
+
+As the custom hardware contains a high voltage generator, we have
+not published the schematics or board files for it yet.
+
+[![Build Status](https://travis-ci.org/ndim/freemcan.svg?branch=master)](https://travis-ci.org/ndim/freemcan)
 
 
 ### Why the name?

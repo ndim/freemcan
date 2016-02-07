@@ -33,6 +33,25 @@
 #endif
 
 
+#if (BITS_PER_VALUE == 8)
+
+/** Histogram element type */
+typedef uint8_t  table_element_t;
+
+#elif (BITS_PER_VALUE == 16)
+
+/** Histogram element type */
+typedef uint16_t  table_element_t;
+
+#elif (BITS_PER_VALUE == 24)
+
+# ifdef USE_GCC_UINT24
+
+/** Histogram element type */
+typedef __uint24  table_element_t;
+
+# else
+
 /** Unsigned 24bit integer type
  *
  * This could be called a uint24_t, but we do not want to intrude on
@@ -40,24 +59,22 @@
  */
 typedef uint8_t freemcan_uint24_t[3];
 
+/** Histogram element type */
+typedef freemcan_uint24_t table_element_t;
+
+# endif
+
+#elif (BITS_PER_VALUE == 32)
 
 /** Histogram element type */
-typedef
-#if (BITS_PER_VALUE == 8)
-  uint8_t
-#elif (BITS_PER_VALUE == 16)
-  uint16_t
-#elif (BITS_PER_VALUE == 24)
-  freemcan_uint24_t
-#elif (BITS_PER_VALUE == 32)
-  uint32_t
+typedef uint32_t table_element_t;
+
 #else
-# error Unsupported BITS_PER_VALUE
+# error Unsupported BITS_PER_VALUE value
 #endif
-  table_element_t;
 
 
-#if (BITS_PER_VALUE == 24)
+#if (BITS_PER_VALUE == 24) && (!defined(USE_GCC_UINT24))
 /** Set 24bit unsigned integer to zero */
 inline static
 void table_element_zero(volatile freemcan_uint24_t *dest)
@@ -185,14 +202,14 @@ uint8_t table_element_cmp_eq(volatile freemcan_uint24_t *element,
 
 #else
 
-/** Zero 8bit, 16bit, or 32bit unsigned integer */
+/** Compiler code to zero 8bit, 16bit, 24bit, or 32bit unsigned integer */
 inline static
 void table_element_zero(volatile table_element_t *dest)
 {
   *dest = 0;
 }
 
-/** Copy 8bit, 16bit, or 32bit unsigned integer */
+/** Compiler code to copy 8bit, 16bit, 24bit, or 32bit unsigned integer */
 inline static
 void table_element_copy(volatile table_element_t *dest,
                         volatile table_element_t *source)
@@ -200,14 +217,15 @@ void table_element_copy(volatile table_element_t *dest,
   *dest = *source;
 }
 
-/** Increment 8bit, 16bit, or 32bit unsigned integer */
+/** Compiler code to increment 8bit, 16bit, 24bit, or 32bit unsigned integer */
 inline static
 void table_element_inc(volatile table_element_t *element)
 {
   (*element)++;
 }
 
-/** Compare 8bit, 16bit, or 32bit unsigned integer to a value for equality.
+/** Compiler code to compare 8bit, 16bit, 24bit or 32bit unsigned
+ *  integer to a value for equality.
  *
  * \param element Pointer to the table element
  * \param value   Value to compare table element with.

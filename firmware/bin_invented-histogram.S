@@ -42,7 +42,7 @@
 	 * Otherwise, a platform specific .balign value would be called for.
 	 */
 data_table:
-	.incbin	".objs/invented-histogram.bin"
+	.incbin	BIN_FILENAME
 	.size	data_table, . - data_table
 
 

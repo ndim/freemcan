@@ -344,6 +344,7 @@ CLEANFILES += invented-histogram.bin
 	$(ERL) -noshell -pa ../emulator/ebin -s histogram_emulator to_file 256 "$@" -s init stop
 
 CLEANFILES += .objs/bin_invented-histogram.o
+.objs/bin_invented-histogram.o : CPPFLAGS+=-DBIN_FILENAME=\".objs/invented-histogram.bin\"
 .objs/bin_invented-histogram.o : .objs/invented-histogram.bin
 endif
 

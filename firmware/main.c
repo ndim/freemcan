@@ -137,9 +137,9 @@ BARE_COMPILE_TIME_ASSERT(FUSE_MEMORY_SIZE == 3);
  * do initialize each and every fuse value in the structure.
  */
 FUSES = {
-  /* 0xd7 = low */ (FUSE_SUT1 & FUSE_CKSEL3),
-  /* 0x99 = high */ (FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
-  /* 0xfc = extended */ (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
+  /* 0xd7 = low */      (0xff & FUSE_SUT1 & FUSE_CKSEL3),
+  /* 0x99 = high */     (0xff & FUSE_JTAGEN & FUSE_SPIEN & FUSE_BOOTSZ1 & FUSE_BOOTSZ0),
+  /* 0xfc = extended */ (0xff & FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
 };
 
 

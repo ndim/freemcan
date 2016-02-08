@@ -204,7 +204,7 @@ OD = od
 
 ########################################################################
 # If this compiler supports __uint24, define USE_GCC_UINT24 so that
-# table-element.h will use the __uint24 support built into GCC.
+# table-element.h will use the __uint24 support built into GCC >= 4.7.
 
 CC_SUPPORTS_UINT24 := $(shell if $(CC) -c -o test-uint24.o test-uint24.c > /dev/null 2>&1; then echo yes; else echo no; fi; rm -f test-uint24.o)
 

@@ -38,8 +38,13 @@ not published the schematics or board files for it yet.
 
 ## Building
 
+For a reasonably quick build, we recommend a parallel build:
 
-  $ make
+    $ make -j -O -l 5
+
+Otherwise, you can build serially with
+
+    $ make
 
 Installation is not supported at this time.
 

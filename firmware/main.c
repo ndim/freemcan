@@ -124,6 +124,11 @@ const char PSTR_READY[]     PROGMEM = "READY";
 /** Define static string in a single place */
 const char PSTR_RESET[]     PROGMEM = "RESET";
 
+
+/* Make sure we actually get the fuse memory size we expect */
+BARE_COMPILE_TIME_ASSERT(FUSE_MEMORY_SIZE == 3);
+
+
 /** Define AVR device fuses.
  *
  * CAUTION: These values are highly device dependent.

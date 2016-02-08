@@ -46,6 +46,15 @@
  * \param MAX_BYTES_PER_TABLE Maximum size of data table in bytes
  *                            (in bytes to make use of compile time constants)
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bits
+ *
+ * Note that table_element_bits is not actually used from the
+ * code at runtime.  Its purpose is to allow scripts to find out
+ * sizeof(table_element_t) from a ELF file at build time.
+ *
+ * This wastes between 8 and 32 bytes of flash memory (depending on
+ * sizeof(table_element_t), but we are not running out of flash memory
+ * any time soon and knowing the data table sizes from the build
+ * system should be worth a few bytes of flash.
  */
 #define PERSONALITY(NAME,                                             \
                     PARAM_SIZE_TIMER1_COUNT,                          \
@@ -53,6 +62,7 @@
                     UNITS_PER_SECOND,                                 \
                     MAX_BYTES_PER_TABLE,                              \
                     TABLE_ELEMENT_SIZE)                               \
+  const char table_element_bits[TABLE_ELEMENT_SIZE] PROGMEM = {0};    \
   const packet_personality_info_t personality_info PROGMEM = {        \
     (MAX_BYTES_PER_TABLE),                                            \
     (TABLE_ELEMENT_SIZE),                                             \

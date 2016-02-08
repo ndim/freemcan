@@ -491,6 +491,11 @@ CHECK_REPORTS += check-min-stack-sizes.check
 check-min-stack-sizes.check: check-min-stack-sizes.awk transfile.awk $(LSSS)
 	@set -x; if $(AWK) -f transfile.awk -f $< MAX_RUNTIME_STACK_SIZE=$(MAX_RUNTIME_STACK_SIZE) $(LSSS) > $@.new; then mv -f $@.new $@; else cat $@.new; rm -f $@.new; exit 1; fi
 
+# Determine data table sizes in bytes of all generated firmware images
+CHECK_REPORTS += check-data-table-sizes.check
+check-data-table-sizes.check: check-data-table-sizes.awk transfile.awk $(VSYMS)
+	@set -x; if $(AWK) -f transfile.awk -f $< $(VSYMS) > $@.new; then mv -f $@.new $@; else cat $@.new; rm -f $@.new; exit 1; fi
+
 CHECK_REPORTS += check-segment-sizes.check
 check-segment-sizes.check: check-segment-sizes.awk $(ELFS)
 	@set -x; if $(SIZE) $(ELFS) | $(AWK) -f $< > $@.new; then mv -f $@.new $@; else cat $@.new; rm -f $@.new; exit 1; fi

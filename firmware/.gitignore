@@ -21,3 +21,5 @@
 
 /res_invented-histogram.h
 /res_invented-histogram.S
+
+/erl_crash.dump

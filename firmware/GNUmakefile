@@ -378,14 +378,22 @@ firmware-geiger-ts.elf : .objs/beep.o
 ########################################################################
 # "metatargets"
 
+ELFS = $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)
+HEXS = $(ELFS:.elf=.hex)
+EEPS = $(ELFS:.elf=.eep)
+LSSS = $(ELFS:.elf=.lss)
+SYMS = $(ELFS:.elf=.sym)
+VSYMS = $(ELFS:.elf=.vsym)
+FUSES = $(ELFS:.elf=.fuses)
+
 .PHONY: elf hex eep lss sym vsym fuses
-elf: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)
-hex: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).hex)
-eep: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).eep)
-lss: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).lss)
-sym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).sym)
-vsym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).vsym)
-fuses: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
+elf: $(ELFS)
+hex: $(HEXS)
+eep: $(EEPS)
+lss: $(LSSS)
+sym: $(SYMS)
+vsym: $(VSYMS)
+fuses: $(FUSES)
 
 
 ########################################################################
@@ -481,8 +489,8 @@ check-ALL-%: check-ALL-%.check
 # i.e. the total amount of bytes that need to be flashed to the chip,
 # and shows them under the new "txt+dat" column.
 .PHONY: checks
-checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
-	@$(SIZE) $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf) \
+checks: $(ELFS) $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
+	@$(SIZE) $(ELFS) \
 	| $(AWK) '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
 
 

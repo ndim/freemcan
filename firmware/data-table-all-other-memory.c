@@ -37,15 +37,21 @@
 /* import the data table symbols in data type inspecific way */
 extern volatile char data_table[];
 extern volatile char data_table_end[];
-extern volatile char data_table[];
 
+/* We do not need data_table_size here as we just clear the memory
+ * between data_table and data_table_end.
+ */
 
-/** Setup, needs to be called once on startup */
+/** data_table initialization code (needs to be run once on startup) */
 INIT_FUNCTION(init5, data_table_init)
 {
-  /** As the table is outside of the memory area with the normal data,
-   * its content will NOT be cleared by the default avr-libc startup
-   * code.  So we clear the table memory ourselves.
+  /** As data_table is outside of the memory area with the normal data
+   * (and cannot be easily added to that memory area without
+   * essentially completely rewriting the linker script), the
+   * data_table content will NOT be cleared by the default avr-libc
+   * startup code.
+   *
+   * So we clear the data_table memory here.
    */
   asm volatile("\t /* assembly code taken from GPLv2+ libgcc.S __do_clear_bss */ \n"
                "\t	ldi     r17, hi8(data_table_end)\n"

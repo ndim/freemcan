@@ -463,35 +463,26 @@ MALLOC_HEAP_SIZE = 64
 # check-min-stack-size-%.check target.
 MAX_RUNTIME_STACK_SIZE = 256
 
+# Collect check report files here
+CHECK_REPORTS =
+
 # Check that the minimum stack size we want accomodated in a firmware
 # (used for other checks) is actually less than the number of push
 # instructions in the firmware image. As the firmwares do not use
-# recursion, the push instruction count is a good upper bound estimate
-# for the stack depth.
-CHECKS += min-stack-size
-check-min-stack-size-%.check: firmware-%.lss
-	@set -e; \
-	CALL_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\scall\s" $< | wc -l)"; \
-	RCALL_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\srcall\s" $< | wc -l)"; \
-	ALL_CALL_INSTRUCTION_COUNT="$$(expr "$$CALL_INSTRUCTION_COUNT" + "$$RCALL_INSTRUCTION_COUNT")"; \
-	PUSH_INSTRUCTION_COUNT="$$(grep -E "\s[0-9a-f]+:\s.*\spush\sr[0-9]+" $< | wc -l)"; \
-	TOTAL_COUNT="$$(expr "$$ALL_CALL_INSTRUCTION_COUNT" + "$$PUSH_INSTRUCTION_COUNT")"; \
-	echo "CHECK($*): PUSH_COUNT+2*CALL_COUNT=$$PUSH_INSTRUCTION_COUNT+2*$$ALL_CALL_INSTRUCTION_COUNT=$$TOTAL_COUNT <= MAX_RUNTIME_STACK_SIZE=$(MAX_RUNTIME_STACK_SIZE)"> $@; \
-	test "$$TOTAL_COUNT" -le "$(MAX_RUNTIME_STACK_SIZE)" || { cat $@; exit 1; }
+# recursion, the call and push instruction count is a good upper bound
+# estimate for the stack depth.
+CHECK_REPORTS += check-min-stack-sizes.check
+check-min-stack-sizes.check: check-min-stack-sizes.awk transfile.awk $(LSSS)
+	@set -x; if $(AWK) -f transfile.awk -f $< MAX_RUNTIME_STACK_SIZE=$(MAX_RUNTIME_STACK_SIZE) $(LSSS) > $@.new; then mv -f $@.new $@; else cat $@.new; rm -f $@.new; exit 1; fi
 
-check-ALL-%.check: $(foreach CHECK, $(CHECKS), check-$(CHECK)-%.check)
-	@cat $^ > $@
+CHECK_REPORTS += check-segment-sizes.check
+check-segment-sizes.check: check-segment-sizes.awk $(ELFS)
+	@set -x; if $(SIZE) $(ELFS) | $(AWK) -f $< > $@.new; then mv -f $@.new $@; else cat $@.new; rm -f $@.new; exit 1; fi
 
-check-ALL-%: check-ALL-%.check
-	@cat $<
-
-# The awk magic sums up the numbers from the text and data columns,
-# i.e. the total amount of bytes that need to be flashed to the chip,
-# and shows them under the new "txt+dat" column.
+# Run and show output of all checks
 .PHONY: checks
-checks: $(ELFS) $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
-	@$(SIZE) $(ELFS) \
-	| $(AWK) '($$1 ~ /^[0-9]+$$/) { s=$$1+$$2; printf "%7d\t%s\n", s, $$0; next; } { printf "%7s\t%s\n", "txt+dat", $$0; }'
+checks: $(CHECK_REPORTS)
+	@cat $(CHECK_REPORTS)
 
 
 ########################################################################

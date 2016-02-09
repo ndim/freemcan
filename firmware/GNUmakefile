@@ -488,6 +488,9 @@ checks: $(foreach PERSONALITY, $(PERSONALITIES), check-ALL-$(PERSONALITY))
 ########################################################################
 # Firmware image formats and firmware image statistics
 
+# Firmware formats to be flashed onto the MCU (mainly code+eeprom)
+FIRMWARE_FORMATS =
+
 FIRMWARE_FORMATS += hex
 firmware-%.hex: firmware-%.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse $< $@
@@ -498,12 +501,10 @@ firmware-%.hex: firmware-%.elf
 # 		--change-section-lma .eeprom=0 -O $(FORMAT) $< $@
 
 # Create extended listing file from ELF output file.
-FIRMWARE_FORMATS += lss
 firmware-%.lss: firmware-%.elf
 	$(OBJDUMP) -h -S $< > $@
 
 # Create a symbol table from ELF output file.
-FIRMWARE_FORMATS += sym
 firmware-%.sym: firmware-%.elf
 	$(NM) -n $< > $@
 

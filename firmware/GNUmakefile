@@ -34,6 +34,11 @@ COMMON_OBJ =
 COMMON_X =
 PERSONALITIES =
 
+# The default target is the first target and must come before
+# including common.mk with its targets.
+.PHONY: all
+all: all-local
+
 include ../common.mk
 
 # Define local settings by defining them in settings.mk. For an example of
@@ -253,8 +258,8 @@ AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
 ########################################################################
 # Default target
 
-.PHONY: all
-all: elf hex lss sym fuses checks
+.PHONY: all-local
+all-local: elf hex lss sym fuses checks
 
 # Legacy target
 .PHONY: ALL
@@ -542,7 +547,7 @@ include $(foreach F, $(wildcard *.c *.S), .deps/$(F).dep)
 # clean target
 
 .PHONY: clean
-clean:
+clean: clean-common
 	rm -f $(CLEANFILES)
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
 	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss

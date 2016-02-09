@@ -19,6 +19,12 @@ CFLAGS += -O -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-
 LDLIBS += -lm
 
 
+# The default target is the first target and must come before
+# including common.mk with its targets.
+.PHONY: all
+all: all-local
+
+
 include ../common.mk
 
 
@@ -43,8 +49,8 @@ CLEANFILES   += test-log
 # Add to or override some variables here, if you want to
 -include local.mk
 
-.PHONY: all
-all: $(bin_PROGRAMS)
+.PHONY: all-local
+all-local: $(bin_PROGRAMS)
 
 .PHONY: run
 run: freemcan-tui
@@ -60,7 +66,7 @@ run: freemcan-tui
 ALL: all
 
 .PHONY: clean
-clean:
+clean: clean-common
 	rm -f $(CLEANFILES)
 	rm -f *~
 	rm -rf .deps .objs

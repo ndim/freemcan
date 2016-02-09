@@ -259,7 +259,7 @@ AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
 # Default target
 
 .PHONY: all-local
-all-local: elf hex lss sym fuses checks
+all-local: elf hex lss sym vsym fuses checks
 
 # Legacy target
 .PHONY: ALL
@@ -378,12 +378,13 @@ firmware-geiger-ts.elf : .objs/beep.o
 ########################################################################
 # "metatargets"
 
-.PHONY: elf hex eep lss sym fuses
+.PHONY: elf hex eep lss sym vsym fuses
 elf: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).elf)
 hex: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).hex)
 eep: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).eep)
 lss: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).lss)
 sym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).sym)
+vsym: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).vsym)
 fuses: $(foreach PERSONALITY, $(PERSONALITIES), firmware-$(PERSONALITY).fuses)
 
 
@@ -507,6 +508,10 @@ firmware-%.lss: firmware-%.elf
 # Create a symbol table from ELF output file.
 firmware-%.sym: firmware-%.elf
 	$(NM) -n $< | sort -u > $@
+
+# Create a verbose symbol table from ELF output file.
+firmware-%.vsym: firmware-%.elf
+	$(OBJDUMP) --syms $< | grep '^[0-9a-f]\{4,16\} ' | sort -u > $@
 
 
 ########################################################################

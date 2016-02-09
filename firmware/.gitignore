@@ -15,5 +15,6 @@
 /firmware-*.lss
 /firmware-*.map
 /firmware-*.sym
+/firmware-*.vsym
 /check-*.check
 /*.element-size.txt

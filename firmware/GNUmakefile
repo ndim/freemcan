@@ -193,7 +193,7 @@ LDLIBS += -lm
 # only used for heap (malloc()).
 # LDFLAGS += -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
 
-# Create map file on linking
+# Create map file on linking, and add the cross reference table to it
 LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
 
 
@@ -301,6 +301,16 @@ LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 # Check that (data+stack) fit into SRAM with a linker script ASSERT().
 # Requires RAM_END and MAX_RUNTIME_STACK_SIZE to be --defsym'd.
 COMMON_X += check-data-stack-in-SRAM.x
+
+
+# Debug the link process
+# LDFLAGS += -Wl,--print-map
+# LDFLAGS += -Wl,--trace
+# LDFLAGS += -Wl,--stats
+# LDFLAGS += -Wl,--warn-common
+
+# Causes overlaps and thus link fails
+# LDFLAGS += -Wl,--build-id
 
 
 # ======================================================================

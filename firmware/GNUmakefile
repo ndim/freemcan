@@ -145,10 +145,10 @@ CFLAGS += -save-temps=obj
 # CFLAGS += -mcall-prologues
 
 # Generate listing file
-# CFLAGS += -Wa,-adhlns=$(<:.c=.lst)
+CFLAGS += -Wa,-adhlns=$(@:.o=.lst)
 
 
-ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
+ASFLAGS += -Wa,-adhlns=$(@:.o=.lst),-gstabs
 
 
 # Add target processor to flags for C compiler and linker

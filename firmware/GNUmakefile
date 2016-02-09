@@ -146,8 +146,11 @@ CFLAGS += -save-temps
 ASFLAGS += -Wa,-adhlns=$(<:.S=.lst),-gstabs
 
 
-# Add target processor to flags.
-CPPFLAGS += -mmcu=$(MCU)
+# Add target processor to flags for C compiler and linker
+TARGET_ARCH = -mmcu=$(MCU)
+
+# Add target processor to flags for S compiler (i.e. assembler)
+TARGET_MACH = -mmcu=$(MCU)
 
 
 CPPFLAGS += -I.

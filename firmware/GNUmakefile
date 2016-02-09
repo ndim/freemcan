@@ -566,6 +566,7 @@ clean: clean-common
 	rm -f check-*.check
 	rm -f *.lst
 	rm -f *.o
+	rm -f *.i *.s
 	rm -f *~
 	rm -rf .deps .objs
 

@@ -10,7 +10,9 @@
 #     CAUTION: This adds about 1500 byte to the firmware.
 #   * You can define these variables in settings.mk if you like.
 #   * "make program" takes about 8 seconds with a 6600 byte "fat"
-#     firmware image on a proper RS232 port.
+#     firmware image on a proper RS232 port with a ponyser
+#     bitbanging ISP adapter. With a USB based RS232 port and
+#     ponyser, programming can take 100 times that or even longer.
 
 # AVR-GCC Makefile template, derived from the WinAVR template (which
 # is public domain), believed to be neutral to any flavor of "make"

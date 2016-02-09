@@ -301,6 +301,7 @@ LDFLAGS += -Wl,--defsym=MALLOC_HEAP_SIZE=$(MALLOC_HEAP_SIZE)
 # Check that (data+stack) fit into SRAM with a linker script ASSERT().
 # Requires RAM_END and MAX_RUNTIME_STACK_SIZE to be --defsym'd.
 COMMON_X += check-data-stack-in-SRAM.x
+LDLIBS   += -Wl,-T,check-data-stack-in-SRAM.x
 
 
 # Debug the link process
@@ -320,7 +321,7 @@ PERSONALITIES += sim-mca
 firmware-sim-mca.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-sim-mca.elf : .objs/bin_invented-histogram.o
 firmware-sim-mca.elf : .objs/perso-sim-mca.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
+	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 CLEANFILES += invented-histogram.bin
 .objs/invented-histogram.bin: ../emulator/src/histogram_emulator.erl
@@ -339,7 +340,7 @@ firmware-adc-int-mca.elf : .objs/timer1-init-simple.o
 firmware-adc-int-mca.elf : .objs/timer1-countdown-and-stop.o
 firmware-adc-int-mca.elf : .objs/timer1-get-duration.o
 firmware-adc-int-mca.elf : .objs/perso-adc-int-mca-ext-trig.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
+	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: MCA using internal ADC, timed trigger
@@ -347,28 +348,28 @@ PERSONALITIES += adc-int-mca-timed
 firmware-adc-int-mca-timed.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-adc-int-mca-timed.elf : .objs/timer1-adc-trigger.o
 firmware-adc-int-mca-timed.elf : .objs/perso-adc-int-mca-timed-trig.o
-	$(LINK.c) $^ $(LDLIBS) --output $@
+	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Sample recording using internal ADC, timed trigger
 PERSONALITIES += adc-int-timed-sampling
-firmware-adc-int-timed-sampling.elf : LDFLAGS += -T data-table-all-other-memory.x
+firmware-adc-int-timed-sampling.elf : LDLIBS+=-Wl,-T,data-table-all-other-memory.x
 firmware-adc-int-timed-sampling.elf : data-table-all-other-memory.x
+firmware-adc-int-timed-sampling.elf : .objs/data-table-all-other-memory.o
 firmware-adc-int-timed-sampling.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-adc-int-timed-sampling.elf : .objs/timer1-adc-trigger.o
-firmware-adc-int-timed-sampling.elf : .objs/data-table-all-other-memory.o
 firmware-adc-int-timed-sampling.elf : .objs/perso-adc-int-log-timed-trig.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
 # ======================================================================
 # Firmware personality: Geiger Counter with time series
 PERSONALITIES += geiger-ts
-firmware-geiger-ts.elf : LDFLAGS += -T data-table-all-other-memory.x
+firmware-geiger-ts.elf : LDLIBS+=-Wl,-T,data-table-all-other-memory.x
 firmware-geiger-ts.elf : data-table-all-other-memory.x
+firmware-geiger-ts.elf : .objs/data-table-all-other-memory.o
 firmware-geiger-ts.elf : $(COMMON_OBJ) $(COMMON_X)
 firmware-geiger-ts.elf : .objs/timer1-init-simple.o
 firmware-geiger-ts.elf : .objs/timer1-get-duration.o
-firmware-geiger-ts.elf : .objs/data-table-all-other-memory.o
 firmware-geiger-ts.elf : .objs/perso-geiger-time-series.o
 firmware-geiger-ts.elf : .objs/beep.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@

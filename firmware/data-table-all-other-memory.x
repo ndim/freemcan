@@ -41,5 +41,5 @@ SECTIONS {
 
 }
 INSERT AFTER .noinit ;
-ASSERT ( ( __heap_end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+stack+table) size is too large for SRAM") ;
-ASSERT ( data_table_size >= 1024, "data table size is smaller than 1K" ) ;
+ASSERT ( ( __heap_end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+table+heap+stack) size is too large for SRAM (data-table-all-other-memory.x)") ;
+ASSERT ( data_table_size >= 1024, "data table size is smaller than 1K (data-table-all-other-memory.x)") ;

@@ -506,7 +506,7 @@ firmware-%.lss: firmware-%.elf
 
 # Create a symbol table from ELF output file.
 firmware-%.sym: firmware-%.elf
-	$(NM) -n $< > $@
+	$(NM) -n $< | sort -u > $@
 
 
 ########################################################################

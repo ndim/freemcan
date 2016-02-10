@@ -1,11 +1,9 @@
 -include local.mk
 
-AWK       ?= awk
 DOXYGEN   ?= doxygen
 GIT       ?= git
 GZIP      ?= gzip
 NEATO     ?= neato
-SED       ?= sed
 SLOCCOUNT ?= sloccount
 XZ        ?= xz
 
@@ -36,6 +34,8 @@ all clean:
 		fi; \
 	done
 
+include common.mk
+
 .PHONY: all-here
 all-here:
 
@@ -48,7 +48,7 @@ ALL: all
 ALL-here: all-here
 
 .PHONY: clean-here
-clean-here:
+clean-here: clean-common
 	rm -f $(CLEANFILES)
 	rm -rf dox Doxyfile
 
@@ -68,7 +68,7 @@ Doxyfile: Doxyfile.in
 		-e 's|@PACKAGE_VERSION@|$(PACKAGE_VERSION)-g$(GIT_VERSION)|g' \
 		-e "s|@PWD@|$${PWD}|g" \
 		< $< > $@
-	mkdir -p dox/html
+	$(MKDIR_P) dox/html
 	$(DOXYGEN) -w html \
 		dox/html/default-header.html \
 		dox/html/default-footer.html \
@@ -82,11 +82,11 @@ dox: Doxyfile dox-files
 dox-files: dox/built/firmware/firmware-fsm.png
 
 dox/built/firmware/firmware-fsm.png: include/firmware-fsm.png
-	mkdir -p "$(@D)"
+	$(MKDIR_P) $(@D)
 	cp $< $@
 
 dox/built/%.png: include/%.neato
-	mkdir -p "$(@D)"
+	$(MKDIR_P) $(@D)
 	$(NEATO) -o "$@" -Tpng $<
 
 RSYNC_USER ?= rsync_user

@@ -35,7 +35,10 @@ else
 HAVE_ERL := no
 endif
 
-MKDIR_P = mkdir -p
+AWK     ?= awk
+SED     ?= sed
+SORT_U  ?= sort -u
+MKDIR_P ?= mkdir -p
 
 .PHONY: clean-common
 clean-common:

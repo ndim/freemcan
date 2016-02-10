@@ -213,10 +213,6 @@ LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
 ########################################################################
 # The programs used
 
-AWK = gawk
-SORT_U = sort -u
-SED = sed
-
 ERL = erl
 CC = avr-gcc
 OBJCOPY = avr-objcopy

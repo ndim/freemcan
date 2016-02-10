@@ -201,7 +201,9 @@ LDFLAGS += -Wl,-Map=$(@:.elf=.map),--cref
 # The programs used
 
 AWK = gawk
+SORT_U = sort -u
 SED = sed
+
 ERL = erl
 CC = avr-gcc
 OBJCOPY = avr-objcopy
@@ -506,11 +508,11 @@ firmware-%.lss: firmware-%.elf
 
 # Create a symbol table from ELF output file.
 firmware-%.sym: firmware-%.elf
-	$(NM) -n $< | sort -u > $@
+	$(NM) -n $< | $(SORT_U) > $@
 
 # Create a verbose symbol table from ELF output file.
 firmware-%.vsym: firmware-%.elf
-	$(OBJDUMP) --syms $< | grep '^[0-9a-f]\{4,16\} ' | sort -u > $@
+	$(OBJDUMP) --syms $< | grep '^[0-9a-f]\{4,16\} ' | $(SORT_U) > $@
 
 
 ########################################################################

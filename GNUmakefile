@@ -9,7 +9,7 @@ XZ        ?= xz
 
 PACKAGE_TARNAME ?= $(notdir $(shell pwd))
 PACKAGE_VERSION ?= $(shell date -I)
-GIT_VERSION ?= $(shell if test -d .git; then git rev-parse --short HEAD; else echo "nongit"; fi)
+GIT_VERSION ?= $(shell if test -d .git; then $(GIT) rev-parse --short HEAD; else echo "nongit"; fi)
 
 CLEANFILES =
 
@@ -94,11 +94,12 @@ RSYNC_HOST ?= rsync-host.example.com
 RSYNC_USERHOST ?= $(RSYNC_USER)@$(RSYNC_HOST)
 RSYNC_SUBDIR ?= sub/dir/
 RSYNC_OPTS ?=
+RSYNC      ?=
 
 .PHONY: upload-dox
 upload-dox: dox
 	chmod -R a+rX dox/html
-	rsync -avz $(RSYNC_OPTS) dox/html/ $(RSYNC_USERHOST):$(RSYNC_SUBDIR)
+	$(RSYNC) -avz $(RSYNC_OPTS) dox/html/ $(RSYNC_USERHOST):$(RSYNC_SUBDIR)
 
 .PHONY: sloccount
 sloccount:

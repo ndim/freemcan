@@ -35,10 +35,19 @@ CLEANFILES += $(BEAMS)
 
 
 .PHONY: all
-all: all-internal
+all: all-local
+
+include ../common.mk
 
 .PHONY: ALL
 ALL: all
+
+ifeq ($(HAVE_ERL),no)
+
+.PHONY: all-local
+all-local:
+
+else
 
 bin_PROGRAMS += priv/erl_unix_port
 
@@ -70,11 +79,13 @@ TARGETS += ebin/fmemu.app
 ebin/fmemu.app: src/fmemu.app.src
 	cat $< > $@
 
-.PHONY: all-internal
-all-internal: $(bin_PROGRAMS) $(BEAMS) $(TARGETS)
+.PHONY: all-local
+all-local: $(priv_PROGRAMS) $(BEAMS) $(TARGETS)
+
+endif
 
 .PHONY: clean
-clean:
+clean: clean-common
 	rm -f $(bin_PROGRAMS)
 	rm -f $(BEAMS)
 	rm -f $(CLEANFILES)

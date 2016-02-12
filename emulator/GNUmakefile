@@ -1,7 +1,7 @@
 # Example command line:
 # $ killall erl_unix_port freemcan-text; make && rm -f testdev && erl -noshell -s freemcan_emulator start testdev -s init stop
 
-bin_PROGRAMS ?=
+priv_PROGRAMS ?=
 
 ERLC = erlc
 ERLC_FLAGS ?=
@@ -31,8 +31,6 @@ ERL_BASES += fmemu_util
 
 BEAMS       = $(foreach b,$(ERL_BASES),ebin/$(b).beam)
 ERL_SOURCES = $(foreach b,$(ERL_BASES),src/$(b).erl)
-CLEANFILES += $(BEAMS)
-
 
 .PHONY: all
 all: all-local
@@ -51,35 +49,34 @@ all-local:
 
 else
 
-bin_PROGRAMS += priv/erl_unix_port
-
-ERL_INTERFACE_BASENAME := erl_interface-*
-
-ERL_LIB_CANDIDATES =
-ERL_LIB_CANDIDATES += /usr/lib64/erlang/lib/$(ERL_INTERFACE_BASENAME)
-ERL_LIB_CANDIDATES += /usr/lib/erlang/lib/$(ERL_INTERFACE_BASENAME)
-
-ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB_CANDIDATES)))
-ifeq (,$(ERL_INTERFACE_ROOT))
-$(error Could not find erl_interface)
-endif
-
-CLEANFILES   += priv/erl_unix_port
-priv/erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei
-priv/erl_unix_port : c_src/erl_unix_port.o
+priv_PROGRAMS += priv/erl_unix_port
+priv/erl_unix_port : .objs/erl_unix_port.o
+	@$(MKDIR_P) $(@D)
 	$(LINK.c) -o $@ $(LDLIBS) $^
 
-CLEANFILES   += c_src/erl_unix_port.o
-c_src/erl_unix_port.o : CFLAGS += -I$(ERL_INTERFACE_ROOT)/include
-c_src/erl_unix_port.o : c_src/erl_unix_port.c
 
-ebin/%.beam: src/%.erl
-	$(ERLC) -o $(@D) $(ERLC_FLAGS) $<
-
-CLEANFILES += ebin/fmemu.app
 TARGETS += ebin/fmemu.app
 ebin/fmemu.app: src/fmemu.app.src
+	@$(MKDIR_P) $(@D)
 	cat $< > $@
+
+ebin/%.beam: src/%.erl
+	@$(MKDIR_P) $(@D)
+	$(ERLC) -o $(@D) $(ERLC_FLAGS) $<
+
+.objs/%.o: c_src/%.c
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.c) -o $@ -c $<
+
+.deps/%.c.dep: c_src/%.c
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.c) -MM -MT ".objs/$*.o $@ " $< > $@
+
+.deps/%.erl.dep: src/%.erl
+	@$(MKDIR_P) $(@D)
+	$(ERLC) -o ebin $(ERLC_FLAGS) -M -MT "ebin/$*.beam $@ " $< > $@
+
+include $(foreach F, $(notdir $(wildcard c_src/*.c src/*.erl)), .deps/$(F).dep)
 
 .PHONY: all-local
 all-local: $(priv_PROGRAMS) $(BEAMS) $(TARGETS)
@@ -88,6 +85,7 @@ endif
 
 .PHONY: clean
 clean: clean-common
-	rm -f $(bin_PROGRAMS)
-	rm -f $(BEAMS)
-	rm -f $(CLEANFILES)
+	rm -rf ebin
+	rm -rf priv
+	rm -rf .deps
+	rm -rf .objs

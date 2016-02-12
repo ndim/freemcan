@@ -1,6 +1,10 @@
 /*.beam
 /*.o
 /*.strace
+/.deps/
+/.objs/
+/ebin/
+/priv/
 /erl_crash.dump
 /erl_unix_port
 /local.mk

@@ -70,6 +70,7 @@ clean: clean-common
 	rm -f $(CLEANFILES)
 	rm -f *~
 	rm -rf .deps .objs
+	rm -f *.i *.s
 	rm -f *.o
 
 

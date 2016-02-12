@@ -9,10 +9,25 @@
 #    clean-common target so that "make clean" will clean our stuff as
 #    well as yours.
 
-TOP_DIR := $(shell for d in . .. ../..; do if test -f "$$d/git-version.sh"; then echo "$$d"; exit; fi; done; exit 1)
-FOO_1 := $(shell $(TOP_DIR)/git-version.sh git-version.h)
+TOP_DIR_CANDIDATES =
+TOP_DIR_CANDIDATES += .
+TOP_DIR_CANDIDATES += ..
+TOP_DIR_CANDIDATES += ../..
+GIT_VERSION_SH := $(firstword $(wildcard $(addsuffix /git-version.sh,$(TOP_DIR_CANDIDATES))))
+GIT_VERSION_H_DUMMY := $(shell $(GIT_VERSION_SH) git-version.h)
+TOP_DIR := $(dir $(GIT_VERSION_SH))
 
-HAVE_ERL := $(shell for f in {,/usr}/lib{,64}/erlang/bin/erl; do if test -e "$$f"; then echo yes; exit; fi; done; echo no)
+ERL_CANDIDATES =
+ERL_CANDIDATES += /usr/lib64/erlang/bin
+ERL_CANDIDATES += /usr/lib/erlang/bin
+ERL_CANDIDATES += /lib64/erlang/bin
+ERL_CANDIDATES += /lib/erlang/bin
+
+ifneq (,$(firstword $(wildcard $(addsuffix /erl,$(ERL_CANDIDATES)))))
+HAVE_ERL := yes
+else
+HAVE_ERL := no
+endif
 
 MKDIR_P = mkdir -p
 

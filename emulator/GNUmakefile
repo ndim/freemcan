@@ -33,8 +33,6 @@ BEAMS       = $(foreach b,$(ERL_BASES),ebin/$(b).beam)
 ERL_SOURCES = $(foreach b,$(ERL_BASES),src/$(b).erl)
 CLEANFILES += $(BEAMS)
 
-ERL_LIB = $(shell if test -d /usr/lib64/erlang/lib; then echo /usr/lib64/erlang/lib; else echo /usr/lib/erlang/lib; fi)
-ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB)/erl_interface-*))
 
 .PHONY: all
 all: all-internal
@@ -43,6 +41,18 @@ all: all-internal
 ALL: all
 
 bin_PROGRAMS += priv/erl_unix_port
+
+ERL_INTERFACE_BASENAME := erl_interface-*
+
+ERL_LIB_CANDIDATES =
+ERL_LIB_CANDIDATES += /usr/lib64/erlang/lib/$(ERL_INTERFACE_BASENAME)
+ERL_LIB_CANDIDATES += /usr/lib/erlang/lib/$(ERL_INTERFACE_BASENAME)
+
+ERL_INTERFACE_ROOT = $(firstword $(wildcard $(ERL_LIB_CANDIDATES)))
+ifeq (,$(ERL_INTERFACE_ROOT))
+$(error Could not find erl_interface)
+endif
+
 CLEANFILES   += priv/erl_unix_port
 priv/erl_unix_port : LDLIBS += -L$(ERL_INTERFACE_ROOT)/lib -lei
 priv/erl_unix_port : c_src/erl_unix_port.o

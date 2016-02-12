@@ -39,6 +39,8 @@ all: all-local
 
 include ../common.mk
 
+-include local.mk
+
 .PHONY: ALL
 ALL: all
 

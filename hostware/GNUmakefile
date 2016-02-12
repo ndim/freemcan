@@ -109,11 +109,8 @@ test-log : .objs/test-log.o .objs/freemcan-log.o
 # Automatic dependency generation
 
 .deps/%.c.dep: %.c
-	@set -e; rm -f $@; \
-		$(MKDIR_P) $(@D); \
-		$(COMPILE.c) -MM $< > $@.$$$$; \
-		sed 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
-		rm -f $@.$$$$
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.c) -MM -MT ".objs/$*.o $@ " $< > $@
 
 include $(foreach F, $(wildcard *.c), .deps/$(F).dep)
 

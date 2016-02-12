@@ -545,18 +545,12 @@ program program-eeprom:
 # Automatic dependency generation
 
 .deps/%.S.dep: %.S
-	@set -e; rm -f $@; \
-		$(MKDIR_P) $(@D); \
-		$(COMPILE.S) -MM $< > $@.$$$$; \
-		$(SED) 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
-		rm -f $@.$$$$
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.S) -MM -MT ".objs/$*.o $@ " $< > $@
 
 .deps/%.c.dep: %.c
-	@set -e; rm -f $@; \
-		$(MKDIR_P) $(@D); \
-		$(COMPILE.c) -MM $< > $@.$$$$; \
-		$(SED) 's,\($*\)\.o[ :]*,.objs/\1.o $@ : ,g' < $@.$$$$ > $@; \
-		rm -f $@.$$$$
+	@$(MKDIR_P) $(@D)
+	$(COMPILE.c) -MM -MT ".objs/$*.o $@ " $< > $@
 
 include $(foreach F, $(wildcard *.c *.S), .deps/$(F).dep)
 

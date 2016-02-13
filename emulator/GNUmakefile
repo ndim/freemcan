@@ -17,6 +17,7 @@ CFLAGS += -Wall -Wextra
 CFLAGS += -Werror
 CFLAGS += -g
 CFLAGS += -I../include
+CFLAGS += -save-temps=obj
 
 TARGETS =
 

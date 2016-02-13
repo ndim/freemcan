@@ -13,7 +13,7 @@ CFLAGS += -pedantic
 CFLAGS += -Wall -Wextra
 # CFLAGS += -Werror
 CFLAGS += -g
-CFLAGS += -save-temps
+CFLAGS += -save-temps=obj
 CFLAGS += -I../include
 CFLAGS += -O -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4
 LDLIBS += -lm

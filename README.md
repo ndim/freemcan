@@ -126,3 +126,14 @@ LGPLv2.1+
 
     for doing the reset timing stuff, potentially at ADC trigger, and
     after timer IRQ counted delay later, or similar stuff.
+
+
+
+## Known issues
+
+  * `ccache` is known to not generate the `*.i` and `*.s` when called
+    with the `-save-temps=obj` option.  Until your local `ccache` has
+    been fixed, remove `/usr/lib/ccache` or `/usr/lib64/ccache` from
+    the `PATH` as a workaround.  The same issue applies to other files
+    like linker map files (`-Wl,-Map=$(@:.elf=.map),--cref`) and
+    assembly listing files (`-Wa,-adhlns=$(@:.o=.lst)`).

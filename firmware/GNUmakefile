@@ -126,7 +126,7 @@ CFLAGS += -fshort-enums
 CFLAGS += -fno-common
 
 # Save temporary files (useful e.g. for debugging inline asm problems)
-CFLAGS += -save-temps
+CFLAGS += -save-temps=obj
 
 # Put extra commentary into the generated assembly code
 # CFLAGS += -fverbose-asm

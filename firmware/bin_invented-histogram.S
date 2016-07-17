@@ -38,8 +38,15 @@
 
 	.global	data_table
 	.type	data_table, @object
-	/* AVR is 8bit, so we do not care about alignment for data_table.
+	/* AVR is 8bit, so we do not care about alignment for
+	 * data_table on AVR.
 	 * Otherwise, a platform specific .balign value would be called for.
+	 * Getting the platform specific aligment value programmatically is
+	 * a bit difficult, though. So we would just err on the side of
+	 * alignment and align to multiples of 8 if we were to support
+	 * non-AVR platforms here.
+	 *
+	 * .balign	8
 	 */
 data_table:
 	.incbin	BIN_FILENAME

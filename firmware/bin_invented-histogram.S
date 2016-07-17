@@ -45,11 +45,14 @@ data_table:
 	.incbin	BIN_FILENAME
 	.size	data_table, . - data_table
 
+	/* Do not place any objects between data_table and
+	 * data_table_size_as_addr here. We must not change . here. */
 
-	.global data_table_size
-	.type	data_table_size, @object
-data_table_size = (. - data_table)
-	.size	data_table_size, 0
+	/* Pseudo object whose address can be used as size constant */
+	.global data_table_size_as_addr
+	.type	data_table_size_as_addr, @object
+data_table_size_as_addr = (. - data_table)
+	.size	data_table_size_as_addr, 0
 
 
 /*

@@ -40,11 +40,13 @@
  * value in code, so you can use this as an initialization value in C
  * code - given the proper type casting (see #DATA_TABLE_SIZE).
  */
-extern char data_table_size[];
+extern char data_table_size_as_addr[];
 
-/** The correct type casting for #data_table_size.
+
+/** The correct type casting for #data_table_size_as_addr.
  */
-#define DATA_TABLE_SIZE ((size_t)((void *)data_table_size))
+#define DATA_TABLE_SIZE ((size_t)((void *)data_table_size_as_addr))
+
 
 #endif /* BIN_INVENTED_HISTOGRAM_H */
 

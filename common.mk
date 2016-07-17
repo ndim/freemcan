@@ -9,6 +9,12 @@
 #    clean-common target so that "make clean" will clean our stuff as
 #    well as yours.
 
+ifneq (true,$(CCACHE_DISABLE))
+ifneq (,$(filter %/ccache,$(subst :, ,$(PATH))))
+$(warning ccache in PATH. Generating *.i *.lst *.s etc. might be broken.)
+endif
+endif
+
 TOP_DIR_CANDIDATES =
 TOP_DIR_CANDIDATES += .
 TOP_DIR_CANDIDATES += ..

@@ -105,7 +105,7 @@ int device_get_fd(device_t *self)
 static
 int open_char_device(const char *device_name)
 {
-  fmlog("%s: opening character device:", __PRETTY_FUNCTION__);
+  fmlog("%s: opening character device:", __func__);
   fmlog("    %s", device_name);
   int fd = serial_open(device_name);
   if (fd < 0) {
@@ -120,7 +120,7 @@ int open_char_device(const char *device_name)
 static
 int open_unix_socket(const char *socket_name)
 {
-  fmlog("%s: opening AF_UNIX socket %s", __PRETTY_FUNCTION__, socket_name);
+  fmlog("%s: opening AF_UNIX socket %s", __func__, socket_name);
   const int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
     fmlog_error("socket(2)");

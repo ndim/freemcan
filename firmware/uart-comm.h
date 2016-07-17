@@ -44,7 +44,7 @@ inline static
 char uart_getc(void)
 {
     /* Poll til a character is inside the input buffer */
-    loop_until_bit_is_set( UCSR0A, RXC0 );
+    loop_until_bit_is_set(UCSR0A, RXC0);
 
     /* Get the character */
     const char ch = UDR0;

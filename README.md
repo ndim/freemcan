@@ -113,9 +113,9 @@ LGPLv2.1+
   * cbi/sbi do not modify SREG. That makes it easy to write an ISR
     without saving any registers, like e.g.::
 
-        foo_vector:         /* ISR entry: 5 clock cycles */
-                 sbi foo,bar          /* 2 clock cycles */
-                 reti                 /* 5 clock cycles */
+        foo_vector:           /* enter ISR: 5 clock cycles */
+                sbi foo,bar              /* 2 clock cycles */
+                reti          /* leave ISR: 5 clock cycles */
 
     for doing the reset timing stuff, potentially at ADC trigger, and
     after timer IRQ counted delay later, or similar stuff.
@@ -125,7 +125,9 @@ LGPLv2.1+
 
   * `ccache` is known to not generate the `*.i` and `*.s` when called
     with the `-save-temps=obj` option.  Until your local `ccache` has
-    been fixed, remove `/usr/lib/ccache` or `/usr/lib64/ccache` from
-    the `PATH` as a workaround.  The same issue applies to other files
-    like linker map files (`-Wl,-Map=$(@:.elf=.map),--cref`) and
-    assembly listing files (`-Wa,-adhlns=$(@:.o=.lst)`).
+    been fixed, set `CCACHE_DISABLE=true` or remove `/usr/lib/ccache`
+    or `/usr/lib64/ccache` from the `PATH` as a workaround.
+
+    The same issue applies to other files like linker map files
+    (`-Wl,-Map=$(@:.elf=.map),--cref`) and assembly listing files
+    (`-Wa,-adhlns=$(@:.o=.lst)`).

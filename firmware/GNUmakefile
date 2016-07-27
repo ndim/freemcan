@@ -109,6 +109,19 @@ CFLAGS += -Wstrict-prototypes
 # CFLAGS += -funsigned-char
 # CFLAGS += -funsigned-bitfields
 
+# Save stack usage on per function basis as *.su
+# Unfortunately, this is not implemented in gcc's AVR target.
+# CFLAGS += -fstack-usage
+
+# Record GCC switches in object files
+# You can read the recorded GCC switches from the object or ELF file
+# by running "readelf -p .GCC.command.line foo.o"
+# CFLAGS += -frecord-gcc-switches
+
+# Record GCC switches in the dwarf debug data somehow. dwarfdump helps
+# reading it.
+# CFLAGS += -grecord-gcc-switches
+
 # Pack structure members together without holes
 # CFLAGS += -fpack-struct
 

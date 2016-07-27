@@ -3,19 +3,17 @@
 
 ## What is freemcan?
 
-
 freemcan is software for using custom gamma spectrum analyzer and
 geiger counter hardware. It consists of both the firmware to run on
 the custom hardware and of hostware to run a Linux PC.
 
 As the custom hardware contains a high voltage generator, we have
-not published the schematics or board files for it yet.
+not published the schematics or board files for its hardware yet.
 
 [![Build Status](https://travis-ci.org/ndim/freemcan.svg?branch=master)](https://travis-ci.org/ndim/freemcan)
 
 
 ### Why the name?
-
 
   * We wanted it to be Free Software.
 
@@ -27,13 +25,9 @@ not published the schematics or board files for it yet.
     better choice.
 
 
-
 ### The Plan
 
-
 (FIXME) No plan.
-
-
 
 
 ## Building
@@ -56,14 +50,15 @@ Installation is not supported at this time.
 
   * [avr-gcc](http://gcc.gnu.org/) based AVR toolchain
 
-  * [avr-binutils](http://sourceware.org/binutils/) >= 2.19 (we use INSERT AFTER in linker scripts)
+  * [avr-binutils](http://sourceware.org/binutils/) >= 2.19
+    (we use INSERT AFTER in linker scripts)
 
   * POSIX/GNU/Linux/Unix host system
 
   * [gcc](http://gcc.gnu.org/) compiler for host system
 
-    For building the internal code documentation (mostly of interest
-    to hackers), you additionally need
+For building the internal code documentation (mostly of interest to
+freemcan developers), you additionally need
 
   * [doxygen](http://www.stack.nl/~dimitri/doxygen/index.html)
 
@@ -74,12 +69,9 @@ Installation is not supported at this time.
     Optionally, for creating the source lines of code (SLOC) summary.
 
 
-
 ## Usage
 
-
 TBA.
-
 
 
 ## The License
@@ -87,32 +79,33 @@ TBA.
 LGPLv2.1+
 
 
-
 ## Hacking
 
 
 ### Subdirectory Contents
 
+  * `firmware/`
 
-   firmware/
-           The device firmware for Atmel ATmega644 microcontroller
+    The device firmware for Atmel ATmega644 microcontroller
 
-   code-comparison/
-           Some common tasks our firmware needs written in portable C
-           and compiled for all platforms we have a cross compiler
-           for. This lets us compare the assembly language generated
-           for those platforms.
+  * `code-comparison/`
 
-   hostware/
-           All the software running on the PC host. For lack of a
-           better word, we called it "hostware" to distinguish it from
-           the "firmware".
+    Some common tasks our firmware needs written in portable C
+    and compiled for all platforms we have a cross compiler
+    for. This lets us compare the assembly language generated
+    for those platforms.
 
-   emulator/
-           Simple attempt at emulating the device connected to a
-           device file by having an Erlang program connected to a
-           Unix domain socket.
+  * `hostware/`
 
+    All the software running on the PC host. For lack of a
+    better word, we called it "hostware" to distinguish it from
+    the "firmware".
+
+  * `emulator/`
+
+    Simple attempt at emulating the device connected to a
+    device file by having an Erlang program connected to a
+    Unix domain socket.
 
 
 ## Ideas
@@ -120,13 +113,12 @@ LGPLv2.1+
   * cbi/sbi do not modify SREG. That makes it easy to write an ISR
     without saving any registers, like e.g.::
 
-       foo_vector:         /* ISR entry: 5 clock cycles */
+        foo_vector:         /* ISR entry: 5 clock cycles */
                  sbi foo,bar          /* 2 clock cycles */
                  reti                 /* 5 clock cycles */
 
     for doing the reset timing stuff, potentially at ADC trigger, and
     after timer IRQ counted delay later, or similar stuff.
-
 
 
 ## Known issues

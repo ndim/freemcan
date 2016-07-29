@@ -565,7 +565,7 @@ program program-eeprom:
 	@$(MKDIR_P) $(@D)
 	$(COMPILE.c) -MM -MT ".objs/$*.o $@ " $< > $@
 
-include $(foreach F, $(wildcard *.c *.S), .deps/$(F).dep)
+include $(foreach F, $(filter-out ISR-ADC_vect.S, $(wildcard *.c *.S)), .deps/$(F).dep)
 
 
 ########################################################################

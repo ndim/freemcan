@@ -38,6 +38,13 @@
  * disable it manually early in the startup sequence. "Newer" AVRs
  * include the 164P/324P/644P we are using.
  *
+ * \bug We need to reset WDTCSR here as well. The
+ *      ATmega644P/ATmega1284P datasheets suggest the WDT might
+ *      accidentally be turned on by a brownout, and we should deal
+ *      with that. avr-libc's wdt_disable() does not do all that the
+ *      datasheet suggests. We can leave in MCUSR=0, though, as we are
+ *      not concerned with the reset cause.
+ *
  * See http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_softreset
  */
 INIT_FUNCTION(init3, wdt_softreset_init)

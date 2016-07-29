@@ -2,10 +2,8 @@
  *
  *     __noinit_end:    end of uninitialized data
  *
- *     _end:            end of whatever...
+ *     _end:            end of everything allocated statically
  *     __heap_start:    mallocable heap, growing upwards
- *
- *     __heap_end:
  *
  *     RAM_END:         stack, growing downwards
  *
@@ -18,16 +16,14 @@
  *     _end:            end of whatever
  *     __heap_start:    mallocable heap, growing upwards
  *
- *     __heap_end:
- *
  *     RAM_END:         stack, growing downwards
  *
  * In both cases, neither malloc nor the stack pointer should go past
- * __heap_end, otherwise you need to verify they never do that at the
- * same time.
+ * __heap_end in their respective direction, otherwise you need to
+ * verify they never do that at the same time.
  */
 SECTIONS {
-  data_table = __noinit_end ;
+  data_table = _end ;
   data_table_end = ( RAM_END - MAX_RUNTIME_STACK_SIZE - MALLOC_HEAP_SIZE ) ;
   data_table_size = data_table_end - data_table ;
   /* Unused definitions for table size in different units
@@ -37,9 +33,15 @@ SECTIONS {
    */
   _end = data_table_end ;
   __heap_start = _end ;
-  __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
-
+  /* The original linker script does not need __heap_end, as it has
+   * heap growing upwards and stack growing downwards into the same
+   * memory area between __heap_start and RAMEND. If needed, we could
+   * define __heap_end here as follows:
+   *
+   * __heap_end = __heap_start + MALLOC_HEAP_SIZE ;
+   */
 }
 INSERT AFTER .noinit ;
-ASSERT ( ( __heap_end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+table+heap+stack) size is too large for SRAM (data-table-all-other-memory.x)") ;
+ASSERT ( ( _end + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+table+stack) is too large for SRAM (data-table-all-other-memory.x)") ;
+ASSERT ( ( _end + MALLOC_HEAP_SIZE + MAX_RUNTIME_STACK_SIZE ) <= RAM_END, "(data+table+heap+stack) is too large for SRAM (data-table-all-other-memory.x)") ;
 ASSERT ( data_table_size >= 1024, "data table size is smaller than 1K (data-table-all-other-memory.x)") ;

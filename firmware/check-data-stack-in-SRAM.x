@@ -5,4 +5,6 @@
 SECTIONS {
 }
 INSERT AFTER .noinit ;
-ASSERT(__bss_end + MAX_RUNTIME_STACK_SIZE < RAM_END, "(data+stack) is too large for SRAM (check-data-stack-in-SRAM.x)");
+/* We do not check for mallocable heap space here. Why? */
+ASSERT( (_end + MAX_RUNTIME_STACK_SIZE) <= RAM_END, "(data+stack) is too large for SRAM (check-data-stack-in-SRAM.x)");
+ASSERT( (__heap_start + MALLOC_HEAP_SIZE + MAX_RUNTIME_STACK_SIZE) <= RAM_END, "(data+heap+stack) size is too large for SRAM (check-data-stack-in-SRAM.x)");

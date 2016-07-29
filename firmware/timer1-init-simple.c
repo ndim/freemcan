@@ -53,6 +53,11 @@ INIT_FUNCTION(init5, timer1_simple_io_init)
 }
 
 
+/** Define static string in a single place */
+const char PSTR_UNSUPPORTED_TIMER_VALUE_LE_1[] PROGMEM =
+  "Unsupported timer value <= 1";
+
+
 /** Configure 16 bit timer to trigger an ISR every second
  *
  * Configure "measurement in progress toggle LED-signal"
@@ -64,7 +69,7 @@ void timer1_init(const uint16_t timer1_value)
 
   /** Safeguard: We cannot handle 0 or 1 count measurements. */
   if (orig_timer1_count <= 1) {
-    send_text_P(PSTR("Unsupported timer value <= 1"));
+    send_text_P(PSTR_UNSUPPORTED_TIMER_VALUE_LE_1);
     wdt_soft_reset();
   }
 

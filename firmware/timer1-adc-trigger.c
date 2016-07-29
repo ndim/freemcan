@@ -231,6 +231,11 @@ void adc_init(void)
 }
 
 
+/** Define static string in a single place */
+const char PSTR_UNSUPPORTED_TIMER_VALUE_LE_1[] PROGMEM =
+  "Unsupported timer value <= 1";
+
+
 /** \bug Handle two uint16_t values from parameters: measurement
  *       duration and skip_samples.
  */
@@ -249,7 +254,7 @@ void personality_start_measurement_sram(void)
      * Enable this if you do something with get_duration() above.
      *
     if (orig_timer1_count <= 1) {
-      send_text_P(PSTR("Unsupported timer value <= 1"));
+      send_text_P(PSTR_UNSUPPORTED_TIMER_VALUE_LE_1);
       wdt_soft_reset();
     }
     */

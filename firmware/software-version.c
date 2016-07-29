@@ -37,9 +37,14 @@
 #include "init-functions.h"
 
 
+/** Define static string in a single place */
+const char PSTR_SOFTWARE_VERSION_STRING[] PROGMEM =
+  "freemcan " GIT_VERSION;
+
+
 INIT_FUNCTION(init8, software_version_send)
 {
-  send_text_P(PSTR("freemcan " GIT_VERSION));
+  send_text_P(PSTR_SOFTWARE_VERSION_STRING);
 }
 
 

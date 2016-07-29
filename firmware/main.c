@@ -124,6 +124,31 @@ const char PSTR_READY[]     PROGMEM = "READY";
 /** Define static string in a single place */
 const char PSTR_RESET[]     PROGMEM = "RESET";
 
+/** Define static string in a single place */
+const char PSTR_INVALID_STATE_TRANSITION[] PROGMEM =
+  "invalid state transition";
+
+/* Define static string in a single place
+ * const char PSTR_IGNORING_PRESSED_SWITCH[] PROGMEM =
+ *   "ignoring pressed switch";
+ */
+
+/** Define static string in a single place */
+const char PSTR_PARAMS_TO_EEPROM[] PROGMEM =
+  "PARAMS_TO_EEPROM";
+
+/** Define static string in a single place */
+const char PSTR_STP_ERROR[] PROGMEM =
+  "STP_ERROR";
+
+/** Define static string in a single place */
+const char PSTR_PARAM_LENGTH_MISMATCH[] PROGMEM =
+  "param length mismatch";
+
+/** Define static string in a single place */
+const char PSTR_CHECKSUM_FAIL[] PROGMEM =
+  "checksum fail";
+
 
 /* Make sure we actually get the fuse memory size we expect */
 BARE_COMPILE_TIME_ASSERT(FUSE_MEMORY_SIZE == 3);
@@ -285,7 +310,7 @@ firmware_state_t firmware_handle_measurement_finished(const firmware_state_t pst
     return STP_DONE;
     break;
   default:
-    send_text_P(PSTR("invalid state transition"));
+    send_text_P(PSTR_INVALID_STATE_TRANSITION);
     wdt_soft_reset();
     break;
   }
@@ -312,7 +337,7 @@ firmware_state_t firmware_handle_switch_pressed(const firmware_state_t pstate)
     break;
   default:
     /* silently ignore the switch press in all other states */
-    /* send_text_P(PSTR("ignoring pressed switch")); */
+    /* send_text_P(PSTR_IGNORING_PRESSED_SWITCH); */
     return pstate;
     break;
   }
@@ -352,7 +377,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
       break;
     case FRAME_CMD_PARAMS_TO_EEPROM:
       /* The param length has already been checked by the frame parser */
-      send_state_P(PSTR("PARAMS_TO_EEPROM"));
+      send_state_P(PSTR_PARAMS_TO_EEPROM);
       eeprom_update_block(&pparam_sram, &pparam_eeprom,
                           sizeof(pparam_eeprom));
       send_state_P(PSTR_READY);
@@ -447,7 +472,7 @@ firmware_state_t firmware_handle_command(const firmware_state_t pstate,
     }
     break;
   }
-  send_text_P(PSTR("STP_ERROR"));
+  send_text_P(PSTR_STP_ERROR);
   wdt_soft_reset();
 }
 
@@ -598,7 +623,7 @@ void main_event_loop(void)
           /* whoever sent us that wrongly sized data frame made an error */
           /** \todo Find a way to report errors without resorting to
            *        sending free text. */
-          send_text_P(PSTR("param length mismatch"));
+          send_text_P(PSTR_PARAM_LENGTH_MISMATCH);
           goto error_restart_nomsg;
         }
         break;
@@ -640,7 +665,7 @@ void main_event_loop(void)
         } else {
           /** \todo Find a way to report checksum failure without
            *        resorting to sending free text. */
-          send_text_P(PSTR("checksum fail"));
+          send_text_P(PSTR_CHECKSUM_FAIL);
           goto error_restart_nomsg;
         }
         break;

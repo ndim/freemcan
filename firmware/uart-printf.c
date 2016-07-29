@@ -39,8 +39,14 @@
 #include "frame-defs.h"
 #include "packet-comm.h"
 
+
 /** The buffer we format our message into. */
 static char buf[256];
+
+
+/** Define static string in a single place */
+const char PSTR_VSNPRINTF_RETURNED_ERROR[] PROGMEM =
+  "vsnprintf() returned negative value";
 
 
 /** Our own printf method
@@ -57,11 +63,11 @@ void uprintf(const char *format, ...)
 {
   va_list vl;
   va_start(vl, format);
-  int strsize = vsnprintf(buf, sizeof(buf), format, vl);
+  const int strsize = vsnprintf(buf, sizeof(buf), format, vl);
   if (strsize >= 0) {
     frame_send(FRAME_TYPE_TEXT, buf, strsize);
   } else {
-    send_text_P(PSTR("vsnprintf() returned negative value"));
+    send_text_P(PSTR_VSNPRINTF_RETURNED_ERROR);
   }
   va_end(vl);
 }

@@ -111,7 +111,7 @@ LGPLv2.1+
 ## Ideas
 
   * cbi/sbi do not modify SREG. That makes it easy to write an ISR
-    without saving any registers, like e.g.::
+    without saving any registers, like e.g.:
 
         foo_vector:           /* enter ISR: 5 clock cycles */
                 sbi foo,bar              /* 2 clock cycles */

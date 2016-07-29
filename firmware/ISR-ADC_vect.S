@@ -28,7 +28,14 @@
 # error Unsupported MCU!
 #endif
 
-/** \bug Cause compile time error when BITS_PER_VALUE != 24. */
+
+/* Cause compile time error when BITS_PER_VALUE != 24. */
+#if (BITS_PER_VALUE == 24)
+  /* normal operation */
+#else
+# error Unsupported BITS_PER_VALUE. Only 24 is supported.
+#endif
+
 
 /* define register names in a single place */
 #define tmpcnt0 r24

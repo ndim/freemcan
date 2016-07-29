@@ -47,22 +47,22 @@
  *                            (in bytes to make use of compile time constants)
  * \param TABLE_ELEMENT_SIZE Size of a single element in the data table in bits
  */
-#define PERSONALITY(NAME,                                           \
-                    PARAM_SIZE_TIMER1_COUNT,                        \
-                    PARAM_SIZE_SKIP_SAMPLES,                        \
-                    UNITS_PER_SECOND,                               \
-                    MAX_BYTES_PER_TABLE,                            \
-                    TABLE_ELEMENT_SIZE)                             \
-  const packet_personality_info_t personality_info PROGMEM = {      \
-    MAX_BYTES_PER_TABLE,                                            \
-    TABLE_ELEMENT_SIZE,                                             \
-    UNITS_PER_SECOND,                                               \
-    PARAM_SIZE_TIMER1_COUNT,                                        \
-    PARAM_SIZE_SKIP_SAMPLES                                         \
-  };                                                                \
-  const char    personality_name[] PROGMEM = (NAME);                \
-  const uint8_t personality_name_length    = sizeof(NAME)-1;        \
-  const uint8_t personality_param_size     =                        \
+#define PERSONALITY(NAME,                                             \
+                    PARAM_SIZE_TIMER1_COUNT,                          \
+                    PARAM_SIZE_SKIP_SAMPLES,                          \
+                    UNITS_PER_SECOND,                                 \
+                    MAX_BYTES_PER_TABLE,                              \
+                    TABLE_ELEMENT_SIZE)                               \
+  const packet_personality_info_t personality_info PROGMEM = {        \
+    (MAX_BYTES_PER_TABLE),                                            \
+    (TABLE_ELEMENT_SIZE),                                             \
+    (UNITS_PER_SECOND),                                               \
+    (PARAM_SIZE_TIMER1_COUNT),                                        \
+    (PARAM_SIZE_SKIP_SAMPLES)                                         \
+  };                                                                  \
+  const char    personality_name[] PROGMEM = (NAME);                  \
+  const uint8_t personality_name_length    = sizeof(NAME)-1;          \
+  const uint8_t personality_param_size     =                          \
     ((PARAM_SIZE_TIMER1_COUNT) + (PARAM_SIZE_SKIP_SAMPLES))
 
 /** Personality information for sending to the host

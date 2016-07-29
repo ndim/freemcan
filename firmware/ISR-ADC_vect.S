@@ -94,14 +94,14 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	lds	tmpcnt1, ADCH	// Read high 8 bits of ADC value a	/* 2 */
 	lds	tmpcnt0, ADCL	// Read low 8 bits of ADC value a	/* 2 */
 
-	/* multiply a by 3 to get offset within table */
+	/* multiply analog value by 3 to get offset within table */
 	movw	tmpidx0, tmpcnt0					/* 1 */
 	add	tmpidx0, tmpidx0					/* 1 */
 	adc	tmpidx1, tmpidx1					/* 1 */
 	add	tmpidx0, tmpcnt0					/* 1 */
 	adc	tmpidx1, tmpcnt1					/* 1 */
 
-	/* add table offset */
+	/* add table offset (note: one adiw or sbiw would also take 2 cycles) */
 	subi	tmpidx0, lo8(-(table))					/* 1 */
 	sbci	tmpidx1, hi8(-(table))					/* 1 */
 
@@ -110,7 +110,7 @@ moo_ADC_vect:	/* interrupt entry costs another 5 cycles */		/* 5 */
 	ldd	tmpcnt1, tmpidxW+1					/* 2 */
 	ldd	tmpcnt2, tmpidxW+2					/* 2 */
 
-	/* increase by one */
+	/* increase counter value by one */
 	adiw	tmpcnt0, 1						/* 2 */
 	adc	tmpcnt2, __zero_reg__					/* 1 */
 

@@ -334,18 +334,27 @@ LDLIBS   += -Wl,-T,check-data-stack-in-SRAM.x
 ifeq ($(HAVE_ERL),yes)
 PERSONALITIES += sim-mca
 firmware-sim-mca.elf : $(COMMON_OBJ) $(COMMON_X)
-firmware-sim-mca.elf : .objs/bin_invented-histogram.o
+firmware-sim-mca.elf : .objs/res_invented-histogram.o
 firmware-sim-mca.elf : .objs/perso-sim-mca.o
 	$(LINK.c) $(filter-out %.x,$^) $(LDLIBS) --output $@
 
-CLEANFILES += invented-histogram.bin
+CLEANFILES += .objs/invented-histogram.bin
 .objs/invented-histogram.bin: ../emulator/src/histogram_emulator.erl
 	$(MAKE) -C ../emulator ebin/histogram_emulator.beam
 	$(ERL) -noshell -pa ../emulator/ebin -s histogram_emulator to_file 256 "$@" -s init stop
 
-CLEANFILES += .objs/bin_invented-histogram.o
-.objs/bin_invented-histogram.o : CPPFLAGS+=-DBIN_FILENAME=\".objs/invented-histogram.bin\"
-.objs/bin_invented-histogram.o : .objs/invented-histogram.bin
+CLEANFILES += .objs/res_invented-histogram.o
+.objs/res_invented-histogram.o : .objs/invented-histogram.bin
+
+CLEANFILES += res_invented-histogram.S
+CLEANFILES += res_invented-histogram.h
+res_invented-histogram.S res_invented-histogram.h: resource2obj
+	$(SHELL) resource2obj data_table .objs/invented-histogram.bin res_invented-histogram.S
+
+# As an alternative, we could also define a BUILT_SOURCES and add that
+# as dependencies to all .dep generation rules. This is just one
+# place, though.
+.deps/perso-sim-mca.c.dep : res_invented-histogram.h
 endif
 
 # ======================================================================

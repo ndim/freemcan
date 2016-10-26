@@ -34,13 +34,13 @@
 #include "main.h"
 #include "data-table.h"
 
-#include "bin_invented-histogram.h"
+#include "res_invented-histogram.h"
 
 
 /** See * \see data_table */
 data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes */
-  DATA_TABLE_SIZE,
+  data_table_SIZE,
   /** Type of value table we send */
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
@@ -51,7 +51,7 @@ data_table_info_t data_table_info = {
 PERSONALITY("sim-mca",
             2,0,
             1,
-            DATA_TABLE_SIZE,
+            data_table_SIZE,
             BITS_PER_VALUE);
 
 

@@ -18,3 +18,6 @@
 /firmware-*.vsym
 /check-*.check
 /*.element-size.txt
+
+/res_invented-histogram.h
+/res_invented-histogram.S

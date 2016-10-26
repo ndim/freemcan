@@ -1,0 +1,371 @@
+#!/bin/sh
+#
+# resource2obj - convert resource file to .h and .S file for compilation to .o
+# Copyright (C) 2016 Hans Ulrich Niedermann <hun@n-dimensional.de>
+
+print_version_and_license() {
+    sed -n 's/^# //p; /^$/q' "$0"
+    echo
+    cat<<EOF
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+EOF
+}
+
+print_help()
+{
+    cat<<EOF
+Usage: resource2obj.sh [options...] <symbol> <resource-file> <asm-file>
+
+Convert <resource-file> to <asm-file> and a header file as symbol <symbol>.
+Use you assembler and C compiler
+
+Options:
+
+  --help        Print this help message
+  --version     Print copyright and version information.
+
+  --align none  (default)
+  --align 1
+  --align 2
+  --align 4
+  --align 8
+                Align the resource data to multiples of N bytes,
+                or do not align it at all.
+
+  --header <filename.h>
+                Write the header file to <filename.h> instead of
+                the default filename derived from the name of <asm-file>.
+
+  --quiet
+                Quiet output
+
+  --verbose
+                Verbose output
+EOF
+}
+
+
+########################################################################
+#
+# This program has been tested using
+#
+#    a) bash
+#    b) busybox sh
+#    c) dash
+#
+# So at least the shell parts should be reasonably compatible.
+#
+########################################################################
+
+
+set -e
+set -u
+
+
+########################################################################
+# Output messages
+########################################################################
+
+prog="$(basename "$0")"
+
+__verbose=false
+verbose() {
+    if ${__verbose}; then
+	echo "${prog}:" "verbose:" "$@"
+    fi
+}
+
+__quiet=false
+non_quiet() {
+    if ${__quiet}; then :; else
+	echo "${prog}:" "$@"
+    fi
+}
+
+error() {
+    echo "${prog}:" "error:" "$@"
+}
+
+
+########################################################################
+# Command line parsing
+########################################################################
+
+cmdline_args="$*"
+
+align="none"
+symbol=""
+resource_file=""
+asm_file=""
+header_file=""
+
+while [ "$#" -gt "0" ]
+do
+    case "$1" in
+	--help)
+	    print_help
+	    exit 0
+	    ;;
+	--version)
+	    print_version_and_license
+	    exit 0
+	    ;;
+	--quiet)
+	    __quiet=:
+	    ;;
+	--verbose)
+	    __verbose=:
+	    ;;
+	--align)
+	    case "$2" in
+		none) align="$2" ;;
+		1)    align="$2" ;;
+		2)    align="$2" ;;
+		4)    align="$2" ;;
+		8)    align="$2" ;;
+		16)   align="$2" ;;
+		*)
+		    error "invalid command line argument value to --align: \"$2\""
+		    exit 3
+		    ;;
+	    esac
+	    shift
+	    ;;
+	--header)
+	    header_file="$2"
+	    shift
+	    ;;
+	--*)
+	    error "invalid command line parameter \"$1\""
+	    exit 3
+	    ;;
+	*)
+	    if [ "x" = "x$symbol" ]; then
+		symbol="$1"
+		shift
+		continue
+	    fi
+	    if [ "x" = "x$resource_file" ]; then
+		resource_file="$1"
+		shift
+		continue
+	    fi
+	    if [ "x" = "x$asm_file" ]; then
+		asm_file="$1"
+		shift
+		continue
+	    fi
+	    error "invalid command line parameter \"$2\""
+	    exit 3
+	    ;;
+    esac
+    shift
+done
+
+if ${__quiet} && ${__verbose}; then
+    error "Both --quiet and --verbose given. Please decide."
+    exit 1
+fi
+
+if [ "x" = "x$symbol" ]; then
+    error "<symbol> missing on the command line"
+    exit 1
+fi
+
+if [ "x" = "x$resource_file" ]; then
+    error "<resource-files> missing on the command line"
+    exit 1
+fi
+
+if [ "x" = "x$asm_file" ]; then
+    error "<asm-file> missing on the command line"
+    exit 1
+fi
+
+verbose "symbol=$symbol"
+verbose "resource_file=$resource_file"
+verbose "asm_file=$asm_file"
+verbose "align=$align"
+
+if [ "x" = "x$header_file" ]; then
+    header_file="$(dirname "$asm_file")/$(basename "$asm_file" .S).h"
+fi
+verbose "header_file=$header_file"
+
+asm_base="$(basename "$asm_file")"
+verbose "asm_base=$asm_base"
+
+header_base="$(basename "$header_file")"
+verbose "header_base=$header_base"
+
+header_macro="BIN_$(echo "$resource_file" | tr a-z./- A-Z___)_RESOURCE_H"
+verbose "header_macro=$header_macro"
+
+
+########################################################################
+# Generate the output files
+########################################################################
+
+case "$align" in
+    none)
+	align_statement="/* no aligment */"
+	;;
+    *)
+	align_statement=".balign ${align}"
+	;;
+esac
+
+non_quiet "Generating \"${asm_base}\"..."
+cat>"$asm_file"<<EOF
+/* This file has been autogenerated by running
+ *
+ *     resource2obj ${cmdline_args}
+ *
+ * alongside the C/C++ header file
+ *
+ *     $header_base
+ *
+ * which contains some usage examples as C/C++ code.
+ */
+
+	.section .rodata
+
+	/* the object containing the actual data */
+	.global	${symbol}
+	.type	${symbol}, @object
+	${align_statement}
+${symbol}:
+	.incbin	"${resource_file}"
+	.size	${symbol}, . - ${symbol}
+
+	/* pseudo object located just after the ${symbol} object */
+${symbol}_end = .
+	.global	${symbol}_end
+	.type	${symbol}_end, @object
+	.size	${symbol}_end, 0
+
+	/* pseudo object whose address can be used as size constant */
+${symbol}_size_as_addr = (${symbol}_end - ${symbol})
+	.global	${symbol}_size_as_addr
+	.type	${symbol}_size_as_addr, @object
+	.size	${symbol}_size_as_addr, 0
+EOF
+
+
+non_quiet "Generating \"${header_file}\"..."
+cat>"$header_file"<<EOF
+/* This header file has been autogenerated by running
+ *
+ *     resource2obj ${cmdline_args}
+ *
+ * alongside the asm source file
+ *
+ *     ${asm_base}
+ *
+ * Usage example 1:
+ *
+ *     #include "${header_base}"
+ *
+ *     void send_bytes_${symbol}(void)
+ *     {
+ *       for (char *const p=${symbol};
+ *            p < ${symbol}_end;
+ *            ++p) {
+ *         send_byte(*p);
+ *       }
+ *     }
+ *
+ * Usage example 2:
+ *
+ *     #include <stdlib.h>
+ *     #include <string.h>
+ *
+ *     #include "${header_base}"
+ *
+ *     char *storage_area;
+ *
+ *     void init_with_${symbol}(void)
+ *     {
+ *       storage_area = malloc(${symbol}_SIZE);
+ *       if (!storage_area) {
+ *         perror("malloc for ${symbol}_SIZE");
+ *         exit(EXIT_FAILURE;
+ *       }
+ *       memcpy(storage_area, ${symbol}, ${symbol}_SIZE);
+ *     }
+ *
+ * Usage example 3:
+ *
+ *     #include "${header_base}"
+ *
+ *     void send_bytes_${symbol}(void)
+ *     {
+ *       for (size_t i=0; i < ${symbol}_SIZE; ++i) {
+ *         send_byte(${symbol}[i]);
+ *       }
+ *     }
+ *
+ * Usage example 4:
+ *
+ *     #include "${header_base}"
+ *
+ *     STATIC_ASSERT((${symbol}_SIZE & 3) == 0);
+ *
+ *     void send_dwords_${symbol}(void)
+ *     {
+ *       for (size_t i=0; i < (${symbol}_SIZE/4); ++i) {
+ *         send_dword(${symbol}[i]);
+ *       }
+ *     }
+ *
+ */
+#ifndef ${header_macro}
+#define ${header_macro}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Required for size_t */
+#include <stdlib.h>
+
+/* The symbol where the resource memory area begins */
+extern char ${symbol}[];
+
+/* The symbol where the resource memory area ends */
+extern char ${symbol}_end[];
+
+/* Symbol at address of size of the resource. This makes the size a
+ * link time constant which the linker can use to compute constant
+ * address values for the executable. */
+extern char ${symbol}_size_as_addr[];
+#define ${symbol}_SIZE ((size_t)((void *)${symbol}_size_as_addr))
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ${header_macro} */
+EOF
+
+
+non_quiet "Done."
+exit 0

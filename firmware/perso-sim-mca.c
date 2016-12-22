@@ -40,7 +40,7 @@
 /** See * \see data_table */
 data_table_info_t data_table_info = {
   /** Actual size of #data_table in bytes */
-  data_table_SIZE,
+  sizeof(data_table),
   /** Type of value table we send */
   VALUE_TABLE_TYPE_HISTOGRAM,
   /** Table element size */
@@ -51,7 +51,7 @@ data_table_info_t data_table_info = {
 PERSONALITY("sim-mca",
             2,0,
             1,
-            data_table_SIZE,
+            sizeof(data_table),
             BITS_PER_VALUE);
 
 

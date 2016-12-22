@@ -348,8 +348,8 @@ CLEANFILES += .objs/res_invented-histogram.o
 
 CLEANFILES += res_invented-histogram.S
 CLEANFILES += res_invented-histogram.h
-res_invented-histogram.S res_invented-histogram.h: resource2obj
-	$(SHELL) resource2obj data_table .objs/invented-histogram.bin res_invented-histogram.S
+res_invented-histogram.S res_invented-histogram.h: resource2obj .objs/invented-histogram.bin
+	$(SHELL) resource2obj res_invented-histogram.S data_table .objs/invented-histogram.bin
 
 # As an alternative, we could also define a BUILT_SOURCES and add that
 # as dependencies to all .dep generation rules. This is just one

@@ -587,7 +587,7 @@ include $(foreach F, $(filter-out ISR-ADC_vect.S, $(wildcard *.c *.S)), .deps/$(
 clean: clean-common
 	rm -f $(CLEANFILES)
 	rm -f $(COMMON_OBJ) $(OTHER_OBJ)
-	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss
+	rm -f *.hex *.eep *.cof *.elf *.map *.sym *.lss *.vsym
 	rm -f check-*.check
 	rm -f *.lst
 	rm -f *.o

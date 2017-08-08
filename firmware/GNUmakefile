@@ -340,6 +340,7 @@ firmware-sim-mca.elf : .objs/perso-sim-mca.o
 
 CLEANFILES += .objs/invented-histogram.bin
 .objs/invented-histogram.bin: ../emulator/src/histogram_emulator.erl
+	@$(MKDIR_P) $(@D)
 	$(MAKE) -C ../emulator ebin/histogram_emulator.beam
 	$(ERL) -noshell -pa ../emulator/ebin -s histogram_emulator to_file 256 "$@" -s init stop
 
